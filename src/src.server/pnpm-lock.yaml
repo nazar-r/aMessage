@@ -11,15 +11,6 @@ importers:
       '@fastify/cookie':
         specifier: ^7.0.0
         version: 7.4.0
-      '@fastify/cors':
-        specifier: ^8.0.0
-        version: 8.5.0
-      '@fastify/passport':
-        specifier: ^2.4.0
-        version: 2.5.0
-      '@fastify/session':
-        specifier: ^10.0.0
-        version: 10.9.0
       '@nestjs/common':
         specifier: ^10.0.0
         version: 10.4.22(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -386,9 +377,6 @@ packages:
   '@fastify/cookie@7.4.0':
     resolution: {integrity: sha512-82MUHsZJY/Wl+rG2E+bnYxSifOtNRChm2M+8xnZHnKtYmyNfLvy/37ElCtqD3KzUyTycR+GE7v7uiDD/tY4TkA==}
 
-  '@fastify/cors@8.5.0':
-    resolution: {integrity: sha512-/oZ1QSb02XjP0IK1U0IXktEsw/dUBTxJOW7IpIeO8c/tNalw/KjoNSJv1Sf6eqoBPO+TDGkifq6ynFK3v68HFQ==}
-
   '@fastify/cors@9.0.1':
     resolution: {integrity: sha512-YY9Ho3ovI+QHIL2hW+9X4XqQjXLjJqsU+sMV/xFsxZkE8p3GNnYVFpoOxF7SsP5ZL76gwvbo3V9L+FIekBGU4Q==}
 
@@ -398,9 +386,6 @@ packages:
   '@fastify/fast-json-stringify-compiler@4.3.0':
     resolution: {integrity: sha512-aZAXGYo6m22Fk1zZzEUKBvut/CIIQe/BapEORnxiD5Qr0kPHqqI69NtEMCme74h+at72sPhbkb4ZrLd1W3KRLA==}
 
-  '@fastify/flash@5.2.0':
-    resolution: {integrity: sha512-mVPXZmX8PgNHWhqasN5He/Cz68YSxXuZ732Uqd8HZ8Rjtkhk8aqNU6v54NFmxzACNI4dLtXP4yj1BogdaySyRw==}
-
   '@fastify/formbody@7.4.0':
     resolution: {integrity: sha512-H3C6h1GN56/SMrZS8N2vCT2cZr7mIHzBHzOBa5OPpjfB/D6FzP9mMpE02ZzrFX0ANeh0BAJdoXKOF2e7IbV+Og==}
 
@@ -409,12 +394,6 @@ packages:
 
   '@fastify/middie@8.3.3':
     resolution: {integrity: sha512-+WHavMQr9CNTZoy2cjoDxoWp76kZ3JKjAtZj5sXNlxX5XBzHig0TeCPfPc+1+NQmliXtndT3PFwAjrQHE/6wnQ==}
-
-  '@fastify/passport@2.5.0':
-    resolution: {integrity: sha512-C7FFT4XMjjDFQDDDNZYfciDpCC/BcEy+PBI0RgSJTrRtrDhvDxbQXCiFV6ls5wnGFfz+fIkUYfYzRP2HPv+pBw==}
-
-  '@fastify/session@10.9.0':
-    resolution: {integrity: sha512-u/c42RuAaxCeEuRCAwK2+/SfGqKOd0NSyRzEvDwFBWySQoKUZQyb9OmmJSWJBbOP1OfaU2OsDrjbPbghE1l/YQ==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -3551,11 +3530,6 @@ snapshots:
       cookie: 0.5.0
       fastify-plugin: 4.5.1
 
-  '@fastify/cors@8.5.0':
-    dependencies:
-      fastify-plugin: 4.5.1
-      mnemonist: 0.39.6
-
   '@fastify/cors@9.0.1':
     dependencies:
       fastify-plugin: 4.5.1
@@ -3566,10 +3540,6 @@ snapshots:
   '@fastify/fast-json-stringify-compiler@4.3.0':
     dependencies:
       fast-json-stringify: 5.16.1
-
-  '@fastify/flash@5.2.0':
-    dependencies:
-      fastify-plugin: 4.5.1
 
   '@fastify/formbody@7.4.0':
     dependencies:
@@ -3586,16 +3556,6 @@ snapshots:
       fastify-plugin: 4.5.1
       path-to-regexp: 6.3.0
       reusify: 1.1.0
-
-  '@fastify/passport@2.5.0':
-    dependencies:
-      '@fastify/flash': 5.2.0
-      fastify-plugin: 4.5.1
-
-  '@fastify/session@10.9.0':
-    dependencies:
-      fastify-plugin: 4.5.1
-      safe-stable-stringify: 2.5.0
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:

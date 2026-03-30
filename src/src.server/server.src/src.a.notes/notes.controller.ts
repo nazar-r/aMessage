@@ -2,10 +2,10 @@ import { Controller, Get, Req, Post, Patch, Delete, Body, Param, UseGuards } fro
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './notes.image/notes.creating.dto';
 import { UpdateNoteDto } from './notes.image/notes.updating.dto';
-import { JwtCheckCookies } from '../src.b.jwt/jwt.check.cookies';
+import { checkJwtCookies } from '../src.b.jwt/jwt.check.cookies';
 
 @Controller('notes')
-@UseGuards(JwtCheckCookies)
+@UseGuards(checkJwtCookies)
 export class NotesController {
   constructor(private readonly notesService: NotesService) { }
 

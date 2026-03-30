@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthService } from './auth.service';
-import { JwtCheckCookies } from '../src.b.jwt/jwt.check.cookies';
+import { checkJwtCookies } from '../src.b.jwt/jwt.check.cookies';
 
 @Controller('auth')
 export class AuthController {
@@ -55,7 +55,7 @@ export class AuthController {
   }
 
   @Get('check')
-  @UseGuards(JwtCheckCookies)
+  @UseGuards(checkJwtCookies)
   checkLogin(@Req() req: FastifyRequest & { user?: any }) {
     return { isLoggedIn: true, user: req.user };
   }
