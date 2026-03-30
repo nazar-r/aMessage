@@ -1,0 +1,28 @@
+const NotesContainer = () => {
+    return (
+        <div>
+            <div className="lobby-note" > </div>
+            <div className="lobby-note__field">
+                <div className="lobby-note__hidden">
+                    <div className="lobby-note__hidden--item">
+                        <svg className="lobby-note__hidden--item__icon" width="14" height="14" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path opacity="0.85" d="M12.8054 3.35851L15.4766 6.03033M10.4444 17.9996H18M1 18L1.04481 17.6863C1.2034 16.576 1.28269 16.0208 1.46305 15.5025C1.6231 15.0427 1.84173 14.6053 2.11356 14.2013C2.41989 13.746 2.81635 13.3494 3.60925 12.5564L14.6101 1.55335C15.3478 0.815555 16.5438 0.815546 17.2815 1.55335C18.0191 2.29115 18.0191 3.48736 17.2815 4.22516L6.07869 15.43C5.35936 16.1496 4.99969 16.5093 4.59002 16.7954C4.22639 17.0493 3.83421 17.2597 3.42154 17.4222C2.95662 17.6051 2.45799 17.7057 1.46082 17.907L1 18Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div className="lobby-note__hidden--item__edit">Edit</div>
+                    </div>
+                    <div className="lobby-note__hidden--item">
+                        <svg className="lobby-note__hidden--item__icon-1" width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g opacity="1">
+                                <path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" />
+                                <path d="M17 7.34091V9.65909L0 9.65909L1.01331e-07 7.34091L17 7.34091Z" fill="white" />
+                            </g>
+                        </svg>
+                        <div className="lobby-note__hidden--item__edit">Delete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default NotesContainer;

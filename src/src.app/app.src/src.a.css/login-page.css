@@ -1,0 +1,183 @@
+    .login-page {
+        display: flex;
+        flex-direction: column;
+        color: var(--color-text) !important;
+        align-items: left;
+        height: var(--height-welcome-page);
+        animation: fadeIn 0.2s ease forwards;
+    }
+
+    .login-page__button-container {
+        display: flex;
+        flex-direction: column;
+        margin: 85px 0 0 0;
+    }
+
+    .login-page__button--icon {
+        margin: 0 0 0 9px;
+        width: 23px;
+        height: 23px;
+        stroke: white;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+
+    .login-page__button--title-text {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .login-page__button--title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .login-page__button {
+        margin: 0 0 20px 0;
+        padding: 0 30px 0 30px;
+        box-sizing: border-box;
+        border: none;
+        width: 195px;
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background: #000000;
+        box-shadow: 5px 5px 50px #00000065;
+        font-size: 16px;
+        color: #ffffff;
+    }
+
+    .login-page__button--error {
+        font-size: 13px;
+        margin: 0 0 10px 0;
+        color: #ffe600;
+    }
+
+    .login-page__title {
+        margin: 40vh 0 0 0;
+        color: var(--color-text);
+        font-size: 35px;
+        text-shadow: var(--text-shadow-welcome-page__heading);
+    }
+
+    .login-page__button:not(:hover) .login-page__button-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .login-page__button-hidden {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        margin: 0 0 0 15px;
+    }
+
+    .login-page__button--text-input {
+        margin: 0 0 0 35px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-page__text-field--icon {
+        width: 15px;
+        height: 15px;
+        margin: auto;
+    }
+
+    .login-page__button--text-item {
+        width: 100%;
+        height: 40%;
+        background: #000000;
+        border: none;
+        color: #ffffff;
+    }
+
+    .login-page__button:hover {
+        width: 500px;
+        height: 180px;
+        font-size: 16px;
+        transform: var(--transform-welcome-page__button--item);
+        opacity: 80%;
+        box-shadow: 7px 7px 50px #00000073;
+        cursor: pointer;
+        transition: 0.35s;
+    }
+
+    .login-page__button--title:hover {
+        display: flex;
+        flex-direction: row;
+        transform: var(--transform-welcome-page__button--item);
+        align-items: center;
+        opacity: 80%;
+    }
+
+    @media(min-width: 650px) {
+        .login-page__button-container {
+            display: flex;
+            flex-direction: row;
+            margin: 85px 0 0 0;
+        }
+
+        .login-page__button {
+            margin: 0 20px 0 0;
+            box-sizing: border-box;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            background: #000000;
+            box-shadow: 5px 5px 50px #00000065;
+            font-size: 16px;
+            opacity: 80%;
+        }
+
+        .login-page__title {
+            font-size: 50px;
+            text-shadow: var(--text-shadow-welcome-page__heading);
+            margin: 40vh 0 0 0;
+        }
+    }
+
+    @media(min-width: 900px) {
+        .login-page__button-container {
+            display: flex;
+            flex-direction: row;
+            margin: 60px 0 0 0;
+        }
+    }
+
+    @media(min-width: 1250px) {
+        .login-page__button-container {
+            display: flex;
+            flex-direction: row;
+            margin: 60px 0 0 0;
+        }
+
+        .login-page__title {
+            font-size: var(--font-size-xxl);
+            text-shadow: var(--text-shadow-welcome-page__heading);
+            margin: 40vh 0 0 0;
+        }
+
+        .login-page__button {
+            margin: 0 20px 20px 0;
+            padding: 0 30px 0 30px;
+            box-sizing: border-box;
+            border: none;
+            width: 195px;
+            height: 60px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            background: #000000;
+            box-shadow: 5px 5px 50px #00000065;
+            font-size: 15px;
+            color: #ffffff;
+        }
+    }

@@ -1,0 +1,75 @@
+.navbar {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    padding: 0 15vw 0 15vw;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.navbar-button {
+    position: fixed;
+    bottom: 10vh;
+    color: #fff;
+    font-size: 20px;
+    text-shadow: 5px 5px 50px #000000b0;
+    box-sizing: border-box;
+    left: 15vw;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.login-page__button:not(:hover) .login-page__button-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.navbar-container {
+    margin: 0 0 30vh 0;
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 10vw;
+    color: #fff;
+    font-size: 18px;
+}
+
+.navbar-button:hover {
+    transform: var(--transform-welcome-page__button--item);
+    opacity: 80%;
+    cursor: pointer;
+    transition: 0.35s;
+}
+
+.navbar-item:hover {
+    transform: var(--transform-welcome-page__button--item);
+    opacity: 80%;
+    text-shadow: 7px 7px 50px #00000073;
+    cursor: pointer;
+    transition: 0.35s;
+}
+
+@media(min-width: 650px) {
+    .navbar {
+        padding: 0 20vw 0 20vw;
+    }
+
+    .navbar-button {
+        left: 20vw;
+    }
+}
+
+@media(min-width: 1250px) {
+    .navbar {
+        padding: 0 25vw 0 25vw;
+    }
+
+    .navbar-button {
+        left: 25vw;
+    }
+}

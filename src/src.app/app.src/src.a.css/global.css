@@ -1,0 +1,202 @@
+@import "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap";
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: 0.2s;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+input {
+    background-color: #000000;
+    color: #ffffff;
+    ;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+input:-webkit-autofill {
+    background-color: #000000 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #000000 inset;
+    -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+@keyframes fadeInAdd {
+    from {
+        opacity: 0;
+        width: 0;
+        margin: 0;
+    }
+
+    to {
+        opacity: 1;
+        width: 15px;
+        margin: 0 40px 0 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeOutAdd {
+    from {
+        opacity: 1;
+        width: 15px;
+        margin: 0 40px 0 0;
+    }
+
+    to {    
+        opacity: 0;
+        width: 0;
+        margin: 0;
+    }
+}
+
+
+
+.main-container {
+    background: linear-gradient(to right, #76CFF6 -50%, #70A7C8 35%, #0D72C5 120%);
+    padding: 0 12vw 0 15vw;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+@media(min-width: 650px) {
+    .main-container {
+        padding: 0 20vw 0 20vw;
+        background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 50%, #0D72C5 120%);
+    }
+}
+
+@media(min-width: 1250px) {
+    .main-container {
+        padding: 0 25vw 0 25vw;
+        background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);
+    }
+}
+
+:root {
+    --font-weight-bold: 700;
+
+    --font-size-xs: 21px;
+    --font-size-s: 23px;
+    --font-size-m: 25px;
+    --font-size-l: 20px;
+    --font-size-xl: 50px;
+    --font-size-xxl: 55px;
+    --font-size-xxxl: 75px;
+
+    --color-text: #ffffff;
+    --color-item-background: #000000;
+
+    --transition: 0.2s;
+
+    --welcome-page-appearing: pageAppear 0.5s ease forwards;
+    --welcome-page-disappearing: pageDisappear 0.5s ease forwards;
+
+    --todo-page-appearing: pageAppear 0.5s ease forwards;
+    --todo-page-disappearing: pageDisappear 0.5s ease forwards;
+
+    --width-welcome-page: 100%;
+    --width-welcome-page__heading-button: 150px;
+    --tablet-width-tablet-welcome-page__heading: 165px;
+    --desktop-width-welcome-page__heading-button: 220px;
+
+    --height-welcome-page: 100vh;
+    --height-welcome-page__heading-button: 60px;
+    --desktop-height-welcome-page__button--item: 75px;
+    --height-tasks__field-container: 60px;
+
+    --margin-welcome-page__heading: 0 0 0 10px;
+    --margin-welcome-page__heading-button: 45px 0 0 0;
+    --margin-welcome-page__heading-button--item: 0 0 0 10px;
+    --desktop-margin-welcome-page__heading-button--item: 0 0 0 15px;
+
+
+    --text-shadow-welcome-page__heading: 5px 5px 50px #00000020;
+
+    --box-shadow-welcome-page__heading-button: 0px 5px 80px #00000055;
+    --hover-box-shadow-welcome-page__heading-button: 0px 20px 100px #00000085;
+
+    --scale-welcome-page__heading-button--item: 60%;
+    --tablet-scale-welcome-page__heading-button--item: 65%;
+    --desktop-scale-welcome-page__heading-button--item: 75%;
+
+    --transform-welcome-page__button--item: translateY(-7px) scale(1.00);
+
+
+
+
+    --width-tasks__field-container: 840px;
+    --width-field-container__item: 100%;
+    --width-todo-page-tasks: 100%;
+    --width-tasks__field-container: 100%;
+    --width-field-container__item: 100%;
+
+    --height-field-container__item: 60px;
+
+    --margin-todo-page: 180px 0 0 0;
+    --margin-tasks__field-container: 45px 0 0 0;
+    --margin-field-container__item: 0 20px 0 0;
+
+    --margin-change-text-size__detail: 0 20px 0 0;
+    --todo-page__tasks-heading--button: 2px 25px 0 -8px;
+
+    --border-field-container__item: 0px;
+
+    --padding-todo-page: 0 40px;
+
+    --text-shadow-todo-page__heading: 5px 5px 50px #00000020;
+
+    --scale-todo-page__tasks-heading--button: 60%;
+    --scale-field-container__item--change-text-color: 1.1;
+}
+
+:root {
+    --welcome-page-container__description: 13px 0 0 0;
+    --welcome-page-container__description-650: 20px 0 0 0;
+    --welcome-page-container-padding: 0 0 0px 0;
+    --button-radius: 6px;
+    --button-width: 180px;
+    --button-height: 6px;
+    --button-bg-color: #00000038;
+    --button-hover-height: 230px;
+    --button-hover-top: calc(50% - 115px);
+    --navigation-padding-mobile: 20px;
+    --navigation-padding-desktop: 45px;
+    --navigation-border-radius-mobile: 30px;
+    --navigation-border-radius-desktop: 0px;
+    --navigation-box-shadow: 0 0 500px 0 #00000075;
+    --navigation-bg-gradient: linear-gradient(to right, #AD00FF -30%, #feb47b 60%, #ffefa1 100%);
+    --navigation-bg-box-shadow: 0 0 500px #00000075;
+    --navigation-bg-box-shadow-hover: 0 0 50px 0 #00000060;
+    --button-margin-desktop: 0 auto 0 0;
+    --button-margin-mobile: 0 auto 50px 0;
+}
