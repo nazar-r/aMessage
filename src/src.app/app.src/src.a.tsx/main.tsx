@@ -1,18 +1,16 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { authentication } from './tsx.items/authentication.ts';
+import { authentication } from './tsx.extensions/authentication.ts';
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import '../src.a.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
-const LoginPage = lazy(() => import('./tsx.pages/login-page.tsx'));
-const WelcomePage = lazy(() => import('./tsx.pages/welcome-page.tsx'));
-const LobbyPage = lazy(() => import('./tsx.pages/lobby-page.tsx'));
-const LobbyPagePrev = lazy(() => import('./tsx.pages/lobby-page-prev.tsx'));
-const TasksEditorPage = lazy(() => import('./tsx.pages/tasks-editor-page.tsx'));
-const UpdatesPage = lazy(() => import('./tsx.pages/updates-page.tsx'));
+const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
+const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
+const LobbyPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
+const LobbyPagePrev = lazy(() => import('./tsx.pages/choosing.user.page.tsx'));
 
 const withSuspense = (component: ReactElement) => (
   <Suspense>{component}</Suspense>
@@ -39,8 +37,6 @@ const contentRoutes: RouteObject[] = [
       { path: 'login', element: withSuspense(<LoginPage />) },
       { path: 'lobby-prev', element: privateAuth(withSuspense(<LobbyPagePrev />)) },
       { path: 'lobby', element: privateAuth(withSuspense(<LobbyPage />)) },
-      { path: 'updates', element: privateAuth(withSuspense(<UpdatesPage />)) },
-      { path: 'tasks-editor', element: privateAuth(withSuspense(<TasksEditorPage />)) },
     ],
   },
 ];

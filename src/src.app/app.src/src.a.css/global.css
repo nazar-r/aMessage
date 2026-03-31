@@ -64,6 +64,8 @@ input:-webkit-autofill {
     }
 }
 
+
+
 @keyframes fadeOutAdd {
     from {
         opacity: 1;

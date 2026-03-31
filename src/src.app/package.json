@@ -1,10 +1,10 @@
 {
-  "name": "aMessage-1-app",
+  "name": "notebook-1-1",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5174",
     "build": "vite build",
     "preview": "vite preview"
   },

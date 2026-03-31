@@ -1,37 +1,37 @@
-.lobby-page {
+.chat-page {
     width: 100%;
     height: 100%;
     padding: 40vh 0 0 0;
     animation: fadeIn 0.2s ease forwards;
 }
 
-.lobby-page__container {
+.chat-page__container {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.lobby-page__viewport {
+.chat-page__viewport {
     display: flex;
     flex-direction: row;
 }
 
-.lobby-page__viewport:not(:hover) .lobby-page__container--add {
+.chat-page__viewport:not(:hover) .chat-page__container--add {
     animation: fadeOutAdd 0.2s ease forwards;
     pointer-events: none;
 }
 
-.lobby-page__container--add {
+.chat-page__container--add {
     cursor: pointer;
     margin: 0 40px 0 0;
     animation: fadeInAdd 0.2s ease forwards;
 }
 
-.lobby-note--fade {
+.chat-note--fade {
     animation: fadeOut 0.2s ease forwards;
 }
 
-.lobby-note__hidden--item {
+.chat-note__hidden--item {
     font-size: 12px;
     opacity: 80%;
     margin: 0 25px 0 0;
@@ -40,7 +40,7 @@
     animation: fadeIn 0.4s ease forwards;
 }
 
-.lobby-note {
+.chat-note {
     animation: fadeIn 0.2s ease forwards;
     margin: 40px 20px 50px 0;
     padding: 0 0 40px 0;
@@ -53,7 +53,7 @@
     color: #ffffff;
 }
 
-.lobby-note__hidden {
+.chat-note__hidden {
     animation: fadeIn 0.2s ease forwards;
     margin: 25px 0 -15px 32px;
     display: flex;
@@ -61,7 +61,7 @@
     color: #ffffffe8;
 }
 
-.lobby-page__viewport {
+.chat-page__viewport {
     position: relative;
     overflow-x: auto;
     mask-image: linear-gradient(to left, #00000000, #000000 20%);
@@ -72,37 +72,37 @@
     -webkit-mask-size: 10 0% 100%;
 }
 
-.lobby-note:not(:hover) .lobby-note__hidden {
+.chat-note:not(:hover) .chat-note__hidden {
     display: none;
     pointer-events: none;
 }
 
-.lobby-page__button--icon {
+.chat-page__button--icon {
     cursor: pointer;
     color: #ffffff;
     opacity: 50%;
     margin: 0 30px 0 0;
 }
 
-.lobby-note__hidden--item__edit {
+.chat-note__hidden--item__edit {
     margin: 0 0 0 7px;
 }
 
-.lobby-page__title {
+.chat-page__title {
     font-size: 50px;
     color: #ffffff;
 }
 
-.lobby-note__hidden--item__icon {
+.chat-note__hidden--item__icon {
     margin: 1px 0 0 0;
 }
 
-.lobby-note__hidden--item__icon-1 {
+.chat-note__hidden--item__icon-1 {
     transform: rotate(45deg);
     margin: 1px 0 0 0;
 }
 
-.lobby-note__field {
+.chat-note__field {
     cursor: pointer;
     width: 100%;
     height: 100%;
@@ -112,13 +112,13 @@
     border: none;
 }
 
-.lobby-note:hover {
+.chat-note:hover {
     transform: translateY(-7px);
     box-shadow: 7px 7px 50px #00000093;
     cursor: pointer;
 }
 
-.lobby-note__hidden--item:hover {
+.chat-note__hidden--item:hover {
     transform: var(--transform-welcome-page__button--item);
     opacity: 60%;
     box-shadow: 7px 7px 50px #00000073;

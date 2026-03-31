@@ -1,12 +1,13 @@
 import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthService } from './auth.service';
-import { checkJwtCookies } from '../src.b.jwt/jwt.check.cookies';
+import { AuthGuard } from '@nestjs/passport';
+import { JwtCheckCookies } from '../src.b.jwt/jwt.check.cookies';
+import { Request, Response } from 'express';
+
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private authService: AuthService) { }
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -14,21 +15,17 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(
-    @Req() req: FastifyRequest & { user?: any },
-    @Res() reply: FastifyReply,
-  ) {
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const { access_token } = await this.authService.googleLogin(req.user);
 
-    reply.setCookie('access_token', access_token, {
+    res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 6,
+      maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return reply.code(302).redirect('http://localhost:5173/lobby-prev');
+    return res.redirect('http://localhost:5174/lobby-prev');
   }
 
   @Get('github')
@@ -37,26 +34,22 @@ export class AuthController {
 
   @Get('github/redirect')
   @UseGuards(AuthGuard('github'))
-  async githubAuthRedirect(
-    @Req() req: FastifyRequest & { user?: any },
-    @Res() reply: FastifyReply,
-  ) {
+  async githubAuthRedirect(@Req() req, @Res() res: Response) {
     const { access_token } = await this.authService.githubLogin(req.user);
 
-    reply.setCookie('access_token', access_token, {
+    res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 6,
+      maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return reply.code(302).redirect('http://localhost:5173/lobby-prev');
+    return res.redirect('http://localhost:5174/lobby-prev');
   }
 
   @Get('check')
-  @UseGuards(checkJwtCookies)
-  checkLogin(@Req() req: FastifyRequest & { user?: any }) {
+  @UseGuards(JwtCheckCookies)
+  checkLogin(@Req() req: Request) {
     return { isLoggedIn: true, user: req.user };
   }
 }

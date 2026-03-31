@@ -20,7 +20,7 @@
 .welcome-page-container__description {
     margin: var(--welcome-page-container__description);
     font-size: 17px;
-    text-transform: capitalize;
+    text-transform: none;
     font-weight: 600;
 }
 

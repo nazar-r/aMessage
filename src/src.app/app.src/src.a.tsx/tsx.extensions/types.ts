@@ -1,10 +1,10 @@
-export interface notesData {
-    noteId: string;
+export interface messagesData {
+    messageId: string;
     content: string;
 }
 
-export interface givenNotesData {
-    noteId: string;
+export interface givenMessagesData {
+    messageId: string;
     content: string;
     userId: string;
     createdAt: string;
@@ -19,7 +19,6 @@ export interface SharedTextContextType {
 export type AuthToken = {
     token: string
 };
-
 
 export type ContextType = {
     prev: any;
