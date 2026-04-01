@@ -24,7 +24,7 @@ Permission is hereby granted to any person obtaining a copy of this software and
    The Software is provided "as is", without warranty of any kind.
 
 7. **Limitation of Liability**
-   In no event shall the authors or copyright holders be liable for any claim, damages, or other liability arising from the use of the Software.
+   In no event shall the author or copyright holder be liable for any claim, damages, or other liability arising from the use of the Software.
 
 ---
 
