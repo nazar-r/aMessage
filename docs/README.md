@@ -1,4 +1,4 @@
-# TypeScript-Based Messaging App with React + NestJS + PostgreSQL
+# TypeScript-Based Messaging App With React + NestJS + PostgreSQL
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
