@@ -6,7 +6,7 @@ import Menu from '../tsx.items/items.menu/menu';
 
 const LobbyPageContent = () => {
     const [text, setText] = useState("")
-    const { localMessages, defEdit, switchEdit, createMessage, saveMessage, deleteMessage } = useLobbyPage();
+    const { localMessages, defEdit, switchEdit, saveMessage, deleteMessage } = useLobbyPage();
     const { mutate } = useCreatingMessage(() => setText(""));
 
     const handleSubmit = () => {
