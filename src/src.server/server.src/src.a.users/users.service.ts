@@ -6,6 +6,18 @@ import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
 export class UsersService {
   private prisma = new PrismaClient();
 
+  findAllUsers(userId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        userId: { not: userId }
+      },
+      select: {
+        userId: true,
+        userName: true,
+      },
+    });
+  }
+
   findOrCreateUser(profile: AuthUser) {
     if (!profile.userId) throw new UnauthorizedException({
       message: 'ID is missing in your Service profile',
