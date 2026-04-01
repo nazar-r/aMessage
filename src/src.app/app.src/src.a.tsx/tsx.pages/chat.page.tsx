@@ -29,10 +29,13 @@ const LobbyPageContent = () => {
                     ))}
                 </ul>
                 <div className="chat-page__add-message">
+                    <div className="chat-page__add-message--pin">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </div>
                     <div onClick={createMessage} className="chat-page__add-message--icon">
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="white" /></g></svg>
                     </div>
-                    <textarea className="chat-page__add-message--field" placeholder="APPLY TEXT" />
+                    <textarea className="chat-page__add-message--field" placeholder="SEND MESSAGE" />
                 </div>
             </div>
             <Menu />

@@ -84,8 +84,14 @@ input:-webkit-autofill {
 
 @media(min-width: 650px) {
     .main-container {
-        padding: 0 20vw 0 20vw;
+        padding: 0 16vw 0 16vw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 50%, #0D72C5 120%);
+    }
+}
+
+@media(min-width: 950px) {
+    .main-container {
+        padding: 0 18vw 0 18vw;
     }
 }
 

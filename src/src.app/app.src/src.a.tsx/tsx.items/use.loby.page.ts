@@ -28,7 +28,7 @@ export const useLobbyPage = () => {
     };
 
     const createMessage = () => {
-        const newMessage: messagesData = {messageStatus: "mine", messageId: "temp-" + crypto.randomUUID(), content: "" };
+        const newMessage: messagesData = { messageStatus: "mine", messageId: "temp-" + crypto.randomUUID(), content: "" };
         setLocalMessages(prev => [...prev, newMessage]);
         setText("");
     };
@@ -38,7 +38,7 @@ export const useLobbyPage = () => {
 
         message.messageId.startsWith("temp-") || message.messageId === ""
             ? createMessageMutation.mutate(
-                {messageStatus: "mine", messageId: "", content: message.content },
+                { messageStatus: "mine", messageId: "", content: message.content },
                 {
                     onSuccess: (createdMessage) => {
                         setLocalMessages(prev => prev.map(n => n.messageId === message.messageId ? createdMessage : n));
