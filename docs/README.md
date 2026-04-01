@@ -1,4 +1,4 @@
-# A Messenger App On TypeScript via React + Nest.js + PSQL
+# A Messenger TypeScript App on React + NestJS + PSQL
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
