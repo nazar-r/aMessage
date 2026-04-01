@@ -1,17 +1,27 @@
 import { useLobbyPage } from '../tsx.items/use.loby.page';
+import { useState } from 'react';
+import { useCreatingMessage } from "../tsx.extensions/setApi/use.send.messages.api";
 import Menu from '../tsx.items/items.menu/menu';
+// import type { MessagesData } from '../tsx.extensions/types';
 
 const LobbyPageContent = () => {
+    const [text, setText] = useState("")
     const { localMessages, defEdit, switchEdit, createMessage, saveMessage, deleteMessage } = useLobbyPage();
+    const { mutate } = useCreatingMessage(() => setText(""));
+
+    const handleSubmit = () => {
+        if (!text.trim()) return;
+        mutate({ messageStatus: "mine", messageId: "", content: text });
+    };
 
     return (
         <>
             <div className="chat-page">
                 <ul className="chat-page__container">
                     {localMessages.map(message => (
-                        <li id={message.messageId} style={{ margin: message.messageStatus === "get" ? "20px auto 0 0" : "20px 0 0 auto" }} className="chat-message">
-                            <div className="chat-message--text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore</div>
-                            {message.messageStatus === "mine" && <div className="chat-message__hidden">
+                        <li id={message.messageId} style={{ margin: message.messageStatus === "got" ? "20px auto 0 0" : "20px 0 0 auto" }} className="chat-message">
+                            <div className="chat-message--text">{message.content}</div>
+                            <div className="chat-message__hidden">
                                 <div className="chat-message__hidden--item" onClick={e => { e.stopPropagation(); defEdit ? saveMessage(message) : switchEdit(e); }}>
                                     {defEdit
                                         ? <svg className="chat-message__hidden--item__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -21,10 +31,10 @@ const LobbyPageContent = () => {
                                 </div>
 
                                 <div className="chat-message__hidden--item">
-                                    <svg className="chat-message__hidden--item__icon"style={{ transform: "rotate(45deg)" }}  width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="currentColor" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="currentColor" /></g></svg>
+                                    <svg className="chat-message__hidden--item__icon" style={{ transform: "rotate(45deg)" }} width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="currentColor" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="currentColor" /></g></svg>
                                     <div className="chat-message__hidden--item__edit" color="white" onClick={() => deleteMessage(message.messageId)}>Delete</div>
                                 </div>
-                            </div>}
+                            </div>
                         </li>
                     ))}
                 </ul>
@@ -32,10 +42,10 @@ const LobbyPageContent = () => {
                     <div className="chat-page__add-message--pin">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </div>
-                    <div onClick={createMessage} className="chat-page__add-message--icon">
+                    <div onClick={handleSubmit} className="chat-page__add-message--icon">
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="white" /></g></svg>
                     </div>
-                    <textarea className="chat-page__add-message--field" placeholder="SEND MESSAGE" />
+                    <textarea className="chat-page__add-message--field" placeholder="SEND MESSAGE" value={text} onChange={(e) => setText(e.target.value)} />
                 </div>
             </div>
             <Menu />

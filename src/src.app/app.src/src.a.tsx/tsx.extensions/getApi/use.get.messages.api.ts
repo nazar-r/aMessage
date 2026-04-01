@@ -1,10 +1,10 @@
 // use.get.content.api.ts
 import { useQuery } from "@tanstack/react-query";
 import { fetchingMessages } from "./get.messages.api";
-import type { messagesData, ErrorResponse } from "../types";
+import type { MessagesData, ErrorResponse } from "../types";
 
 export const useFetchingMessages = () => {
-    return useQuery<messagesData[], ErrorResponse>({
+    return useQuery<MessagesData[], ErrorResponse>({
         queryKey: ["messages"],
         queryFn: fetchingMessages,
         staleTime: 1000 * 1,

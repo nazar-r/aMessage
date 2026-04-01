@@ -1,6 +1,6 @@
-import type { messagesData, ErrorResponse } from '../types';
+import type { MessagesData, ErrorResponse } from '../types';
 
-export const updatingMessages = async (data: messagesData, messageId: string) => {
+export const updatingMessages = async (data: MessagesData, messageId: string) => {
   const response = await fetch(`http://localhost:3001/messages/${messageId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

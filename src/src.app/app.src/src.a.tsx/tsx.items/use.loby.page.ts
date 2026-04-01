@@ -2,38 +2,28 @@ import { useFetchingMessages } from '../tsx.extensions/getApi/use.get.messages.a
 import { useRemovingMessages } from '../tsx.extensions/setApi/use.remove.messages.api';
 import { useCreatingMessage } from "../tsx.extensions/setApi/use.send.messages.api";
 import { useUpdatingMessage } from "../tsx.extensions/setApi/use.update.messages.api";
-import { useRef, useState, useEffect } from 'react';
-import type { messagesData } from '../tsx.extensions/types';
+import { useState, useEffect } from 'react';
+import type { MessagesData } from '../tsx.extensions/types';
 
 export const useLobbyPage = () => {
-    const viewportRef = useRef<HTMLDivElement>(null);
-    const trackRef = useRef<HTMLDivElement>(null);
     const createMessageMutation = useCreatingMessage(() => setText(""));
     const updateMessageMutation = useUpdatingMessage();
-
     const removeMessageMutation = useRemovingMessages();
     const { data: messages = [] } = useFetchingMessages();
-    const [localMessages, setLocalMessages] = useState<messagesData[]>([]);
+    const [localMessages, setLocalMessages] = useState<MessagesData[]>([]);
+    const [defEdit, setEdit] = useState(false);
+    const [text, setText] = useState("");
 
     useEffect(() => {
         setLocalMessages(messages);
     }, [messages]);
-
-    const [defEdit, setEdit] = useState(false);
-    const [text, setText] = useState("");
 
     const switchEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEdit(prev => !prev);
     };
 
-    const createMessage = () => {
-        const newMessage: messagesData = { messageStatus: "mine", messageId: "temp-" + crypto.randomUUID(), content: "" };
-        setLocalMessages(prev => [...prev, newMessage]);
-        setText("");
-    };
-
-    const saveMessage = (message: messagesData) => {
+    const saveMessage = (message: MessagesData) => {
         if (!message.content.trim()) return;
 
         message.messageId.startsWith("temp-") || message.messageId === ""
@@ -55,9 +45,16 @@ export const useLobbyPage = () => {
             );
     };
 
+    const createMessage = (context = text, contextStatus = setText) => {
+        const newMessage: MessagesData = { messageStatus: "mine", messageId: "temp-" + crypto.randomUUID(), content: context };
+        setLocalMessages(prev => [...prev, newMessage]);
+        setText(`${contextStatus}`);
+        saveMessage(newMessage)
+    };
+
     const deleteMessage = (messageId: string) => {
         const element = document.getElementById(messageId);
-        element?.classList.add("lobby-message--fade");
+        element?.classList.add("chat-message--fade");
         setTimeout(() => {
             removeMessageMutation.mutate(messageId);
             setLocalMessages(prev => prev.filter(message => message.messageId !== messageId));
@@ -65,8 +62,6 @@ export const useLobbyPage = () => {
     };
 
     return {
-        viewportRef,
-        trackRef,
         localMessages,
         defEdit,
         text,

@@ -1,10 +1,10 @@
-export interface messagesData {
+export interface MessagesData {
     messageStatus: string;
     messageId: string;
     content: string;
 }
 
-export interface givenMessagesData {
+export interface GivenMessagesData {
     messageId: string;
     content: string;
     userId: string;

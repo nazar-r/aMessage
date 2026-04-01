@@ -1,19 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updatingMessages } from "./update.messages.api";
-import type { messagesData, ContextType } from "../types";
+import type { MessagesData, ContextType } from "../types";
 
 export const useUpdatingMessage = (onSuccessCallback?: () => void) => {
     const queryClient = useQueryClient();
 
-    return useMutation<any, unknown, { messageId: string; data: messagesData }, ContextType>({
+    return useMutation<any, unknown, { messageId: string; data: MessagesData }, ContextType>({
         mutationFn: ({ messageId, data }) => updatingMessages(data, messageId),
 
         onMutate: async ({ messageId, data }) => {
             await queryClient.cancelQueries({ queryKey: ["messages"] });
 
-            const prev = queryClient.getQueryData<messagesData[]>(["messages"]);
+            const prev = queryClient.getQueryData<MessagesData[]>(["messages"]);
 
-            queryClient.setQueryData<messagesData[]>(["messages"], (old) =>
+            queryClient.setQueryData<MessagesData[]>(["messages"], (old) =>
                 old?.map(message => message.messageId === messageId ? { ...message, content: data.content } : message) || []
             );
 
