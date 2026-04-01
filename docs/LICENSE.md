@@ -17,7 +17,7 @@ Permission is hereby granted to any person obtaining a copy of this software and
 4. **Modification**
    You may modify the Software for non-commercial purposes. Any modified versions must also be distributed under the terms of this license and must clearly indicate that changes were made.
 
-5. **Commercial Use**
+5. **Exceptions**
    For any commercial purposes, you must obtain a separate special (commercial) agreement from the copyright holder.
 
 6. **No Warranty**
