@@ -1,16 +1,16 @@
 .menu {
     position: fixed;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    box-sizing: border-box;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: border-box;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
-    padding: 0 15vw 0 15vw;
+    padding: 0 12vw;
     animation: fadeIn 0.2s ease forwards;
     color: #fff;
 }
@@ -24,7 +24,20 @@
     animation: fadeIn 0.2s ease forwards;
 }
 
+.menu-button:hover,
+.menu-container__item:hover {
+    transform: var(--transform-welcome-page__button--item);
+    opacity: 80%;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.menu-button:hover {
+    text-shadow: 7px 7px 50px #00000073;
+}
+
 .menu-content__item {
+    min-width: 260px;
     animation: fadeIn 0.2s ease forwards;
 }
 
@@ -39,13 +52,14 @@
 }
 
 .menu-content__item--title {
-    margin: 0 0 20px 0;
-    font-size: 35px;
+    margin: 0 0 35px 0;
+    font-size: 29px;
 }
 
 .menu-content__item--list-item {
     font-weight: 600;
     text-shadow: 0px 0px 5px #00000020;
+    font-size: 15px;
     opacity: 92%;
     margin: 0 0 12px 0;
     max-height: calc(1.2em * 2);
@@ -62,31 +76,19 @@
 .menu-container {
     position: fixed;
     bottom: 10vh;
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    gap: 10vw;
+    display: flex;
+    flex-direction: column;
     color: #fff;
     font-size: 18px;
 }
 
-.menu-container__item:hover {
-    transform: var(--transform-welcome-page__button--item);
-    opacity: 80%;
-    text-shadow: 7px 7px 50px #00000073;
-    cursor: pointer;
-    transition: 0.2s;
+.menu-container__item {
+    margin: 0 0 55px 0;
 }
 
-.menu-button:hover {
-    transform: var(--transform-welcome-page__button--item);
-    opacity: 80%;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-@media(min-width: 650px) {
+@media (min-width: 650px) {
     .menu {
-        padding: 0 20vw 0 20vw;
+        padding: 0 20vw;
     }
 
     .menu-button {
@@ -94,12 +96,19 @@
     }
 }
 
-@media(min-width: 1250px) {
+@media (min-width: 1250px) {
     .menu {
-        padding: 0 25vw 0 25vw;
+        padding: 0 15vw 0 25vw;
     }
 
-    .menu-button {
-        left: 25vw;
+    .menu-content__item--title {
+        margin: 0 0 25px 0;
+        font-size: 35px;
+    }
+
+    .menu-container {
+        display: grid;
+        grid-template-columns: auto auto auto auto;
+        gap: 10vw;
     }
 }

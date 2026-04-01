@@ -27,11 +27,8 @@ export const useLobbyPage = () => {
         setEdit(prev => !prev);
     };
 
-    const scroll = (dir: "left" | "right") =>
-        viewportRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
-
     const createMessage = () => {
-        const newMessage: messagesData = { messageId: "temp-" + Date.now(), content: "" };
+        const newMessage: messagesData = {messageStatus: "mine", messageId: "temp-" + crypto.randomUUID(), content: "" };
         setLocalMessages(prev => [...prev, newMessage]);
         setText("");
     };
@@ -41,7 +38,7 @@ export const useLobbyPage = () => {
 
         message.messageId.startsWith("temp-") || message.messageId === ""
             ? createMessageMutation.mutate(
-                { messageId: "", content: message.content },
+                {messageStatus: "mine", messageId: "", content: message.content },
                 {
                     onSuccess: (createdMessage) => {
                         setLocalMessages(prev => prev.map(n => n.messageId === message.messageId ? createdMessage : n));

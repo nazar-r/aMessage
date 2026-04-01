@@ -1,0 +1,140 @@
+.chat-message {
+    width: 200px;
+    background: #000000;
+    box-shadow: 0px 0px 30px #00000040;
+}
+
+.chat-message--text {
+    width: 100%;
+    max-height: none;
+    font-size: 15px;
+    letter-spacing: 1.01;
+    padding: 25px 18px 5px 35px;
+    border: none;
+    background: #000000;
+    text-transform: none;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.chat-message:hover {
+    width: 230px;
+}
+
+.chat-page__container {
+    margin: 0 0 55px 0;
+    width: 100%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    list-style: none;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.chat-page__viewport {
+    display: flex;
+    flex-direction: row;
+}
+
+.chat-message:not(:hover) .chat-message__hidden,
+.chat-note:not(:hover) .chat-note__hidden {
+    animation: fadeOutAdd 0.2s ease forwards;
+    pointer-events: none;
+}
+
+.chat-message__hidden {
+    display: flex;
+    flex-direction: row;
+    color: #ffffff;
+    font-size: 13px;
+    animation: fadeInAdd 0.2s ease forwards;
+}
+
+.chat-message__hidden--item {
+    display: flex;
+    flex-direction: row;
+    color: #ffffff;
+    margin: 0 0 0 20px;
+}
+
+.chat-message__hidden--item__icon {
+    margin: 1px 6px 0 0;
+}
+
+.chat-message__hidden--item:hover {
+    transform: var(--transform-welcome-page__button--item);
+    cursor: pointer;
+    opacity: 60%;
+    box-shadow: 7px 7px 50px #00000073;
+}
+
+.chat-page__container--add {
+    cursor: pointer;
+    margin: 0 40px 0 0;
+    animation: fadeInAdd 0.2s ease forwards;
+}
+
+.chat-page__add-message {
+    width: calc(100% - 10px);
+    display: grid;
+    grid-template-columns: 60px calc(100% - 60px);
+    gap: 10px;
+}
+
+.chat-page__add-message--icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    box-shadow: 5px 5px 50px #00000065;
+    width: 60px;
+    height: 50px;
+}
+
+.chat-page__add-message--field {
+    box-shadow: 5px 5px 50px #00000065;
+    padding: 15px 50px 20px 40px;
+    font-size: 15px;
+    text-transform: none;
+    font-weight: 600;
+    color: #ffffff;
+    height: 50px;
+    border: none;
+    background: #000000;
+}
+
+.chat-page__add-message--icon:hover,
+.chat-page__add-message--field:hover {
+    height: 90px;
+    cursor: pointer;
+}
+
+.chat-page__add-message--field:hover {
+    padding: 35px 50px 20px 40px;
+}
+
+.chat-page__button--icon {
+    cursor: pointer;
+    color: #ffffff;
+    opacity: 50%;
+    margin: 0 30px 0 0;
+}
+
+@media (min-width: 1250px) {
+    .chat-message {
+        width: 280px;
+    }
+
+    .chat-message--text {
+        font-size: 13px;
+        padding: 25px 20px 5px 40px;
+    }
+
+    .chat-page__container {
+        margin: 0 0 70px 0;
+        height: 65vh;
+    }
+}

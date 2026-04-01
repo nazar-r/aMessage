@@ -30,17 +30,27 @@ input:-webkit-autofill {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+@keyframes fadeOutAdd {
+    from {
+        opacity: 1;
+        margin: 20px 0 20px 20px;
+    }
+
+    to {
+        opacity: 0;
+        margin: 0 0 0 20px;
+    }
+}
+
 @keyframes fadeInAdd {
     from {
         opacity: 0;
-        width: 0;
-        margin: 0;
+        margin: 0 0 0 20px;
     }
 
     to {
         opacity: 1;
-        width: 15px;
-        margin: 0 40px 0 0;
+        margin: 20px 0 20px 20px;
     }
 }
 
@@ -64,27 +74,9 @@ input:-webkit-autofill {
     }
 }
 
-
-
-@keyframes fadeOutAdd {
-    from {
-        opacity: 1;
-        width: 15px;
-        margin: 0 40px 0 0;
-    }
-
-    to {    
-        opacity: 0;
-        width: 0;
-        margin: 0;
-    }
-}
-
-
-
 .main-container {
     background: linear-gradient(to right, #76CFF6 -50%, #70A7C8 35%, #0D72C5 120%);
-    padding: 0 12vw 0 15vw;
+    padding: 0 12vw 0 12vw;
     width: 100vw;
     height: 100vh;
     position: relative;

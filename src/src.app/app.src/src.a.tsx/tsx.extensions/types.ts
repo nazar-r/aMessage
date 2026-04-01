@@ -1,4 +1,5 @@
 export interface messagesData {
+    messageStatus: string;
     messageId: string;
     content: string;
 }
