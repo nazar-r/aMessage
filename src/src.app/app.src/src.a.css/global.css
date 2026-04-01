@@ -18,7 +18,6 @@
 input {
     background-color: #000000;
     color: #ffffff;
-    ;
     transition: background-color 0.3s, color 0.3s;
 }
 

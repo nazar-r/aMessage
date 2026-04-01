@@ -9,8 +9,8 @@ import '../src.a.css/index.css';
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
 const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
 const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
-const LobbyPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
-const LobbyPagePrev = lazy(() => import('./tsx.pages/choosing.user.page.tsx'));
+const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
+const ChoosingUserPage = lazy(() => import('./tsx.pages/choosing.user.page.tsx'));
 
 const withSuspense = (component: ReactElement) => (
   <Suspense>{component}</Suspense>
@@ -35,8 +35,8 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
-      { path: 'lobby-prev', element: privateAuth(withSuspense(<LobbyPagePrev />)) },
-      { path: 'lobby', element: privateAuth(withSuspense(<LobbyPage />)) },
+      { path: 'chat-prev', element: privateAuth(withSuspense(<ChoosingUserPage />)) },
+      { path: 'chat', element: privateAuth(withSuspense(<ChatPage />)) },
     ],
   },
 ];

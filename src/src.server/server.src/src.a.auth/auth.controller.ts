@@ -25,7 +25,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return res.redirect('http://localhost:5174/lobby-prev');
+    return res.redirect('http://localhost:5174/chat-prev');
   }
 
   @Get('github')
@@ -44,7 +44,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return res.redirect('http://localhost:5174/lobby-prev');
+    return res.redirect('http://localhost:5174/chat-prev');
   }
 
   @Get('check')

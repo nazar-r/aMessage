@@ -16,6 +16,12 @@
     list-style: none;
     overflow-y: auto;
     scroll-behavior: smooth;
+    mask-image: linear-gradient(to top, #00000000, #000000 10%);
+    mask-repeat: no-repeat;
+    mask-size: 100% 102%;
+    -webkit-mask-image: inear-gradient(to top, #00000000, #000000 10%);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 102%;
 }
 
 .chat-message {
@@ -46,8 +52,7 @@
     flex-direction: row;
 }
 
-.chat-message:not(:hover) .chat-message__hidden,
-.chat-note:not(:hover) .chat-note__hidden {
+.chat-message:not(:hover) .chat-message__hidden {
     animation: fadeOutAdd 0.2s ease forwards;
     pointer-events: none;
 }
@@ -160,6 +165,11 @@
         width: 60px;
         height: 50px;
         color: #ffffff;
+    }
+
+    .chat-page__add-message--pin:not(:hover) .chat-page__add-message--pin__note {
+        animation: fadeOutAdd 0.2s ease forwards;
+        pointer-events: none;
     }
 }
 

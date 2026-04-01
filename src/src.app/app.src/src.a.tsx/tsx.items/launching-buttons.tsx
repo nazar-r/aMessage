@@ -8,7 +8,7 @@ const buttons: types.ButtonConfig[] = [
   { key: "github", label: "Via Github", icon: GithubIcon },
 ];
 
-const RenderingButtons = () => (
+export const RenderingButtons = () => (
   <div className="login-page__button-container">
     {buttons.map((item) => (
       <div key={item.key} className="login-page__button" onClick={() => authFetching(item)}>
@@ -24,4 +24,3 @@ const RenderingButtons = () => (
     ))}
   </div>
 );
-export default RenderingButtons;
