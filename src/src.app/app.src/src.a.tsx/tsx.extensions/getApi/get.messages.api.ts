@@ -1,4 +1,4 @@
-import type {ErrorResponse } from '../types';
+import type { ErrorResponse } from '../types';
 
 export const fetchingMessages = async () => {
   const response = await fetch('http://localhost:3001/messages', {

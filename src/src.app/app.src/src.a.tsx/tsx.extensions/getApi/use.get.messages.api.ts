@@ -1,4 +1,3 @@
-// use.get.content.api.ts
 import { useQuery } from "@tanstack/react-query";
 import { fetchingMessages } from "./get.messages.api";
 import type { MessagesData, ErrorResponse } from "../types";

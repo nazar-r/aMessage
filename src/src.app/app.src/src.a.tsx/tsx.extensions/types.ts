@@ -4,6 +4,13 @@ export interface MessagesData {
     content: string;
 }
 
+export interface UsersData {
+    userId: string;
+    userName: string;
+    userStatus: "Online";
+    email?: string;
+}
+
 export interface GivenMessagesData {
     messageId: string;
     content: string;

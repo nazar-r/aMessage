@@ -12,7 +12,7 @@ const WelcomePageContent = () => {
 
       <div className="welcome-page__button" onClick={async () =>
         (await fetch("http://localhost:3001/auth/check", { credentials: "include" }).then(res => res.json()).then(data => data.user))
-          ? navigate("/lobby")
+          ? navigate("/chat-prev")
           : navigate("/login")
       }
       >

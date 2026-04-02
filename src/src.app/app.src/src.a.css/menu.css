@@ -66,6 +66,27 @@
     overflow: hidden;
 }
 
+.menu-content__item--list-item__users {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-weight: 600;
+    text-shadow: 0px 0px 5px #00000020;
+    font-size: 15px;
+    opacity: 92%;
+    margin: 0px 0 40px 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.menu-content__item--list-item__users:hover {
+    cursor: pointer;
+    text-shadow: 0px 0px 5px #00000040;
+    margin: 0 0 60px 0;
+    transition: 0.2s;
+    opacity: 50%;
+}
+
 .menu-content__item--list {
     height: 30vh;
     list-style: none;
