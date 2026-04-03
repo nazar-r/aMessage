@@ -5,12 +5,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as cookie from 'cookie';
 import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
 
-@UseGuards(WsJwtGuard)
+// @UseGuards(WsJwtGuard) 
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:5174',
     credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
   },
 })
 export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -58,17 +57,13 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.logger.log(`WS Connection Closed: ${client.id} | User ID: ${userId}`);
   }
 
-  @SubscribeMessage('message')
-  handleMessage(@ConnectedSocket() client: Socket, @MessageBody() payload: { text: string }) {
-    const roomId = client.data.roomId ?? (() => { throw new WsException('Room not found'); })();
+@SubscribeMessage('message')
+handleMessage(@ConnectedSocket() client: Socket, @MessageBody() payload: { text: string; from?: string }) {
+  const roomId = client.data.roomId ?? (() => { throw new WsException('Room not found'); })();
 
-    console.log('RAW payload:', payload);
-
-    this.server.to(roomId).emit('newMessage', {
-      from: client.data.user.userId,
-      text: payload.text,
-    });
-
-    console.log(`Message from ${client.data.user.userId} in room ${roomId}: ${payload.text}`);
-  }
+  this.server.to(roomId).emit('newMessage', {
+    from: payload.from ?? client.id,
+    text: payload.text,
+  });
+}
 }
