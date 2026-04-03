@@ -1,8 +1,13 @@
 export interface MessagesData {
-    messageStatus: string;
+    messageStatus: "mine" | "got";
     messageId: string;
     content: string;
 }
+
+export interface RoomConfig {
+    userWsId?: string;
+    peerWsId: string;
+};
 
 export interface UsersData {
     userId: string;

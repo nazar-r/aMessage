@@ -8,6 +8,7 @@
 }
 
 .chat-prev-page__users-list {
+    animation: fadeIn 0.2s ease forwards;
     margin: 40px 0 0 0;
     list-style: none;
     overflow-y: auto;

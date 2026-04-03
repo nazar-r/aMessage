@@ -59,6 +59,7 @@
 
 .chat-message__hidden {
     display: flex;
+    min-height: 16px;
     flex-direction: row;
     color: #ffffff;
     font-size: 13px;

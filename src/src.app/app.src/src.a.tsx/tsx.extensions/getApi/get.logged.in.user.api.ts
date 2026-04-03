@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '../types';
 
-export const fetchingUsers = async () => {
-    const response = await fetch('http://localhost:3001/users', {
+export const fetchingLoggedInUser = async () => {
+    const response = await fetch('http://localhost:3001/auth/check', {
         method: 'GET',
         credentials: 'include',
     });

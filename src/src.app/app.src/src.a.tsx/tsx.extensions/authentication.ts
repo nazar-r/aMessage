@@ -8,5 +8,5 @@ export const authentication = () =>
             return (await res.json()).user;
         },
         retry: false,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 5 * 60 * 1000 * 6,
     });
