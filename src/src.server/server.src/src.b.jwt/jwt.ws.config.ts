@@ -1,31 +1,27 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
+import * as cookie from 'cookie';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const client = context.switchToWs().getClient<Socket>();
-    
-    const token = client.handshake.auth?.token 
-      || client.handshake.query?.token 
-      || client.handshake.headers?.authorization?.replace('Bearer ', '');
+  canActivate(context: ExecutionContext): boolean {
+    const client: Socket = context.switchToWs().getClient<Socket>();
+    const cookies = client.handshake.headers.cookie;
+    if (!cookies) return false;
 
-    if (!token) {
-      throw new UnauthorizedException('JWT is not found');
-    }
+    const parsed = cookie.parse(cookies);
+    const token = parsed['jwt'];
+    if (!token) return false;
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET, 
-      });
-
+      const payload = this.jwtService.verify(token);
       client.data.user = payload;
       return true;
-    } catch (error) {
-      throw new UnauthorizedException('JWT is not actual');
+    } catch {
+      return false;
     }
   }
 }
