@@ -7,12 +7,14 @@ export class MessagesService {
   private prisma = new PrismaClient();
 
   create(createMessageDto: CreateMessageDto, cookiesUserId: string) {
-    return this.prisma.message.create({
-      data: {
-        content: createMessageDto.content,
-        userId: cookiesUserId,
-      },
-    });
+    // return this.prisma.message.create({
+    //   data: {
+    //     content: createMessageDto.content,
+    //     user: {
+    //       connect: { userId: cookiesUserId },
+    //     },
+    //   },
+    // });
   }
 
   findMessages(userId: string,) {

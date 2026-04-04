@@ -7,16 +7,19 @@ import { Menu } from '../tsx.items/items.menu/menu';
 
 const LobbyPageContent = () => {
     const [text, setText] = useState("");
-    const { defEdit, switchEdit, saveMessage, deleteMessage } = useLobbyPage();
+    const { defEdit, localMessages, switchEdit, saveMessage, deleteMessage } = useLobbyPage();
     const { mutate } = useCreatingMessage(() => setText(""));
     const location = useLocation();
     const peerWsId = location.state?.peerWsId || "";
 
-    const { messages, sendMessage } = useOneOnOneRoom({ peerWsId });
+    const { messages: oneOnOneMessages, sendMessage } = useOneOnOneRoom({ peerWsId });
+
+    const messages = [...oneOnOneMessages, ...localMessages];
 
     const handleSubmit = () => {
         if (!text.trim()) return;
 
+        // mutate({ messageStatus: "mine", messageId: "", content: text });
         sendMessage({ messageStatus: "mine", messageId: "", content: text });
 
         setText("");

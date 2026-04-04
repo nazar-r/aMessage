@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: 'secret',
+      secret: process.env.JWT_SECRET,
       resave: false,
       saveUninitialized: false,
     }),

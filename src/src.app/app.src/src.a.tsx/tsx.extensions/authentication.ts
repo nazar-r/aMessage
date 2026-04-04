@@ -7,6 +7,6 @@ export const authentication = () =>
             const res = await fetch("http://localhost:3001/auth/check", { credentials: "include" });
             return (await res.json()).user;
         },
-        retry: false,
-        staleTime: 5 * 60 * 1000 * 6,
+        retry: 1,
+        staleTime: 5 * 60 * 1000,
     });

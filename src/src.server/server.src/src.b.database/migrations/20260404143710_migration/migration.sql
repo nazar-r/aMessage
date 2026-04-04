@@ -15,6 +15,7 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Message" (
+    "roomId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
