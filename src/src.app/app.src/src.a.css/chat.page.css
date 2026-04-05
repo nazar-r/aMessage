@@ -3,6 +3,9 @@
 }
 
 .chat-message--fade {
+    width: 200px;
+    background: #000000;
+    box-shadow: 0px 0px 30px #00000040;
     animation: fadeOut 0.2s ease forwards;
 }
 
@@ -28,6 +31,7 @@
     width: 200px;
     background: #000000;
     box-shadow: 0px 0px 30px #00000040;
+    animation: fadeIn 0.2s ease forwards;
 }
 
 .chat-message--text {

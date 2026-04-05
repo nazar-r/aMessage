@@ -1,6 +1,21 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
-import type { RoomConfig, GotMessagesData,MessagesData } from "../src.a.tsx/tsx.extensions/types";
+import type { RoomConfig, GotMessagesData, MessagesData } from "../src.a.tsx/tsx.extensions/types";
+
+type RemovedMessagePayload = {
+  messageId: string;
+};
+
+type NewMessagePayload = {
+  userId: string;
+  text: string;
+  messageId: string;
+};
+
+type MessagesHistoryPayload = {
+  messages: GotMessagesData[];
+  nextCursor: string | null;
+};
 
 export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const socketRef = useRef<Socket | null>(null);
@@ -19,13 +34,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
     socketRef.current = s;
 
-    s.on("connect", () => console.log("WS connected:", s.id));
-    s.on("connect_error", (err) => console.error("WS connect_error:", err));
-
-    s.on("messagesHistory", ({ messages: msgs, nextCursor }: {
-      messages: GotMessagesData[];
-      nextCursor: string | null;
-    }) => {
+    const handleMessagesHistory = ({ messages: msgs, nextCursor }: MessagesHistoryPayload) => {
       const formattedMessages: MessagesData[] = msgs.map((msg) => ({
         messageStatus: msg.userId === peerWsId ? "got" : "mine",
         messageId: msg.messageId,
@@ -34,21 +43,34 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
       setMessages(formattedMessages);
       setCursor(nextCursor);
-    });
+    };
 
-    s.on("newMessage", (msg: { userId: string; text: string; messageId: string }) => {
+    const handleNewMessage = (msg: NewMessagePayload) => {
       const receivedMessage: MessagesData = {
         messageStatus: msg.userId === peerWsId ? "got" : "mine",
         messageId: msg.messageId,
         content: msg.text,
       };
 
-      setMessages(prev => [...prev, receivedMessage]);
-    });
+      setMessages((prev) => [...prev, receivedMessage]);
+    };
+
+    const handleMessageRemoved = ({ messageId }: RemovedMessagePayload) => {
+      setMessages((prev) => prev.filter((msg) => msg.messageId !== messageId));
+    };
+
+    s.on("connect", () => console.log("WS connected:", s.id));
+    s.on("connect_error", (err) => console.error("WS connect_error:", err));
+    s.on("messagesHistory", handleMessagesHistory);
+    s.on("newMessage", handleNewMessage);
+    s.on("messageRemoved", handleMessageRemoved);
 
     return () => {
-      s.off("messagesHistory");
-      s.off("newMessage");
+      s.off("connect");
+      s.off("connect_error");
+      s.off("messagesHistory", handleMessagesHistory);
+      s.off("newMessage", handleNewMessage);
+      s.off("messageRemoved", handleMessageRemoved);
       s.disconnect();
       socketRef.current = null;
     };
@@ -61,9 +83,22 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     socket.emit("message", { text: message.content });
   };
 
+  const removeMessage = (messageId: string) => {
+    const socket = socketRef.current;
+    const messageElem = document.getElementById(messageId);
+    
+    if (!socket) return;
+    if (messageElem) {
+      messageElem.classList.remove("chat-message");
+      messageElem.classList.add("chat-message--fade");
+      setTimeout(() => {socket.emit("removeMessage", { messageId })}, 200);
+    }
+  };
+
   return {
     roomId,
     sendMessage,
+    removeMessage,
     messages,
     socket: socketRef.current,
     cursor,

@@ -97,7 +97,6 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     @MessageBody() payload: { text: string; from?: string }
   ) {
     const roomId = client.data.roomId;
-    console.log(roomId)
     const user = client.data.user;
     const userId = user?.sub ?? user?.id ?? user?.userId ?? (() => { throw new WsException('User not found') })();
 
@@ -112,5 +111,33 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       messageId: savedMessage.messageId,
       text: savedMessage.content,
     });
+  }
+
+
+  @SubscribeMessage('removeMessage')
+  async handleRemoveMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { messageId: string }
+  ) {
+    const user = client.data.user;
+    const userId = user?.sub ?? user?.id ?? user?.userId;
+
+    if (!userId) {
+      throw new WsException('User not found');
+    }
+
+    try {
+      await this.messagesService.remove(payload.messageId, userId);
+      const roomId = client.data.roomId;
+      this.server.to(roomId).emit('messageRemoved', {
+        messageId: payload.messageId,
+        userId,
+      });
+
+      this.logger.log(`Message removed: ${payload.messageId} by User ${userId}`);
+    } catch (error) {
+      this.logger.error(error);
+      throw new WsException('Failed to remove message');
+    }
   }
 }

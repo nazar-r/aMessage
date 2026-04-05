@@ -9,8 +9,7 @@ const LobbyPageContent = () => {
     const { defEdit, switchEdit, deleteMessage } = useLobbyPage();
     const location = useLocation();
     const peerWsId = location.state?.peerWsId || "";
-    const { messages: oneOnOneMessages, sendMessage } = useOneOnOneRoom({ peerWsId });
-    const messages = [...oneOnOneMessages];
+    const { messages, sendMessage, removeMessage } = useOneOnOneRoom({ peerWsId });
 
     const handleSubmit = () => {
         if (!text.trim()) return;
@@ -36,7 +35,7 @@ const LobbyPageContent = () => {
 
                                 {message.messageStatus === "mine" ? <div className="chat-message__hidden--item">
                                     <svg className="chat-message__hidden--item__icon" style={{ transform: "rotate(45deg)" }} width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="currentColor" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="currentColor" /></g></svg>
-                                    <div className="chat-message__hidden--item__edit" color="white" onClick={() => deleteMessage(message.messageId)}>Delete</div>
+                                    <div className="chat-message__hidden--item__edit" color="white" onClick={() => removeMessage(message.messageId)}>Delete</div>
                                 </div> : null}
                             </div>
                         </li>
