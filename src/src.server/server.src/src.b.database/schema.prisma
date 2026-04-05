@@ -8,27 +8,46 @@ generator client {
 }
 
 model User {
-  role         Role     @default(USER)
-  userId       String   @id
-  email        String?  @unique
+  role         Role      @default(USER)
+  userId       String    @id
   userName     String
+  email        String?   @unique
   refreshToken String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
   messages     Message[]
+  rooms        RoomUser[]
+}
+
+model Room {
+  roomId      String       @id
+  createdAt   DateTime     @default(now())
+  
+  messages     Message[]
+  participants RoomUser[]
+}
+
+model RoomUser {
+  roomId  String
+  userId  String
+
+  room    Room  @relation(fields: [roomId], references: [roomId])
+  user    User  @relation(fields: [userId], references: [userId])
+
+  @@id([roomId, userId])
 }
 
 model Message {
-  roomId    String
-  userId    String
+  roomId    String 
   messageId String   @id @default(uuid())
+  userId    String
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user      User     @relation(fields: [userId], references: [userId])
+  room      Room    @relation(fields: [roomId], references: [roomId])
 }
-
 enum Role {
   USER
   ADMIN

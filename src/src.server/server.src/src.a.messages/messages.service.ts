@@ -6,15 +6,31 @@ import { MessageDTO } from './messages.image/messages.create.dto';
 export class MessagesService {
   private prisma = new PrismaClient();
 
-  create(messageImage: MessageDTO) {
-    return this.prisma.message.create({
+async create(messageImage: MessageDTO) {
+  return this.prisma.$transaction(async (tx) => {
+    await tx.roomUser.upsert({
+      where: {
+        roomId_userId: {
+          roomId: messageImage.roomId,
+          userId: messageImage.userId,
+        },
+      },
+      update: {},
+      create: {
+        roomId: messageImage.roomId,
+        userId: messageImage.userId,
+      },
+    });
+
+    return tx.message.create({
       data: {
         roomId: messageImage.roomId,
         userId: messageImage.userId,
         content: messageImage.content,
       },
     });
-  }
+  });
+}
 
   update(messageImage: MessageDTO) {
     return this.prisma.message.updateMany({

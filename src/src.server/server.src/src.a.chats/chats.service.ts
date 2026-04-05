@@ -66,26 +66,17 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { text: string; from?: string }
   ) {
-    const roomId =
-      client.data.roomId ??
-      (() => {
-        throw new WsException('Room not found');
-      })();
-
+    const roomId = client.data.roomId;
+    console.log(roomId)
     const user = client.data.user;
-    const userId =
-      user?.sub ?? user?.id ?? user?.userId ??
-      (() => {
-        throw new WsException('User not found');
-      })();
+    const userId = user?.sub ?? user?.id ?? user?.userId ?? (() => { throw new WsException('User not found') })();
 
     const savedMessage = await this.messagesService.create({
-      roomId,
       userId,
+      roomId,
       content: payload.text,
     });
 
-    
     this.server.to(roomId).emit('newMessage', {
       userId,
       messageId: savedMessage.messageId,
