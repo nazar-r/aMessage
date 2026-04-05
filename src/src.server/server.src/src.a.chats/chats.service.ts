@@ -113,6 +113,37 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     });
   }
 
+  @SubscribeMessage('updateMessage')
+  async handleUpdateMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { messageId: string; text: string }
+  ) {
+    const user = client.data.user;
+    const userId = user?.sub ?? user?.id ?? user?.userId;
+
+    if (!userId) {
+      throw new WsException('User not found');
+    }
+
+    try {
+      const updated = await this.messagesService.update({
+        messageId: payload.messageId,
+        content: payload.text,
+      });
+      console.log('Updated message', updated);
+
+      this.server.to(client.data.roomId).emit('messageUpdated', {
+        messageId: payload.messageId,
+        userId,
+        text: payload.text,
+      });
+
+      this.logger.log(`Message updated: ${payload.messageId} by User ${userId}`);
+    } catch (error) {
+      this.logger.error(error);
+      throw new WsException('Failed to update message');
+    }
+  }
 
   @SubscribeMessage('removeMessage')
   async handleRemoveMessage(

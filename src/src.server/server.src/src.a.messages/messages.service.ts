@@ -32,19 +32,17 @@ export class MessagesService {
     });
   }
 
-  update(messageImage: MessageDTO) {
-    return this.prisma.message.updateMany({
+  update(message: { messageId: string; content: string }) {
+    return this.prisma.message.update({
       where: {
-        userId: messageImage.userId,
-        roomId: messageImage.roomId,
+        messageId: message.messageId,
       },
-
       data: {
-        content: messageImage.content,
+        content: message.content,
       },
     });
   }
-
+  
   findMessagesByRoom(
     roomId: string,
     options?: {

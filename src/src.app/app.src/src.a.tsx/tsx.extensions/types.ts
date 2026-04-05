@@ -46,3 +46,34 @@ export type ButtonConfig = {
     label: string;
     icon: React.ComponentType;
 }
+
+export interface KeyPair {
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+}
+
+export interface EncryptedMessage {
+  cipher: string; 
+  nonce: string; 
+  senderPublicKey: string;
+}
+
+export interface Message {
+  text: string;
+  encrypted?: EncryptedMessage;
+}
+
+export interface RemovedMessagePayload  {
+  messageId: string;
+};
+
+export interface NewMessagePayload {
+  userId: string;
+  text: string;
+  messageId: string;
+};
+
+export interface MessagesHistoryPayload  {
+  messages: GotMessagesData[];
+  nextCursor: string | null;
+};
