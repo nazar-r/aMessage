@@ -13,7 +13,7 @@ export class WsJwtGuard implements CanActivate {
     if (!cookies) return false;
 
     const parsed = cookie.parse(cookies);
-    const token = parsed['jwt'];
+    const token = parsed['access_token'];
     if (!token) return false;
 
     try {

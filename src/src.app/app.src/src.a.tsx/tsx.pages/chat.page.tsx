@@ -18,10 +18,8 @@ const LobbyPageContent = () => {
 
     const handleSubmit = () => {
         if (!text.trim()) return;
-
         // mutate({ messageStatus: "mine", messageId: "", content: text });
         sendMessage({ messageStatus: "mine", messageId: "", content: text });
-
         setText("");
     };
     return (

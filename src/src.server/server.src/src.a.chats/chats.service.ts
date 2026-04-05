@@ -2,10 +2,11 @@ import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, 
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import * as cookie from 'cookie';
 import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
+import { MessagesService } from '../src.a.messages/messages.service';
+import * as cookie from 'cookie';
 
-// @UseGuards(WsJwtGuard) 
+@UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:5174',
@@ -15,7 +16,10 @@ import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
 export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatsGateway.name);
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly messagesService: MessagesService,
+  ) { }
 
   @WebSocketServer()
   server: Server;
@@ -57,13 +61,35 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.logger.log(`WS Connection Closed: ${client.id} | User ID: ${userId}`);
   }
 
-@SubscribeMessage('message')
-handleMessage(@ConnectedSocket() client: Socket, @MessageBody() payload: { text: string; from?: string }) {
-  const roomId = client.data.roomId ?? (() => { throw new WsException('Room not found'); })();
+  @SubscribeMessage('message')
+  async handleMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { text: string; from?: string }
+  ) {
+    const roomId =
+      client.data.roomId ??
+      (() => {
+        throw new WsException('Room not found');
+      })();
 
-  this.server.to(roomId).emit('newMessage', {
-    from: payload.from ?? client.id,
-    text: payload.text,
-  });
-}
+    const user = client.data.user;
+    const userId =
+      user?.sub ?? user?.id ?? user?.userId ??
+      (() => {
+        throw new WsException('User not found');
+      })();
+
+    const savedMessage = await this.messagesService.create({
+      roomId,
+      userId,
+      content: payload.text,
+    });
+
+    
+    this.server.to(roomId).emit('newMessage', {
+      userId,
+      messageId: savedMessage.messageId,
+      text: savedMessage.content,
+    });
+  }
 }

@@ -21,10 +21,10 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     s.on("connect", () => console.log("WS connected:", s.id));
     s.on("connect_error", (err) => console.error("WS connect_error:", err));
 
-    s.on("newMessage", (msg: { from: string; text: string }) => {
+    s.on("newMessage", (msg: { userId: string; text: string; messageId: string }) => {
       const receivedMessage: MessagesData = {
-        messageStatus: msg.from === s.id ? "mine" : "got",
-        messageId: "",
+        messageStatus: msg.userId === peerWsId ? "got" : "mine",
+        messageId: msg.messageId,
         content: msg.text,
       };
 
@@ -42,7 +42,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     const socket = socketRef.current;
     if (!socket) return;
 
-    socket.emit("message", { text: message.content, from: socket.id });
+    socket.emit("message", { text: message.content });
   };
 
   return { roomId, sendMessage, messages, socket: socketRef.current };
