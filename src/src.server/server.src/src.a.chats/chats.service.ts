@@ -43,11 +43,6 @@ export class ChatsGateway
 {
   private readonly logger = new Logger(ChatsGateway.name);
 
-  /**
-   * In-memory registry of the latest public key per authenticated user.
-   * For a single Nest instance this is enough; for multi-instance deployment
-   * move this to Redis/DB later.
-   */
   private readonly publicKeys = new Map<string, string>();
 
   constructor(
@@ -72,7 +67,6 @@ export class ChatsGateway
     const normalized = publicKey?.trim();
     if (!normalized) throw new WsException('Invalid public key');
 
-    // Standard base64 expected here; the client should send libsodium ORIGINAL base64.
     const decoded = Buffer.from(normalized, 'base64');
     if (decoded.length !== 32) {
       throw new WsException('Invalid public key length');
@@ -119,7 +113,7 @@ export class ChatsGateway
       const mapMessage = (msg: any) => ({
         userId: msg.userId,
         messageId: msg.messageId,
-        text: msg.content, // ciphertext/plaintext stays opaque for the server
+        text: msg.content,
         createdAt: msg.createdAt,
       });
 
@@ -128,11 +122,6 @@ export class ChatsGateway
         nextCursor: orderedMessages[0]?.messageId || null,
       });
 
-      /**
-       * Key exchange bootstrap:
-       * - If we already know my public key, push it to the peer.
-       * - If we already know the peer public key, send it to me.
-       */
       const myPublicKey = this.publicKeys.get(userId);
       if (myPublicKey) {
         client.to(roomId).emit('e2ee:peerPublicKey', {
@@ -170,10 +159,6 @@ export class ChatsGateway
     this.logger.log(`WS Connection Closed: ${client.id} | User ID: ${userId}`);
   }
 
-  /**
-   * Client sends its own public key once after connect.
-   * Server stores it and forwards it to the peer in the room.
-   */
   @SubscribeMessage('e2ee:publicKey')
   async handlePublicKey(
     @ConnectedSocket() client: Socket,
@@ -230,7 +215,7 @@ export class ChatsGateway
     const savedMessage = await this.messagesService.create({
       userId,
       roomId,
-      content: payload.text, // encrypted text is stored as-is
+      content: payload.text, 
     });
 
     this.server.to(roomId).emit('newMessage', {
