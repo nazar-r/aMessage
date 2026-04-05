@@ -15,9 +15,9 @@ export class MessagesController {
   // }
 
   @Get()
-  findMessages(@Req() req) {
+  findMessagesByRoom(@Req() req) {
     const cookiesUserId = req.user.userId;
-    return this.messagesService.findMessages(cookiesUserId);
+    return this.messagesService.findMessagesByRoom(cookiesUserId);
   }
 
   // @Patch(':id')

@@ -4,6 +4,13 @@ export interface MessagesData {
     content: string;
 }
 
+export interface GotMessagesData{
+  userId: string;
+  messageId: string;
+  text: string;
+  createdAt: string;
+};
+
 export interface RoomConfig {
     userWsId?: string;
     peerWsId: string;
@@ -15,14 +22,6 @@ export interface UsersData {
     userStatus: "Online";
     email?: string;
 }
-
-export interface GivenMessagesData {
-    messageId: string;
-    content: string;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
-};
 
 export interface SharedTextContextType {
     text: string;

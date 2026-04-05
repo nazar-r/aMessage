@@ -6,31 +6,31 @@ import { MessageDTO } from './messages.image/messages.create.dto';
 export class MessagesService {
   private prisma = new PrismaClient();
 
-async create(messageImage: MessageDTO) {
-  return this.prisma.$transaction(async (tx) => {
-    await tx.roomUser.upsert({
-      where: {
-        roomId_userId: {
+  async create(messageImage: MessageDTO) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.roomUser.upsert({
+        where: {
+          roomId_userId: {
+            roomId: messageImage.roomId,
+            userId: messageImage.userId,
+          },
+        },
+        update: {},
+        create: {
           roomId: messageImage.roomId,
           userId: messageImage.userId,
         },
-      },
-      update: {},
-      create: {
-        roomId: messageImage.roomId,
-        userId: messageImage.userId,
-      },
-    });
+      });
 
-    return tx.message.create({
-      data: {
-        roomId: messageImage.roomId,
-        userId: messageImage.userId,
-        content: messageImage.content,
-      },
+      return tx.message.create({
+        data: {
+          roomId: messageImage.roomId,
+          userId: messageImage.userId,
+          content: messageImage.content,
+        },
+      });
     });
-  });
-}
+  }
 
   update(messageImage: MessageDTO) {
     return this.prisma.message.updateMany({
@@ -45,9 +45,27 @@ async create(messageImage: MessageDTO) {
     });
   }
 
-  findMessagesByRoom(roomId: string) {
+  findMessagesByRoom(
+    roomId: string,
+    options?: {
+      take?: number;
+      cursor?: string;
+    }
+  ) {
     return this.prisma.message.findMany({
       where: { roomId },
+      orderBy: { createdAt: 'desc' },
+      take: options?.take,
+      ...(options?.cursor && {
+        cursor: { messageId: options.cursor },
+        skip: 1,
+      }),
+      select: {
+        messageId: true,
+        content: true,
+        userId: true,
+        createdAt: true,
+      },
     });
   }
 

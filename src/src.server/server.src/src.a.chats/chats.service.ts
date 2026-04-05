@@ -28,7 +28,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.logger.log('ChatsGateway initialized');
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const peerId = client.handshake.query.peerId as string;
     if (!peerId) {
       client.disconnect(true);
@@ -39,19 +39,49 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       const rawCookie = client.handshake.headers.cookie ?? '';
       const cookies = cookie.parse(rawCookie);
       const token = cookies['access_token'];
-      const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-      client.data.user = payload;
+
+      if (!token) {
+        client.disconnect(true);
+        return;
+      }
+
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
 
       const userId = payload.sub ?? payload.id ?? payload.userId;
       const roomId = [userId, peerId].sort().join("-");
+
+      client.data.user = payload;
       client.data.roomId = roomId;
+
       client.join(roomId);
+
+      const messages = await this.messagesService.findMessagesByRoom(roomId, {
+        take: 50,
+      });
+
+      const orderedMessages = messages.reverse();
+
+      const mapMessage = (msg) => ({
+        userId: msg.userId,
+        messageId: msg.messageId,
+        text: msg.content,
+        createdAt: msg.createdAt,
+      });
+
+      client.emit('messagesHistory', {
+        messages: orderedMessages.map(mapMessage),
+        nextCursor: orderedMessages[0]?.messageId || null,
+      });
 
       client.to(roomId).emit('user-joined', { userId });
 
-      this.logger.log(`WS Connection Launched: ${client.id} | User ID: ${userId} | Peer ID: ${peerId} | Room: ${roomId}`);
+      this.logger.log(
+        `WS Connection Launched: ${client.id} | User ID: ${userId} | Peer ID: ${peerId} | Room: ${roomId}`
+      );
     } catch (error) {
-      this.logger.warn(`WS Connection Canceled: ${client.id}`);
+      this.logger.error(error);
       client.disconnect(true);
     }
   }

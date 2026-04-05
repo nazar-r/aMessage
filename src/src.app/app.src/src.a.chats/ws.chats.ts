@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
-import type { RoomConfig, MessagesData } from "../src.a.tsx/tsx.extensions/types";
+import type { RoomConfig, GotMessagesData,MessagesData } from "../src.a.tsx/tsx.extensions/types";
 
 export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<MessagesData[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
 
   const roomId = peerWsId ? `room-with-${peerWsId}` : "";
 
@@ -21,6 +22,20 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     s.on("connect", () => console.log("WS connected:", s.id));
     s.on("connect_error", (err) => console.error("WS connect_error:", err));
 
+    s.on("messagesHistory", ({ messages: msgs, nextCursor }: {
+      messages: GotMessagesData[];
+      nextCursor: string | null;
+    }) => {
+      const formattedMessages: MessagesData[] = msgs.map((msg) => ({
+        messageStatus: msg.userId === peerWsId ? "got" : "mine",
+        messageId: msg.messageId,
+        content: msg.text,
+      }));
+
+      setMessages(formattedMessages);
+      setCursor(nextCursor);
+    });
+
     s.on("newMessage", (msg: { userId: string; text: string; messageId: string }) => {
       const receivedMessage: MessagesData = {
         messageStatus: msg.userId === peerWsId ? "got" : "mine",
@@ -32,6 +47,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     });
 
     return () => {
+      s.off("messagesHistory");
       s.off("newMessage");
       s.disconnect();
       socketRef.current = null;
@@ -45,5 +61,11 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     socket.emit("message", { text: message.content });
   };
 
-  return { roomId, sendMessage, messages, socket: socketRef.current };
+  return {
+    roomId,
+    sendMessage,
+    messages,
+    socket: socketRef.current,
+    cursor,
+  };
 };
