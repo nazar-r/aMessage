@@ -4,7 +4,7 @@ import { createClient } from 'redis';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import * as cookieParser from 'cookie-parser';
-import connectRedis from 'connect-redis';
+import * as connectRedis from 'connect-redis';
 import 'reflect-metadata';
 
 async function bootstrap() {
