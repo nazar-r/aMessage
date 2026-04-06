@@ -4,48 +4,46 @@ import { MessageDTO } from './messages.image/messages.create.dto';
 
 @Injectable()
 export class MessagesService {
-  private prisma = new PrismaClient();
+  private prisma = new PrismaClient(); async create(messageImage: MessageDTO) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.room.upsert({
+        where: { roomId: messageImage.roomId },
+        update: {},
+        create: { roomId: messageImage.roomId },
+        select: { roomId: true },
+      });
 
-  async create(messageImage: MessageDTO) {
-  return this.prisma.$transaction(async (tx) => {
-    await tx.room.upsert({
-      where: { roomId: messageImage.roomId },
-      update: {},
-      create: { roomId: messageImage.roomId },
-      select: { roomId: true },
-    });
-
-    await tx.roomUser.upsert({
-      where: {
-        roomId_userId: {
+      await tx.roomUser.upsert({
+        where: {
+          roomId_userId: {
+            roomId: messageImage.roomId,
+            userId: messageImage.userId,
+          },
+        },
+        update: {},
+        create: {
           roomId: messageImage.roomId,
           userId: messageImage.userId,
         },
-      },
-      update: {},
-      create: {
-        roomId: messageImage.roomId,
-        userId: messageImage.userId,
-      },
-      select: { roomId: true },
-    });
+        select: { roomId: true },
+      });
 
-    return tx.message.create({
-      data: {
-        roomId: messageImage.roomId,
-        userId: messageImage.userId,
-        content: messageImage.content,
-      },
-      select: {
-        messageId: true,
-        roomId: true,
-        userId: true,
-        content: true,
-        createdAt: true,
-      },
+      return tx.message.create({
+        data: {
+          roomId: messageImage.roomId,
+          userId: messageImage.userId,
+          content: messageImage.content,
+        },
+        select: {
+          messageId: true,
+          roomId: true,
+          userId: true,
+          content: true,
+          createdAt: true,
+        },
+      });
     });
-  });
-}
+  }
 
   update(message: { messageId: string; content: string }) {
     return this.prisma.message.update({
