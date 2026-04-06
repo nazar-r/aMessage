@@ -4,15 +4,16 @@ import { createClient } from 'redis';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import * as cookieParser from 'cookie-parser';
-import RedisStore from 'connect-redis';
+import connectRedis from 'connect-redis';
 import 'reflect-metadata';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
+
   const redisClient = createClient({
-    url: process.env.REDIS_URL,
+    url: process.env.REDIS_URL as string,
   });
 
   redisClient.on('error', (err) => {
@@ -20,14 +21,11 @@ async function bootstrap() {
   });
 
   await redisClient.connect();
-  const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'sess:',
-  });
+  const RedisStore = connectRedis(session);
 
   app.use(
     session({
-      store: redisStore,
+      store: new RedisStore({ client: redisClient, prefix: 'sess:' }),
       secret: process.env.JWT_SECRET as string,
       resave: false,
       saveUninitialized: false,
