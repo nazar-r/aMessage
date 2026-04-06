@@ -6,7 +6,7 @@ import { Menu } from '../tsx.items/items.menu/menu';
 const LobbyPageContent = () => {
     const location = useLocation();
     const peerWsId = location.state?.peerWsId || "";
-    const { messages, sendMessage, removeMessage, updateMessage } = useOneOnOneRoom({ peerWsId });
+    const { messages, isPeerOnline, sendMessage, removeMessage, updateMessage } = useOneOnOneRoom({ peerWsId });
     const [defEdit, setEdit] = useState(false);
     const [text, setText] = useState("");
 
@@ -24,10 +24,11 @@ const LobbyPageContent = () => {
     return (
         <>
             <div className="chat-page">
+
                 <ul className="chat-page__container">
                     {messages.map(message => (
                         <li id={message.messageId} key={message.messageId} style={{ margin: message.messageStatus === "got" ? "20px auto 0 0" : "20px 0 0 auto" }} className="chat-message">
-                            <div contentEditable={true}  className="chat-message--text">{message.content}</div>
+                            <div contentEditable={true} className="chat-message--text">{message.content}</div>
                             <div className="chat-message__hidden">
                                 {message.messageStatus === "mine" ? <div className="chat-message__hidden--item" onClick={e => { e.stopPropagation(); defEdit ? updateMessage(message.messageId, message.content) : switchEdit(e) }}>
                                     {defEdit
@@ -54,6 +55,18 @@ const LobbyPageContent = () => {
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="white" /></g></svg>
                     </div>
                     <textarea className="chat-page__add-message--field" placeholder="SEND MESSAGE" value={text} onChange={(e) => setText(e.target.value)} />
+                </div>
+                <div className="chat-page__status">
+                    {isPeerOnline
+                        ? <div className="chat-page__status">
+                            <div className="chat-page__status--icon"></div>
+                            <div className="">Online</div>
+                        </div>
+
+                        : <div className="chat-page__status">
+                            <div className="chat-page__status--icon-1"></div>
+                            <div className="">Offline</div>
+                        </div>}
                 </div>
             </div>
             <Menu />

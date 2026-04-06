@@ -9,6 +9,34 @@
     animation: fadeOut 0.2s ease forwards;
 }
 
+.chat-page__status {
+    display: flex;
+    flex-direction: row;
+    color: #ffffff;
+    bottom: 10vh;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    font-size: 15px;
+    right: 12vw;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.chat-page__status--icon {
+    margin: 2px 8px 0 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #88ff00;
+}
+.chat-page__status--icon-1 {
+    margin: 2px 8px 0 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #ff7300;
+}
+
 .chat-page__container {
     margin: 0 0 55px 0;
     width: 100%;
@@ -150,6 +178,10 @@
     .chat-message {
         width: 230px;
     }
+
+    .chat-page__status {
+        right: 16vw;
+    }
 }
 
 @media (min-width: 950px) {
@@ -172,6 +204,10 @@
         color: #ffffff;
     }
 
+    .chat-page__status {
+        right: 18vw;
+    }
+
     .chat-page__add-message--pin:not(:hover) .chat-page__add-message--pin__note {
         animation: fadeOutAdd 0.2s ease forwards;
         pointer-events: none;
@@ -181,6 +217,10 @@
 @media (min-width: 1250px) {
     .chat-message {
         width: 280px;
+    }
+
+    .chat-page__status {
+        right: 25vw;
     }
 
     .chat-message--text {

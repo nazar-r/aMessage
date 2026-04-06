@@ -13,6 +13,7 @@
     padding: 0 12vw;
     animation: fadeIn 0.2s ease forwards;
     color: #fff;
+    z-index: 2147483646;
 }
 
 .menu-button {
@@ -22,6 +23,7 @@
     box-sizing: border-box;
     left: 15vw;
     animation: fadeIn 0.2s ease forwards;
+    z-index: 2147483646;
 }
 
 .menu-button:hover,
@@ -30,6 +32,7 @@
     opacity: 80%;
     cursor: pointer;
     transition: 0.2s;
+    z-index: 2147483646;
 }
 
 .menu-button:hover {
@@ -49,6 +52,7 @@
 .menu-content {
     margin: 0 0 30vh 0;
     max-width: 40vw;
+    z-index: 2147483646;
 }
 
 .menu-content__item--title {
@@ -64,6 +68,7 @@
     margin: 0 0 12px 0;
     max-height: calc(1.2em * 2);
     overflow: hidden;
+        z-index: 2147483646;
 }
 
 .menu-content__item--list-item__users {
@@ -101,6 +106,7 @@
     flex-direction: column;
     color: #fff;
     font-size: 18px;
+     z-index: 2147483646;
 }
 
 .menu-container__item {
