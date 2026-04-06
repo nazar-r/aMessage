@@ -1,28 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
-import type {
-  RemovedMessagePayload,
-  NewMessagePayload,
-  MessagesHistoryPayload,
-  RoomConfig,
-  MessagesData,
-} from "../src.a.tsx/tsx.extensions/types";
-import {
-  decryptRoomText,
-  deriveSharedRoomKey,
-  ensureRoomKeyPair,
-  exportPublicKey,
-  getStoredPeerPublicKey,
-  importPublicKey,
-  encryptRoomText,
-  setStoredPeerPublicKey,
-  waitForSodium,
-} from "../src.a.encryption/encryption.keys";
-
-type E2EEPeerPublicKeyPayload = {
-  userId: string;
-  publicKey: string | null;
-};
+import type { RemovedMessagePayload, E2EEPeerPublicKeyPayload, NewMessagePayload, MessagesHistoryPayload, RoomConfig, MessagesData } from "../src.a.tsx/tsx.extensions/types";
+import { decryptRoomText, deriveSharedRoomKey, ensureRoomKeyPair, exportPublicKey, getStoredPeerPublicKey, importPublicKey, encryptRoomText, setStoredPeerPublicKey, waitForSodium } from "../src.a.encryption/encryption.keys";
 
 export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const socketRef = useRef<Socket | null>(null);
@@ -30,20 +9,23 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     publicKey: Uint8Array;
     secretKey: Uint8Array;
   } | null>(null);
+
   const sharedKeyRef = useRef<Uint8Array | null>(null);
   const encryptedTextByMessageIdRef = useRef<Map<string, string>>(new Map());
+  const roomId = peerWsId ? `room-with-${peerWsId}` : "";
 
   const [messages, setMessages] = useState<MessagesData[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
-
-  const roomId = peerWsId ? `room-with-${peerWsId}` : "";
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   const rehydrateMessages = () => {
     const sharedKey = sharedKeyRef.current;
 
     setMessages((prev) =>
       prev.map((msg) => {
-        const raw = encryptedTextByMessageIdRef.current.get(msg.messageId) ?? msg.content;
+        const raw =
+          encryptedTextByMessageIdRef.current.get(msg.messageId) ?? msg.content;
+
         return {
           ...msg,
           content: decryptRoomText(raw, sharedKey),
@@ -54,17 +36,19 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
   useEffect(() => {
     if (!peerWsId || socketRef.current) return;
-
     let cancelled = false;
 
     const init = async () => {
       await waitForSodium();
       if (cancelled) return;
 
-      myKeyPairRef.current = ensureRoomKeyPair();
+      const keyPair = await ensureRoomKeyPair();
+      if (cancelled) return;
 
-      const storedPeerPublicKey = getStoredPeerPublicKey();
-      if (storedPeerPublicKey && myKeyPairRef.current) {
+      myKeyPairRef.current = keyPair;
+
+      const storedPeerPublicKey = await getStoredPeerPublicKey(peerWsId);
+      if (storedPeerPublicKey) {
         sharedKeyRef.current = deriveSharedRoomKey(
           myKeyPairRef.current.secretKey,
           storedPeerPublicKey
@@ -85,13 +69,34 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         });
       };
 
-      const handlePeerPublicKey = (payload: E2EEPeerPublicKeyPayload) => {
+      const handleUsersOnline = (users: string[]) => {
+        setOnlineUsers(new Set(users));
+      };
+
+      const handleUserStatus = ({
+        userId,
+        status,
+      }: {
+        userId: string;
+        status: "online" | "offline";
+      }) => {
+        setOnlineUsers((prev) => {
+          const next = new Set(prev);
+
+          if (status === "online") next.add(userId);
+          else next.delete(userId);
+
+          return next;
+        });
+      };
+
+      const handlePeerPublicKey = async (payload: E2EEPeerPublicKeyPayload) => {
         if (payload.userId !== peerWsId || !payload.publicKey) return;
+        if (!myKeyPairRef.current) return;
 
         const peerPublicKey = importPublicKey(payload.publicKey);
-        setStoredPeerPublicKey(peerPublicKey);
 
-        if (!myKeyPairRef.current) return;
+        await setStoredPeerPublicKey(peerWsId, peerPublicKey);
 
         sharedKeyRef.current = deriveSharedRoomKey(
           myKeyPairRef.current.secretKey,
@@ -160,6 +165,9 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       s.on("messageRemoved", handleMessageRemoved);
       s.on("messageUpdated", handleMessageUpdated);
       s.on("e2ee:peerPublicKey", handlePeerPublicKey);
+
+      s.on("users-online", handleUsersOnline);
+      s.on("user-status", handleUserStatus);
     };
 
     init();
@@ -176,6 +184,10 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         s.off("messageRemoved");
         s.off("messageUpdated");
         s.off("e2ee:peerPublicKey");
+
+        s.off("users-online");
+        s.off("user-status");
+
         s.disconnect();
       }
 
@@ -224,10 +236,9 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       return;
     }
 
-    encryptedTextByMessageIdRef.current.set(
-      messageId,
-      encryptRoomText(newContent, sharedKey)
-    );
+    const encrypted = encryptRoomText(newContent, sharedKey);
+
+    encryptedTextByMessageIdRef.current.set(messageId, encrypted);
 
     setMessages((prev) =>
       prev.map((msg) =>
@@ -237,17 +248,12 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
     socket.emit("updateMessage", {
       messageId,
-      text: encryptRoomText(newContent, sharedKey),
+      text: encrypted,
     });
   };
 
   return {
-    roomId,
-    sendMessage,
-    removeMessage,
-    updateMessage,
-    messages,
-    socket: socketRef.current,
-    cursor,
+    roomId, sendMessage, removeMessage, updateMessage, messages, socket: socketRef.current, cursor, onlineUsers,
+    isPeerOnline: peerWsId ? onlineUsers.has(peerWsId) : false,
   };
 };

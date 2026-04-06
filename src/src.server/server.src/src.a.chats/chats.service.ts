@@ -1,35 +1,12 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  OnGatewayInit,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-  ConnectedSocket,
-  MessageBody,
-  WsException,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, WsException } from '@nestjs/websockets';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
 import { MessagesService } from '../src.a.messages/messages.service';
+import type { JwtPayload, E2EEPublicKeyPayload, E2EEPeerPublicKeyPayload } from '../src.extensions/extensions.types/types';
 import * as cookie from 'cookie';
-
-type JwtPayload = {
-  sub?: string;
-  id?: string;
-  userId?: string;
-};
-
-type E2EEPublicKeyPayload = {
-  publicKey: string;
-};
-
-type E2EEPeerPublicKeyPayload = {
-  userId: string;
-  publicKey: string;
-};
 
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
@@ -39,8 +16,7 @@ type E2EEPeerPublicKeyPayload = {
   },
 })
 export class ChatsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatsGateway.name);
 
   private readonly publicKeys = new Map<string, string>();
@@ -48,7 +24,7 @@ export class ChatsGateway
   constructor(
     private readonly jwtService: JwtService,
     private readonly messagesService: MessagesService,
-  ) {}
+  ) { }
 
   @WebSocketServer()
   server: Server;
@@ -103,13 +79,24 @@ export class ChatsGateway
       client.data.roomId = roomId;
 
       client.join(roomId);
+      this.server.to(roomId).emit('user-status', {
+        userId,
+        status: 'online',
+      });
 
+      const socketsInRoom = await this.server.in(roomId).fetchSockets();
+      const onlineUsers = socketsInRoom.map((s) => {
+        const u = s.data.user;
+        return u?.sub ?? u?.id ?? u?.userId;
+      })
+        .filter(Boolean);
+
+      client.emit('users-online', onlineUsers);
       const messages = await this.messagesService.findMessagesByRoom(roomId, {
         take: 50,
       });
 
       const orderedMessages = messages.reverse();
-
       const mapMessage = (msg: any) => ({
         userId: msg.userId,
         messageId: msg.messageId,
@@ -153,8 +140,16 @@ export class ChatsGateway
     const userId =
       client.data.user?.sub ??
       client.data.user?.id ??
-      client.data.user?.userId ??
-      'unknown';
+      client.data.user?.userId;
+
+    const roomId = client.data.roomId;
+
+    if (userId && roomId) {
+      this.server.to(roomId).emit('user-status', {
+        userId,
+        status: 'offline',
+      });
+    }
 
     this.logger.log(`WS Connection Closed: ${client.id} | User ID: ${userId}`);
   }
@@ -215,7 +210,7 @@ export class ChatsGateway
     const savedMessage = await this.messagesService.create({
       userId,
       roomId,
-      content: payload.text, 
+      content: payload.text,
     });
 
     this.server.to(roomId).emit('newMessage', {

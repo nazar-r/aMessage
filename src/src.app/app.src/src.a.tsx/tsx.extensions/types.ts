@@ -77,3 +77,8 @@ export interface MessagesHistoryPayload  {
   messages: GotMessagesData[];
   nextCursor: string | null;
 };
+
+export interface E2EEPeerPublicKeyPayload  {
+  userId: string;
+  publicKey: string | null;
+};
