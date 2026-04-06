@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { createClient } from 'redis';
-import session from 'express-session';
-import passport from 'passport';
-import cookieParser from 'cookie-parser';
+import * as session from 'express-session';
+import * as passport from 'passport';
+import * as cookieParser from 'cookie-parser';
 import RedisStore from 'connect-redis';
 import 'reflect-metadata';
 
