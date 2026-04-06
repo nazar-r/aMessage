@@ -22,7 +22,7 @@ async function bootstrap() {
   app.use(passport.session());
 
   app.enableCors({
-    origin: ["http://localhost:5174", "http://127.0.0.1:5174"],
+    origin: ["https://a-message-three.vercel.app"],
     credentials: true,
   });
 
