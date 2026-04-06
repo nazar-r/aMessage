@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   const redisClient = createClient({
-    url: 'redis://localhost:6379',
+    url: process.env.REDIS_URL,
   });
 
   redisClient.on('error', (err) => {
