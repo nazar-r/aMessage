@@ -22,6 +22,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24,
+      path: '/',
     });
 
     return res.redirect('https://a-message-three.vercel.app/chat-prev');
@@ -41,6 +42,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24,
+      path: '/',
     });
 
     return res.redirect('https://a-message-three.vercel.app/chat-prev');
