@@ -4,7 +4,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtCheckCookies } from '../src.b.jwt/jwt.check.cookies';
 import { Request, Response } from 'express';
 
-
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) { }

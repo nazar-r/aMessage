@@ -9,8 +9,6 @@ lerna-debug.log*
 
 testone
 node_modules
-dist
-dist-ssr
 *.local
 git
 .vscode/*
@@ -26,7 +24,7 @@ git
 # compiled output
 /dist
 /node_modules
-/build
+/buildcd
 
 # Logs
 logs

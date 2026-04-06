@@ -9,8 +9,8 @@ import { ChatsGateway } from './src.a.chats/chats.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,          // робить ConfigService доступним у всьому додатку
-      envFilePath: '.env',     // шлях до файлу .env (якщо інший, вкажи його)
+      isGlobal: true,
+      envFilePath: '.env',
     }),
     UsersModule,
     AuthModule,
