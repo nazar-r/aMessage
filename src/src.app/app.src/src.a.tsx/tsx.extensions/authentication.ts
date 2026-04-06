@@ -4,7 +4,7 @@ export const authentication = () =>
     useQuery({
         queryKey: ["auth"],
         queryFn: async () => {
-            const res = await fetch("http://localhost:3001/auth/check", { credentials: "include" });
+            const res = await fetch("https://amessage-bi0d.onrender.com/auth/check", { credentials: "include" });
             return (await res.json()).user;
         },
         retry: 1,

@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '../types';
 
 export const removingMessages = async (messageId: string) => {
-  const response = await fetch(`http://localhost:3001/messages/${messageId}`, {
+  const response = await fetch(`https://amessage-bi0d.onrender.com/messages/${messageId}`, {
     method: 'DELETE',
     credentials: 'include',
   });

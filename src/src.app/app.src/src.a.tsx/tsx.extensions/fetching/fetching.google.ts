@@ -1,5 +1,5 @@
 const fetchingGoogle = async () => {
-  window.location.href = "http://localhost:3001/auth/google";
+  window.location.href = "https://amessage-bi0d.onrender.com/auth/google";
 };
 
 export default fetchingGoogle;

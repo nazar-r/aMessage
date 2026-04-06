@@ -55,7 +55,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         );
       }
 
-      const s = io("http://localhost:3001", {
+      const s = io("https://amessage-bi0d.onrender.com", {
         withCredentials: true,
         query: { peerId: peerWsId },
       });

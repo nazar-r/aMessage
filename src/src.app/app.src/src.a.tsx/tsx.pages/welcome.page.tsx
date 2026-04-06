@@ -11,7 +11,7 @@ const WelcomePageContent = () => {
       </div>
 
       <div className="welcome-page__button" onClick={async () =>
-        (await fetch("http://localhost:3001/auth/check", { credentials: "include" }).then(res => res.json()).then(data => data.user))
+        (await fetch("https://amessage-bi0d.onrender.com/auth/check", { credentials: "include" }).then(res => res.json()).then(data => data.user))
           ? navigate("/chat-prev")
           : navigate("/login")
       }
