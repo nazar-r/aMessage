@@ -34,8 +34,8 @@ async function bootstrap() {
         secure: true,
         sameSite: 'none',
         maxAge: 1000 * 60 * 60 * 24,
-        domain: 'amessage.site',
-        path: '/',
+        // domain: 'amessage.site',
+        // path: '/',
       },
     }),
   );

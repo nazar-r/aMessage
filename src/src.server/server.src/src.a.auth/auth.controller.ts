@@ -22,8 +22,8 @@ export class AuthController {
       secure: true,
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
-      path: '/',
-      domain: "amessage.site",
+      // path: '/',
+      // domain: "amessage.site",
     });
     console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
@@ -43,8 +43,8 @@ export class AuthController {
       secure: true,
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
-      path: '/',
-      domain: "amessage.site",
+      // path: '/',
+      // domain: "amessage.site",
     });
     console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
