@@ -48,7 +48,7 @@
 }
 
 .chat-prev-page__title {
-    margin: 40vh 0 0 0;
+    margin: 27vh 0 0 0;
     color: var(--color-text);
     font-size: 30px;
     text-shadow: var(--text-shadow-welcome-page__heading);
