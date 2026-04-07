@@ -16,9 +16,9 @@ export class GoogleOauth extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-    const { id, emails, displayName } = profile;
+    const { id, emails, displayName, name: googleName } = profile;
     const email = emails?.[0]?.value;
-    const name = displayName;
+    const name = displayName || googleName || email?.split('@')[0] || 'Unknown';
 
     if (!id) return done(new UnauthorizedException('Google profile ID is missing'), null);
     if (!email) return done(new UnauthorizedException('Email is missing in Google profile'), null);
