@@ -1,10 +1,10 @@
 export interface MessagesData {
-    messageStatus: "mine" | "got";
-    messageId: string;
-    content: string;
+  messageStatus: "mine" | "got";
+  messageId: string;
+  content: string;
 }
 
-export interface GotMessagesData{
+export interface GotMessagesData {
   userId: string;
   messageId: string;
   text: string;
@@ -12,39 +12,39 @@ export interface GotMessagesData{
 };
 
 export interface RoomConfig {
-    userWsId?: string;
-    peerWsId: string;
+  userWsId?: string;
+  peerWsId: string;
 };
 
 export interface UsersData {
-    userId: string;
-    userName: string;
-    userStatus: "Online";
-    email?: string;
+  userId: string;
+  userName: string;
+  userStatus: "Online";
+  email?: string;
 }
 
 export interface SharedTextContextType {
-    text: string;
-    setText: (value: string) => void;
+  text: string;
+  setText: (value: string) => void;
 }
 
 export type AuthToken = {
-    token: string
+  token: string
 };
 
 export type ContextType = {
-    prev: any;
+  prev: any;
 };
 
 export type ErrorResponse = {
-    message: string | string[];
-    error?: string;
+  message: string | string[];
+  error?: string;
 };
 
 export type ButtonConfig = {
-    key: string;
-    label: string;
-    icon: React.ComponentType;
+  key: string;
+  label: string;
+  icon: React.ComponentType;
 }
 
 export interface KeyPair {
@@ -53,8 +53,8 @@ export interface KeyPair {
 }
 
 export interface EncryptedMessage {
-  cipher: string; 
-  nonce: string; 
+  cipher: string;
+  nonce: string;
   senderPublicKey: string;
 }
 
@@ -63,7 +63,7 @@ export interface Message {
   encrypted?: EncryptedMessage;
 }
 
-export interface RemovedMessagePayload  {
+export interface RemovedMessagePayload {
   messageId: string;
 };
 
@@ -73,12 +73,23 @@ export interface NewMessagePayload {
   messageId: string;
 };
 
-export interface MessagesHistoryPayload  {
+export interface MessagesHistoryPayload {
   messages: GotMessagesData[];
   nextCursor: string | null;
 };
 
-export interface E2EEPeerPublicKeyPayload  {
+export interface E2EEPeerPublicKeyPayload {
   userId: string;
   publicKey: string | null;
 };
+
+export interface NewMessagePayload {
+  userId: string;
+  text: string;
+  messageId: string;
+  clientMessageId?: string;
+}
+export interface SendMessageVariables {
+  content: string;
+  tempId: string;
+}

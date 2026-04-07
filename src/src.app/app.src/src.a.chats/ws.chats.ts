@@ -1,7 +1,12 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
-import type { RemovedMessagePayload, E2EEPeerPublicKeyPayload, NewMessagePayload, MessagesHistoryPayload, RoomConfig, MessagesData } from "../src.a.tsx/tsx.extensions/types";
-import { decryptRoomText, deriveSharedRoomKey, ensureRoomKeyPair, exportPublicKey, getStoredPeerPublicKey, importPublicKey, encryptRoomText, setStoredPeerPublicKey, waitForSodium } from "../src.a.encryption/encryption.keys";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { RemovedMessagePayload, E2EEPeerPublicKeyPayload, NewMessagePayload, } from "../src.a.tsx/tsx.extensions/types";
+import type { MessagesHistoryPayload, RoomConfig, MessagesData, SendMessageVariables } from "../src.a.tsx/tsx.extensions/types";
+import { decryptRoomText, deriveSharedRoomKey, ensureRoomKeyPair, exportPublicKey, } from "../src.a.encryption/encryption.keys";
+import { getStoredPeerPublicKey, importPublicKey, encryptRoomText, setStoredPeerPublicKey, waitForSodium, } from "../src.a.encryption/encryption.keys";
+
+const isTempMessageId = (id: string) => id.startsWith("tmp-");
 
 export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const socketRef = useRef<Socket | null>(null);
@@ -12,16 +17,71 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
   const sharedKeyRef = useRef<Uint8Array | null>(null);
   const encryptedTextByMessageIdRef = useRef<Map<string, string>>(new Map());
-  const roomId = peerWsId ? `room-with-${peerWsId}` : "";
+  const pendingOwnMessageIdsRef = useRef<string[]>([]);
 
-  const [messages, setMessages] = useState<MessagesData[]>([]);
+  const queryClient = useQueryClient();
+
+  const roomId = peerWsId ? `room-with-${peerWsId}` : "";
+  const messagesKey = ["one-on-one-room-messages", roomId];
+
+  const { data: messages = [] } = useQuery({
+    queryKey: messagesKey,
+    queryFn: async () => [] as MessagesData[],
+    initialData: [] as MessagesData[],
+    enabled: !!peerWsId,
+  });
+
   const [cursor, setCursor] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+  const setMessagesCache = (
+    updater: MessagesData[] | ((prev: MessagesData[]) => MessagesData[])
+  ) => {
+    queryClient.setQueryData<MessagesData[]>(messagesKey, (prev = []) =>
+      typeof updater === "function" ? updater(prev) : updater
+    );
+  };
+
+  const upsertMessageById = (incoming: MessagesData) => {
+    setMessagesCache((prev) => {
+      const index = prev.findIndex((m) => m.messageId === incoming.messageId);
+
+      if (index === -1) {
+        return [...prev, incoming];
+      }
+
+      const next = [...prev];
+      next[index] = incoming;
+      return next;
+    });
+  };
+
+  const replaceTempMessage = (tempId: string, incoming: MessagesData) => {
+    setMessagesCache((prev) => {
+      let replaced = false;
+
+      const next = prev.map((m) => {
+        if (m.messageId === tempId) {
+          replaced = true;
+          return incoming;
+        }
+        return m;
+      });
+
+      return replaced ? next : [...next, incoming];
+    });
+  };
+
+  const removePendingTempId = (tempId: string) => {
+    pendingOwnMessageIdsRef.current = pendingOwnMessageIdsRef.current.filter(
+      (id) => id !== tempId
+    );
+  };
 
   const rehydrateMessages = () => {
     const sharedKey = sharedKeyRef.current;
 
-    setMessages((prev) =>
+    setMessagesCache((prev) =>
       prev.map((msg) => {
         const raw =
           encryptedTextByMessageIdRef.current.get(msg.messageId) ?? msg.content;
@@ -33,6 +93,52 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       })
     );
   };
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ content, tempId }: SendMessageVariables) => {
+      const socket = socketRef.current;
+      const sharedKey = sharedKeyRef.current;
+
+      if (!socket) {
+        throw new Error("Socket is not connected.");
+      }
+
+      if (!sharedKey) {
+        throw new Error("E2EE shared key is not ready yet.");
+      }
+
+      const trimmed = content.trim();
+      if (!trimmed) return;
+
+      const encrypted = encryptRoomText(trimmed, sharedKey);
+
+      socket.emit("message", {
+        text: encrypted,
+        clientMessageId: tempId,
+      });
+    },
+
+    onMutate: async ({ content, tempId }) => {
+      const trimmed = content.trim();
+      if (!trimmed) return;
+
+      pendingOwnMessageIdsRef.current.push(tempId);
+
+      const optimisticMessage: MessagesData = {
+        messageStatus: "mine",
+        messageId: tempId,
+        content: trimmed,
+      };
+
+      setMessagesCache((prev) => [...prev, optimisticMessage]);
+    },
+
+    onError: (_err, { tempId }) => {
+      removePendingTempId(tempId);
+
+      setMessagesCache((prev) => prev.filter((msg) => msg.messageId !== tempId));
+    },
+  });
 
   useEffect(() => {
     if (!peerWsId || socketRef.current) return;
@@ -120,7 +226,18 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
           };
         });
 
-        setMessages(formattedMessages);
+        const currentMessages =
+          queryClient.getQueryData<MessagesData[]>(messagesKey) ?? [];
+
+        const optimisticOwnMessages = currentMessages.filter((msg) =>
+          isTempMessageId(msg.messageId)
+        );
+
+        queryClient.setQueryData<MessagesData[]>(
+          messagesKey,
+          [...formattedMessages, ...optimisticOwnMessages]
+        );
+
         setCursor(nextCursor);
       };
 
@@ -133,24 +250,45 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
           content: decryptRoomText(msg.text, sharedKeyRef.current),
         };
 
-        setMessages((prev) => [...prev, receivedMessage]);
+        const isMine = msg.userId !== peerWsId;
+
+        if (isMine && msg.clientMessageId) {
+          removePendingTempId(msg.clientMessageId);
+          replaceTempMessage(msg.clientMessageId, receivedMessage);
+          return;
+        }
+
+        if (isMine) {
+          const fallbackTempId = pendingOwnMessageIdsRef.current.shift();
+
+          if (fallbackTempId) {
+            replaceTempMessage(fallbackTempId, receivedMessage);
+            return;
+          }
+        }
+
+        upsertMessageById(receivedMessage);
       };
 
       const handleMessageRemoved = ({ messageId }: RemovedMessagePayload) => {
         encryptedTextByMessageIdRef.current.delete(messageId);
-        setMessages((prev) => prev.filter((msg) => msg.messageId !== messageId));
+        removePendingTempId(messageId);
+
+        setMessagesCache((prev) =>
+          prev.filter((msg) => msg.messageId !== messageId)
+        );
       };
 
       const handleMessageUpdated = (msg: NewMessagePayload) => {
         encryptedTextByMessageIdRef.current.set(msg.messageId, msg.text);
 
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.messageId === msg.messageId
-              ? { ...m, content: decryptRoomText(msg.text, sharedKeyRef.current) }
-              : m
-          )
-        );
+        const updatedMessage: MessagesData = {
+          messageStatus: msg.userId === peerWsId ? "got" : "mine",
+          messageId: msg.messageId,
+          content: decryptRoomText(msg.text, sharedKeyRef.current),
+        };
+
+        upsertMessageById(updatedMessage);
       };
 
       s.on("connect", () => {
@@ -184,10 +322,8 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         s.off("messageRemoved");
         s.off("messageUpdated");
         s.off("e2ee:peerPublicKey");
-
         s.off("users-online");
         s.off("user-status");
-
         s.disconnect();
       }
 
@@ -195,23 +331,22 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       myKeyPairRef.current = null;
       sharedKeyRef.current = null;
       encryptedTextByMessageIdRef.current.clear();
+      pendingOwnMessageIdsRef.current = [];
     };
-  }, [peerWsId]);
+  }, [peerWsId, queryClient]);
 
   const sendMessage = (message: MessagesData) => {
-    const socket = socketRef.current;
-    const sharedKey = sharedKeyRef.current;
+    const content = message.content.trim();
+    if (!content) return;
 
-    if (!socket) return;
-    if (!sharedKey) {
-      console.error("E2EE shared key is not ready yet.");
-      return;
-    }
+    const tempId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? `tmp-${crypto.randomUUID()}`
+        : `tmp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-    if (!message.content.trim()) return;
-
-    socket.emit("message", {
-      text: encryptRoomText(message.content, sharedKey),
+    sendMessageMutation.mutate({
+      content,
+      tempId,
     });
   };
 
@@ -223,7 +358,16 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     if (messageElem) {
       messageElem.classList.remove("chat-message");
       messageElem.classList.add("chat-message--fade");
-      setTimeout(() => socket.emit("removeMessage", { messageId }), 200);
+
+      setTimeout(() => {
+        setMessagesCache((prev) =>
+          prev.filter((msg) => msg.messageId !== messageId)
+        );
+        socket.emit("removeMessage", { messageId });
+      }, 200);
+    } else {
+      setMessagesCache((prev) => prev.filter((msg) => msg.messageId !== messageId));
+      socket.emit("removeMessage", { messageId });
     }
   };
 
@@ -236,13 +380,16 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       return;
     }
 
-    const encrypted = encryptRoomText(newContent, sharedKey);
+    const trimmed = newContent.trim();
+    if (!trimmed) return;
+
+    const encrypted = encryptRoomText(trimmed, sharedKey);
 
     encryptedTextByMessageIdRef.current.set(messageId, encrypted);
 
-    setMessages((prev) =>
+    setMessagesCache((prev) =>
       prev.map((msg) =>
-        msg.messageId === messageId ? { ...msg, content: newContent } : msg
+        msg.messageId === messageId ? { ...msg, content: trimmed } : msg
       )
     );
 
@@ -253,7 +400,14 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   };
 
   return {
-    roomId, sendMessage, removeMessage, updateMessage, messages, socket: socketRef.current, cursor, onlineUsers,
+    roomId,
+    sendMessage,
+    removeMessage,
+    updateMessage,
+    messages,
+    socket: socketRef.current,
+    cursor,
+    onlineUsers,
     isPeerOnline: peerWsId ? onlineUsers.has(peerWsId) : false,
   };
 };
