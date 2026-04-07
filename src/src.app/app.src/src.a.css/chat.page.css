@@ -40,7 +40,7 @@
 
 
 
-@media(max-height: 650px) {
+@media(max-height: 950px) {
     .chat-page__container {
 
         height: 55vh;
