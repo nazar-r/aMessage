@@ -23,6 +23,7 @@ export class AuthController {
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
+      domain: ".amessage.site",
     });
 
     return res.redirect('https://amessage.site/chat-prev');
@@ -43,6 +44,7 @@ export class AuthController {
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
+      domain: ".amessage.site",
     });
 
     return res.redirect('https://amessage.site/chat-prev');
