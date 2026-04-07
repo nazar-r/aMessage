@@ -38,21 +38,10 @@
     background: #ff7300;
 }
 
-
-
-@media(min-height: 950px) {
-    .chat-page__container {
-
-        height: 65vh;
-
-    }
-
-}
-
 .chat-page__container {
     margin: 0 0 55px 0;
     width: 100%;
-    height: 57vh;
+    height: 59vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -168,17 +157,6 @@
     background: #000000;
 }
 
-.chat-page__add-message--pin:hover,
-.chat-page__add-message--icon:hover,
-.chat-page__add-message--field:hover {
-    height: 90px;
-    cursor: pointer;
-}
-
-.chat-page__add-message--field:hover {
-    padding: 35px 50px 20px 40px;
-}
-
 .chat-page__button--icon {
     cursor: pointer;
     color: #ffffff;
@@ -202,6 +180,10 @@
         display: grid;
         grid-template-columns: 60px 60px calc(100% - 120px);
         gap: 8px;
+    }
+
+    .chat-page__container {
+        height: 65vh;
     }
 
     .chat-page__add-message--pin:hover,

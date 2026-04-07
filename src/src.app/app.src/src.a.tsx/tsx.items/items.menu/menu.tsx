@@ -36,7 +36,7 @@ const menuItems = (
 
     return (
         <>{defMenu && <div className="menu"><div className="menu-content">{menuContent}</div></div>}
-            <div className="menu-container" style={{ bottom: defMenu ? (isMobile ? "23vh" : "15vh") : "10vh" }}>
+            <div className="menu-container" style={{ bottom: defMenu ? (isMobile ? "23vh" : "15vh") : "8vh" }}>
                 {!isMobile ? <div className="menu-button" onClick={switchMenu} style={{ fontSize: defMenu ? 18 : 19 }}>Menu</div> : null}
                 {defMenu && (isMobile ? (!defMenuItems ? menuItems : null) : menuItems)}
                 {isMobile ? <div className="menu-button" onClick={closeOrSwitchMenu} style={{ fontSize: defMenu ? 18 : 19 }}>Menu</div> : null}
