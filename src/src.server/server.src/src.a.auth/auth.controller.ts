@@ -20,12 +20,12 @@ export class AuthController {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
 
-    return res.redirect('https://a-message-three.vercel.app/chat-prev');
+    return res.redirect('https://amessage.site/chat-prev');
   }
 
   @Get('github')
@@ -40,12 +40,12 @@ export class AuthController {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
 
-    return res.redirect('https://a-message-three.vercel.app/chat-prev');
+    return res.redirect('https://amessage.site/chat-prev');
   }
 
   @Get('check')

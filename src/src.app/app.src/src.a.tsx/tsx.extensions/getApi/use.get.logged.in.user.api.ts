@@ -8,6 +8,6 @@ export const useFetchingLoggedInUser = () => {
         queryFn: fetchingLoggedInUser,
         staleTime: 1000 * 1,
         cacheTime: 1000 * 60 * 180, 
-        // retry: 1,
+        retry: 1,
     });
 };

@@ -11,7 +11,7 @@ import * as cookie from 'cookie';
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'https://a-message-three.vercel.app',
+    origin: process.env.FRONTEND_URL || 'https://amessage.site',
     credentials: true,
   },
 })

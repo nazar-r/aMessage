@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const socket: Socket = io('https://amessage-bi0d.onrender.com', {
+const socket: Socket = io('https://api.amessage.site', {
   withCredentials: true,
   transports: ['websocket'],
   reconnection: true,

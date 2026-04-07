@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '../types';
 
 export const fetchingUsers = async () => {
-    const response = await fetch('https://amessage-bi0d.onrender.com/users', {
+    const response = await fetch('https://api.amessage.site/users', {
         method: 'GET',
         credentials: 'include',
     });
