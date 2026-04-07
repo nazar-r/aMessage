@@ -31,11 +31,11 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: false,
+        sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24,
-        // domain: 'amessage.site',
-        // path: '/',
+        domain: 'amessage.site',
+        path: '/',
       },
     }),
   );
@@ -48,7 +48,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? 3000);
 }
 
 bootstrap();

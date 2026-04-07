@@ -34,7 +34,7 @@ async function bootstrap() {
     app.use(passport.initialize());
     app.use(passport.session());
     app.enableCors({
-        origin: ["https://a-message-three.vercel.app"],
+        origin: ["https://amessage.site"],
         credentials: true,
     });
     await app.listen(process.env.PORT ?? 3001);

@@ -24,24 +24,28 @@ let AuthController = class AuthController {
     async googleOauth() { }
     async googleAuthRedirect(req, res) {
         const { access_token } = await this.authService.googleLogin(req.user);
+        console.log(access_token);
         res.cookie('access_token', access_token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'none',
+            sameSite: "none",
             maxAge: 1000 * 60 * 60 * 24,
         });
-        return res.redirect('https://a-message-three.vercel.app/chat-prev');
+        console.log(res.cookie);
+        return res.redirect('https://amessage.site/chat-prev');
     }
     async githubOauth() { }
     async githubAuthRedirect(req, res) {
-        const { access_token } = await this.authService.githubLogin(req.user);
+        const { access_token } = await this.authService.googleLogin(req.user);
+        console.log(access_token);
         res.cookie('access_token', access_token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'none',
+            sameSite: "none",
             maxAge: 1000 * 60 * 60 * 24,
         });
-        return res.redirect('https://a-message-three.vercel.app/chat-prev');
+        console.log(res.cookie);
+        return res.redirect('https://amessage.site/chat-prev');
     }
     checkLogin(req) {
         return { isLoggedIn: true, user: req.user };

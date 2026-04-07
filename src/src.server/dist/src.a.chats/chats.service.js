@@ -260,7 +260,7 @@ exports.ChatsGateway = ChatsGateway = ChatsGateway_1 = __decorate([
     (0, common_1.UseGuards)(jwt_ws_config_1.WsJwtGuard),
     (0, websockets_1.WebSocketGateway)({
         cors: {
-            origin: process.env.FRONTEND_URL || 'https://a-message-three.vercel.app',
+            origin: process.env.FRONTEND_URL || 'https://amessage.site',
             credentials: true,
         },
     }),

@@ -19,11 +19,11 @@ export class AuthController {
     console.log(access_token)
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: false,
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
-      // path: '/',
-      // domain: "amessage.site",
+      path: '/',
+      domain: "amessage.site",
     });
     console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
@@ -40,11 +40,11 @@ export class AuthController {
     console.log(access_token)
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: false,
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
-      // path: '/',
-      // domain: "amessage.site",
+      path: '/',
+      domain: "amessage.site",
     });
     console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
