@@ -58,7 +58,7 @@
     }
 
     .login-page__title {
-        margin: 27vh 0 0 0;
+        margin: 35vh 0 0 0;
         color: var(--color-text);
         font-size: 35px;
         text-shadow: var(--text-shadow-welcome-page__heading);
@@ -100,8 +100,8 @@
     }
 
     .login-page__button:hover {
-        width: 500px;
-        height: 180px;
+        width: 220px;
+        height: 80px;
         font-size: 16px;
         transform: var(--transform-welcome-page__button--item);
         opacity: 80%;
@@ -179,5 +179,16 @@
             box-shadow: 5px 5px 50px #00000065;
             font-size: 15px;
             color: #ffffff;
+        }
+
+        .login-page__button:hover {
+            width: 500px;
+            height: 180px;
+            font-size: 16px;
+            transform: var(--transform-welcome-page__button--item);
+            opacity: 80%;
+            box-shadow: 7px 7px 50px #00000073;
+            cursor: pointer;
+            transition: 0.35s;
         }
     }

@@ -9,7 +9,7 @@
 
 .welcome-page-container {
     text-shadow: var(--text-shadow-welcome-page__heading);
-    margin: 27vh 0 0 0;
+    margin: 35vh 0 0 0;
 }
 
 .welcome-page-container__title {
