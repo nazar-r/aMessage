@@ -43,13 +43,11 @@
 @media(max-height: 950px) {
     .chat-page__container {
 
-        height: 55vh;
+        height: 300px;
 
     }
 
 }
-
-
 
 .chat-page__container {
     margin: 0 0 55px 0;
@@ -205,6 +203,18 @@
         grid-template-columns: 60px 60px calc(100% - 120px);
         gap: 8px;
     }
+
+    .chat-page__add-message--pin:hover,
+    .chat-page__add-message--icon:hover,
+    .chat-page__add-message--field:hover {
+        height: 90px;
+        cursor: pointer;
+    }
+
+    .chat-page__add-message--field:hover {
+        padding: 35px 50px 20px 40px;
+    }
+
 
     .chat-page__add-message--pin {
         display: flex;
