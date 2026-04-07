@@ -32,8 +32,10 @@ async function bootstrap() {
       cookie: {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none', // 🔥 змінити
         maxAge: 1000 * 60 * 60 * 24,
+        domain: 'amessage.site',
+        path: '/',
       },
     }),
   );
