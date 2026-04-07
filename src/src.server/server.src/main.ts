@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { createClient } from 'redis';
 import * as session from 'express-session';
@@ -8,8 +9,8 @@ import * as connectRedis from 'connect-redis';
 import 'reflect-metadata';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.set('trust proxy', 1);
   app.use(cookieParser());
 
   const redisClient = createClient({
@@ -31,10 +32,9 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24,
-        domain: 'amessage.site',
         path: '/',
       },
     }),
@@ -44,8 +44,10 @@ async function bootstrap() {
   app.use(passport.session());
 
   app.enableCors({
-    origin: ["https://amessage.site"],
+    origin: 'https://amessage.site',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   await app.listen(process.env.PORT ?? 3000);
