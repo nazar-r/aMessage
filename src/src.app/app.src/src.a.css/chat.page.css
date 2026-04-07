@@ -29,6 +29,7 @@
     border-radius: 50%;
     background: #88ff00;
 }
+
 .chat-page__status--icon-1 {
     margin: 2px 8px 0 0;
     width: 15px;
@@ -36,6 +37,19 @@
     border-radius: 50%;
     background: #ff7300;
 }
+
+
+
+@media(max-height: 650px) {
+    .chat-page__container {
+
+        height: 55vh;
+
+    }
+
+}
+
+
 
 .chat-page__container {
     margin: 0 0 55px 0;
