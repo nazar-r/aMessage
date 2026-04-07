@@ -15,6 +15,12 @@
     display: none;
 }
 
+
+body {
+    position: fixed;
+
+}
+
 input {
     background-color: #000000;
     color: #ffffff;
