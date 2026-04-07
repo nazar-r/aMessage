@@ -23,7 +23,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
-    // return res.redirect('https://amessage.site/chat-prev');
+    return res.redirect('https://amessage.site/chat-prev');
   }
 
   @Get('github')
@@ -41,7 +41,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
-    // return res.redirect('https://amessage.site/chat-prev');
+    return res.redirect('https://amessage.site/chat-prev');
   }
 
   @Get('check')
