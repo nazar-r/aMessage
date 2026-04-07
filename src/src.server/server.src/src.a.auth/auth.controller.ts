@@ -16,16 +16,16 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const { access_token } = await this.authService.googleLogin(req.user);
-
+    console.log(access_token)
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
-      domain: ".amessage.site",
+      domain: "amessage.site",
     });
-
+    console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
   }
 
@@ -36,17 +36,17 @@ export class AuthController {
   @Get('github/redirect')
   @UseGuards(AuthGuard('github'))
   async githubAuthRedirect(@Req() req, @Res() res: Response) {
-    const { access_token } = await this.authService.githubLogin(req.user);
-
+    const { access_token } = await this.authService.googleLogin(req.user);
+    console.log(access_token)
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
-      domain: ".amessage.site",
+      domain: "amessage.site",
     });
-
+    console.log(res.cookie)
     return res.redirect('https://amessage.site/chat-prev');
   }
 

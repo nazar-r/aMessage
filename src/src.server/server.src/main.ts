@@ -32,7 +32,7 @@ async function bootstrap() {
       cookie: {
         httpOnly: true,
         secure: true,
-        sameSite: 'none', // 🔥 змінити
+        sameSite: 'none',
         maxAge: 1000 * 60 * 60 * 24,
         domain: 'amessage.site',
         path: '/',
