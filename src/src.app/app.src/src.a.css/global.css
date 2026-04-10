@@ -35,6 +35,17 @@ input:-webkit-autofill {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+@keyframes fadeOutAddSpec {
+    from {
+        opacity: 1;
+        margin: 30px 0 0 0;
+    }
+
+    to {
+        opacity: 0;
+        margin: 30px 0 0 0;
+    }
+}
 @keyframes fadeOutAdd {
     from {
         opacity: 1;

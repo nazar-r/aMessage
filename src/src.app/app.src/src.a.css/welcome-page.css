@@ -28,15 +28,34 @@
     margin: 0 0 0 10px;
 }
 
+.welcome-page__button:not(:hover) .welcome-page__button--title__spec {
+    animation: fadeOutAddSpec 0.2s ease forwards;
+    pointer-events: none;
+}
+
+.welcome-page__button--title__spec {
+    margin: 30px 0 0 0;
+    text-shadow: none;
+    font-size: 17px;
+    color: rgba(255, 231, 14, 0.992);
+    animation: fadeIn 0.2s ease forwards;
+}
+
 .welcome-page__button {
     display: flex;
+    flex-direction: column;
     margin: 100px 0 0 0;
     font-size: var(--font-size-xs);
     text-shadow: 5px 5px 50px #000000b0;
     box-sizing: border-box;
 }
 
-.welcome-page__button:hover {
+.welcome-page__button--title__container {
+    display: flex;
+    flex-direction: row;
+}
+
+.welcome-page__button--title__container:hover {
     transform: var(--transform-welcome-page__button--item);
     opacity: 80%;
     text-shadow: 7px 7px 50px #000000bd;

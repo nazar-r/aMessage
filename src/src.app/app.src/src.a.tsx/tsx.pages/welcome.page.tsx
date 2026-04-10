@@ -16,11 +16,14 @@ const WelcomePageContent = () => {
           : navigate("/login")
       }
       >
-        <div className="welcome-page__button--title">Begin</div>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="login-page__button--icon">
-          <line x1="5" y1="12" x2="19" y2="12" />
-          <polyline points="12 5 19 12 12 19" />
-        </svg>
+        <div className="welcome-page__button--title__container">
+          <div className="welcome-page__button--title">Begin</div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="login-page__button--icon">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </div>
+        <div className="welcome-page__button--title__spec">NOTE: The first launch may take up to 50 seconds for the server to start.</div>
       </div>
     </div>
   );
