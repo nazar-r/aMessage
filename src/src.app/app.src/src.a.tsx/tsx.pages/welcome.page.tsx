@@ -55,9 +55,9 @@ const WelcomePageContent = () => {
           </div>
         </div>
 
-        <div className="welcome-page__button--title__spec-1">
+        {/* <div className="welcome-page__button--title__spec-1">
           The app is currently being updated
-        </div>
+        </div> */}
 
         <div className="welcome-page__button--title__spec">
           NOTE: The first launch may take up to 50 seconds for the server to start
