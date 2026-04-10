@@ -28,6 +28,33 @@
     margin: 0 0 0 10px;
 }
 
+.loader {
+    margin: 3px 0 0 11px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+.welcome-page__button {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.welcome-page__button.is-loading {
+    pointer-events: none;
+    opacity: 0.8;
+    transform: scale(0.98);
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(3px);
+}
+
 .welcome-page__button:not(:hover) .welcome-page__button--title__spec {
     animation: fadeOutAddSpec 0.2s ease forwards;
     pointer-events: none;

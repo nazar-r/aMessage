@@ -35,6 +35,13 @@ input:-webkit-autofill {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
 @keyframes fadeOutAddSpec {
     from {
         opacity: 1;
