@@ -35,9 +35,9 @@
 
 .welcome-page__button--title__spec {
     margin: 30px 0 0 0;
-    text-shadow: none;
+    text-shadow: 0 1px 10px #00000028;
     font-size: 17px;
-    color: rgba(255, 231, 14, 0.992);
+    color: #ffe600;
     animation: fadeIn 0.2s ease forwards;
 }
 
