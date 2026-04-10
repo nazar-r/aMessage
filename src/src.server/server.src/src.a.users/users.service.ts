@@ -25,9 +25,9 @@ export class UsersService {
     });
 
     return this.prisma.user.upsert({
-      where: { email: profile.email },
+      where: { userId: profile.userId },
       update: { userName: profile.name || 'Unknown' },
-      create: { email: profile.email, userId: profile.userId, userName: profile.name || 'Unknown' },
+      create: { userId: profile.userId, userName: profile.name || 'Unknown' },
     });
   }
 
