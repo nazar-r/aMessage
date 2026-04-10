@@ -67,6 +67,7 @@
     color: #ffe600;
     animation: fadeIn 0.2s ease forwards;
 }
+
 .welcome-page__button--title__spec-1 {
     margin: 30px 0 0 0;
     text-shadow: 0 1px 10px #00000028;
@@ -96,11 +97,14 @@
     cursor: pointer;
 }
 
-@media(min-width: 650px) {
+@media (min-height: 900px) {
     .welcome-page-container {
         margin: 40vh 0 0 0;
     }
 
+}
+
+@media(min-width: 650px) {
     .welcome-page-container__title {
         font-size: var(--font-size-xxl);
     }
