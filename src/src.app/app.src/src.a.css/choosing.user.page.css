@@ -62,6 +62,7 @@
 
 @media (min-width: 1250px) {
     .chat-prev-page__title {
+        margin: 40vh 0 0 0;
         font-size: 45px;
     }
 }
