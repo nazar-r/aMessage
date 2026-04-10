@@ -6,8 +6,8 @@ const WelcomePageContent = () => {
   const [loading, setLoading] = useState(false);
 
   const handleBegin = async () => {
-    if (loading) return; 
- setLoading(true);
+    if (loading) return;
+    setLoading(true);
     try {
       const res = await fetch("https://api.amessage.site/auth/check", {
         credentials: "include",
@@ -55,8 +55,12 @@ const WelcomePageContent = () => {
           </div>
         </div>
 
+        <div className="welcome-page__button--title__spec-1">
+          The app is currently being updated
+        </div>
+
         <div className="welcome-page__button--title__spec">
-    NOTE: The first launch may take up to 50 seconds for the server to start
+          NOTE: The first launch may take up to 50 seconds for the server to start
         </div>
       </div>
 
