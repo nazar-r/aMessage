@@ -18,19 +18,14 @@ export class GoogleOauth extends PassportStrategy(Strategy, 'google') {
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
     const { id, emails, displayName, name: googleName } = profile;
     const email = emails?.[0]?.value;
-
-    // ← ОНОВЛЕНА ЛОГІКА (тепер завжди string + пріоритет як у GitHub)
-    const name = displayName ||(googleName && `${googleName.givenName || ''} ${googleName.familyName || ''}`.trim())
+    const name = displayName || googleName || email?.split('@')[0] || 'Unknown';
 
     if (!id) return done(new UnauthorizedException('Google profile ID is missing'), null);
     if (!email) return done(new UnauthorizedException('Email is missing in Google profile'), null);
 
     const prefixedId = `ggl_${id}`;
 
-    const user: AuthUser = await this.usersService.findOrCreateUser({
-      userId: prefixedId,
-      name,                    // тепер це «username-подібне» значення
-    });
+    const user: AuthUser = await this.usersService.findOrCreateUser({ userId: prefixedId, email, name });
 
     done(null, user);
   }

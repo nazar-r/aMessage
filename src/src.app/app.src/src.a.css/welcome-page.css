@@ -97,14 +97,11 @@
     cursor: pointer;
 }
 
-@media (min-height: 900px) {
+@media(min-width: 650px) {
     .welcome-page-container {
         margin: 40vh 0 0 0;
     }
 
-}
-
-@media(min-width: 650px) {
     .welcome-page-container__title {
         font-size: var(--font-size-xxl);
     }

@@ -1,56 +1,40 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../src.a.users/users.service';
+import { PrismaClient } from '@prisma/client';
 import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
 
 @Injectable()
-export class AuthService {
-    constructor(
-        private jwtService: JwtService,
-        private usersService: UsersService,
-    ) { }
+export class UsersService {
+  private prisma = new PrismaClient();
 
-    googleLogin = async (profile: AuthUser) => {
-        const user = await this.usersService.findOrCreateUser(profile);
-        const loginUser = () => ({
-            access_token: this.jwtService.sign({
-                userId: user.userId,
-                name: user.userName,
-                email: user.email,
-            }),
-        });
+  findAllUsers(userId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        userId: { not: userId }
+      },
+      select: {
+        userId: true,
+        userName: true,
+      },
+    });
+  }
 
-        return loginUser();
-    };
+  findOrCreateUser(profile: AuthUser) {
+    if (!profile.userId) throw new UnauthorizedException({
+      message: 'ID is missing in your Service profile',
+      error: 'Unauthorized',
+    });
 
-    githubLogin = async (profile: AuthUser) => {
-        const user = await this.usersService.findOrCreateUser(profile);
-        const loginUser = () => ({
-            access_token: this.jwtService.sign({
-                userId: user.userId,
-                name: user.userName,
-                email: user.email ?? undefined,
-            }),
-        });
+    return this.prisma.user.upsert({
+      where: { email: profile.email },
+      update: { userName: profile.name || 'Unknown' },
+      create: { email: profile.email, userId: profile.userId, userName: profile.name || 'Unknown' },
+    });
+  }
 
-        return loginUser();
-    };
-
-    generateTokens = async (profile: AuthUser) => {
-        const payload = {
-            userId: profile.userId,
-            name: profile.name,
-            email: profile.email
-        };
-
-        const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync(payload, { expiresIn: '1d' }),
-            this.jwtService.signAsync(payload, { expiresIn: '7d' })
-        ]);
-
-        console.log("ACCESS TOKEN:", accessToken);
-        console.log("REFRESH TOKEN:", refreshToken);
-
-        return { accessToken, refreshToken };
-    };
+  updateRefreshToken(userId: string, refreshTokenHash: string) {
+    return this.prisma.user.update({
+      where: { userId: userId },
+      data: { refreshToken: refreshTokenHash },
+    });
+  }
 }
