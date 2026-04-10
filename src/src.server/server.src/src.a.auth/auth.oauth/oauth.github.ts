@@ -16,16 +16,16 @@ export class GithubOauth extends PassportStrategy(Strategy, 'github') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-    const { id, emails, displayName, username  } = profile;
+    const { id, emails, displayName, username } = profile;
     const email = emails?.[0]?.value;
-    const name = displayName || username;
+    const name = username || displayName;
 
     if (!id) return done(new UnauthorizedException('Github profile ID is missing'), null);
     if (!email) return done(new UnauthorizedException('Email is missing in Github profile'), null);
 
     const prefixedId = `gt_${id}`;
 
-    const user: AuthUser = await this.usersService.findOrCreateUser({ userId: prefixedId, email, name });
+    const user: AuthUser = await this.usersService.findOrCreateUser({ userId: prefixedId,  name });
 
     done(null, user);
   }
