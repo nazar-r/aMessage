@@ -17,6 +17,17 @@ export class UsersService {
       },
     });
   }
+  findUserRoom(userId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        userId: { not: userId }
+      },
+      select: {
+        userId: true,
+        userName: true,
+      },
+    });
+  }
 
   findOrCreateUser(profile: AuthUser) {
     if (!profile.userId) throw new UnauthorizedException({
