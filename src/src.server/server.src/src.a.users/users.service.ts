@@ -17,17 +17,6 @@ export class UsersService {
       },
     });
   }
-  findUserRoom(userId: string) {
-    return this.prisma.user.findMany({
-      where: {
-        userId: { not: userId }
-      },
-      select: {
-        userId: true,
-        userName: true,
-      },
-    });
-  }
 
   findOrCreateUser(profile: AuthUser) {
     if (!profile.userId) throw new UnauthorizedException({
@@ -36,9 +25,9 @@ export class UsersService {
     });
 
     return this.prisma.user.upsert({
-      where: { userId: profile.userId },
+      where: { email: profile.email },
       update: { userName: profile.name || 'Unknown' },
-      create: { userId: profile.userId, userName: profile.name || 'Unknown' },
+      create: { email: profile.email, userId: profile.userId, userName: profile.name || 'Unknown' },
     });
   }
 
