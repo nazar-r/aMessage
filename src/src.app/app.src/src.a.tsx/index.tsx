@@ -10,6 +10,6 @@ const root = createRoot(container);
 root.render(
   <StrictMode>
     <RouterRendering />
-          <Analytics />
+    <Analytics />
   </StrictMode>
 );
