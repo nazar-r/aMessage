@@ -10,8 +10,20 @@ import 'reflect-metadata';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
   app.set('trust proxy', 1);
   app.use(cookieParser());
+
+  app.use((req, res, next) => {
+    const ip =
+      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+      req.headers['x-real-ip'] ||
+      req.ip;
+
+    console.log(`[IP] ${ip} → ${req.method} ${req.url}`);
+
+    next();
+  });
 
   const redisClient = createClient({
     url: process.env.REDIS_URL as string,
@@ -22,6 +34,7 @@ async function bootstrap() {
   });
 
   await redisClient.connect();
+
   const RedisStore = connectRedis(session);
 
   app.use(
