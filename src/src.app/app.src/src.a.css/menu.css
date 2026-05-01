@@ -100,8 +100,9 @@
 }
 
 .menu-container {
-    position: fixed;
-    bottom: 10vh;
+    /* position: fixed; */
+    /* bottom: 10vh; */
+    margin: 0 0 8vh 0;
     display: flex;
     flex-direction: column;
     color: #fff;

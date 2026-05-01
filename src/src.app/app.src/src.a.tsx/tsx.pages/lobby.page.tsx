@@ -11,21 +11,21 @@ const ChoosingUserPageContent = () => {
 
     return (
         <>
-            <div className="lobby-prev-page">
-                <div className="lobby-prev-page__title">Chats</div>
-                <ul className="lobby-prev-page__users-list">
-                    {users?.map(user => (
-                        <li key={user.userId} className="lobby-prev-page__users-list--item" onClick={() => navigate("/lobby", { state: { peerWsId: user.userId } })}>
-                            <div className="lobby-prev-page__users-list--item__photo"></div>
-                            <div className="lobby-prev-page__users-list--item__name">{user.userName}</div>
-                            <div className="lobby-prev-page__users-list--item__status">{user.userStatus}</div>
-                        </li>
-                    ))}
-                </ul>
+            <div className="lobby-prev-page--container">
+                <div className="lobby-prev-page">
+                    <div className="lobby-prev-page__title">Chats</div>
+                    <ul className="lobby-prev-page__users-list">
+                        {users?.map(user => (
+                            <li key={user.userId} className="lobby-prev-page__users-list--item" onClick={() => navigate("/lobby", { state: { peerWsId: user.userId } })}>
+                                <div className="lobby-prev-page__users-list--item__photo"></div>
+                                <div className="lobby-prev-page__users-list--item__name">{user.userName}</div>
+                                <div className="lobby-prev-page__users-list--item__status">{user.userStatus}</div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <Menu />
             </div>
-            <div className="spec">
-            <Menu/>
-        </div >
         </>
     );
 };
