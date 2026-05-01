@@ -19,7 +19,10 @@ const ChoosingUserPageContent = () => {
                             <li key={user.userId} className="lobby-prev-page__users-list--item" onClick={() => navigate("/chat", { state: { peerWsId: user.userId } })}>
                                 <div className="lobby-prev-page__users-list--item__photo"></div>
                                 <div>
-                                    <div className="lobby-prev-page__users-list--item__name">{user.userName}</div>
+                                    <div className="lobby-prev-page__users-list--item__name--container">
+                                        <div className="lobby-prev-page__users-list--item__name">{user.userName}</div>
+                                        <div className="lobby-prev-page__users-list--item__time">17:28</div>
+                                    </div>
                                     <div className="lobby-prev-page__users-list--item__message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</div>
                                 </div>
                                 <div className="lobby-prev-page__users-list--item__status">{user.userStatus}</div>
