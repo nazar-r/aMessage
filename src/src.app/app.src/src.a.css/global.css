@@ -107,7 +107,7 @@ input:-webkit-autofill {
 
 @media(min-width: 650px) {
     .main-container {
-        padding: 0 16vw 0 16vw;
+        padding: 0 15vw 0 15vw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 50%, #0D72C5 120%);
     }
 }
@@ -119,6 +119,12 @@ input:-webkit-autofill {
 }
 
 @media(min-width: 1250px) {
+    .main-container {
+        padding: 0 21vw 0 21vw;
+        background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);
+    }
+}
+@media(min-width: 1550px) {
     .main-container {
         padding: 0 25vw 0 25vw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);

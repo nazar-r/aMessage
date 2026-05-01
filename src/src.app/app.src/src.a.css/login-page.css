@@ -5,6 +5,7 @@
         align-items: left;
         height: var(--height-welcome-page);
         animation: fadeIn 0.2s ease forwards;
+        margin: 0 4vw 0 4vw;
     }
 
     .login-page__button-container {
@@ -112,6 +113,10 @@
             display: flex;
             flex-direction: row;
             margin: 85px 0 0 0;
+        }
+
+        .login-page {
+            margin: 0;
         }
 
         .login-page__button {

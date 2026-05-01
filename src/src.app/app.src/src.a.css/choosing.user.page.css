@@ -5,6 +5,7 @@
     align-items: left;
     height: var(--height-welcome-page);
     animation: fadeIn 0.2s ease forwards;
+    margin: 0 4vw 0 4vw;
 }
 
 .chat-prev-page__users-list {
@@ -57,6 +58,16 @@
 @media (min-width: 650px) {
     .chat-prev-page__title {
         font-size: 35px;
+    }
+
+    .chat-prev-page {
+        display: flex;
+        flex-direction: column;
+        color: var(--color-text);
+        align-items: left;
+        height: var(--height-welcome-page);
+        animation: fadeIn 0.2s ease forwards;
+        margin: 0;
     }
 
     .chat-prev-page__title {
