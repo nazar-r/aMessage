@@ -52,12 +52,6 @@
     box-shadow: 0px 0px 30px #00000040;
 }
 
-.lobby-prev-page__users-list--item:hover {
-    cursor: pointer;
-    height: 120px;
-    text-shadow: 0px 0px 30px #00000060;
-    opacity: 80%;
-}
 
 .lobby-prev-page__title {
     margin: 20dvh 0 0 0;
@@ -92,6 +86,13 @@
 }
 
 @media (min-width: 1250px) {
+    .lobby-prev-page__users-list--item:hover {
+        cursor: pointer;
+        height: 120px;
+        text-shadow: 0px 0px 30px #00000060;
+        opacity: 80%;
+    }
+
     .lobby-prev-page__title {
         font-size: 45px;
     }
