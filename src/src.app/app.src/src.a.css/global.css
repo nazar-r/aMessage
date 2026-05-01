@@ -99,7 +99,7 @@ input:-webkit-autofill {
 
 .main-container {
     background: linear-gradient(to right, #76CFF6 -50%, #70A7C8 35%, #0D72C5 120%);
-    padding: 0 12vw 0 12vw;
+    padding: 0 8vw 0 8vw;
     width: 100vw;
     height: 100vh;
     position: relative;

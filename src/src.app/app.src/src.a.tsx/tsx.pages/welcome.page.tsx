@@ -9,7 +9,7 @@ const WelcomePageContent = () => {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch("https://api.amessage.site/auth/check", {
+      const res = await fetch(import.meta.env.VITE_FETCH_MESSAGES_URL, {
         credentials: "include",
       });
 

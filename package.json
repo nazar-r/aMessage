@@ -1,14 +1,20 @@
 {
-  "name": "notebook-1-1",
+  "name": "amessage",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "lint": "eslint 'packages/*/src/**/*.{ts,tsx}' --fix"
+    "lint": "eslint packages/*/src/**/*.{ts,tsx} --fix",
+    "lint:check": "eslint packages/*/src/**/*.{ts,tsx}"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
-    "typescript": "^5.3.3"
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.0",
+    "typescript": "^5.6.0"
   }
 }

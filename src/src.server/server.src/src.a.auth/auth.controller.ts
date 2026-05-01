@@ -18,12 +18,12 @@ export class AuthController {
     const { access_token } = await this.authService.googleLogin(req.user);
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
-    return res.redirect('https://amessage.site/chat-prev');
+    return res.redirect(process.env.FRONTEND_REDIRECT_URL);
   }
 
   @Get('github')
@@ -36,12 +36,12 @@ export class AuthController {
     const { access_token } = await this.authService.googleLogin(req.user);
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
       path: '/',
     });
-    return res.redirect('https://amessage.site/chat-prev');
+    return res.redirect(process.env.FRONTEND_REDIRECT_URL);
   }
 
   @Get('check')

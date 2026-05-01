@@ -1,7 +1,7 @@
 import * as types from "../tsx.extensions/types";
 import { authFetching } from "../tsx.extensions/fetching/fetching";
-import GoogleIcon from "../tsx.extensions/assets/google.pic";
-import GithubIcon from "../tsx.extensions/assets/github.pic";
+import GoogleIcon from "../tsx.extensions/fetching/assets/google.pic";
+import GithubIcon from "../tsx.extensions/fetching/assets/github.pic";
 
 const buttons: types.ButtonConfig[] = [
   { key: "google", label: "Via Google", icon: GoogleIcon },

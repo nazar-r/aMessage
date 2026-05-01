@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '../types';
 
 export const fetchingLoggedInUser = async () => {
-    const response = await fetch('https://api.amessage.site/auth/check', {
+    const response = await fetch(import.meta.env.VITE_AUTH_CHECK_URL, {
         method: 'GET',
         credentials: 'include',
     });

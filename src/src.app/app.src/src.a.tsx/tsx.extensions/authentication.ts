@@ -4,7 +4,7 @@ export const authentication = () =>
     useQuery({
         queryKey: ["auth"],
         queryFn: async () => {
-            const res = await fetch("https://api.amessage.site/auth/check", { credentials: "include" });
+            const res = await fetch(import.meta.env.VITE_AUTH_CHECK_URL, { credentials: "include" });
             return (await res.json()).user;
         },
         retry: 1,

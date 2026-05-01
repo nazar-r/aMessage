@@ -11,7 +11,7 @@ import * as cookie from 'cookie';
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'https://amessage.site',
+    origin: process.env.FRONTEND_ORIGIN_URL,
     credentials: true,
   },
 })

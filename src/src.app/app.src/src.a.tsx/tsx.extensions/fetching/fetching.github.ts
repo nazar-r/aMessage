@@ -1,5 +1,5 @@
 const fetchingGithub = async () => {
-  window.location.href = "https://api.amessage.site/auth/github";
+  window.location.href = import.meta.env.VITE_GITHUB_REDIRECT_URL;
 };
 
 export default fetchingGithub;

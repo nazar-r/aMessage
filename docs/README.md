@@ -1,73 +1,126 @@
-# TypeScript-Based Messaging App With React + NestJS + PostgreSQL
+# TypeScript Messaging App (React + NestJS + PostgreSQL)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Full-stack instant messaging platform featuring private chats, real-time updates, and a clean responsive UI.
 
-Currently, two official plugins are available:
+![TypeScript](https://img.shields.io/badge/TypeScript-black)
+![React](https://img.shields.io/badge/React-18-black)
+![NestJS](https://img.shields.io/badge/NestJS-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-black)
+![Socket.io](https://img.shields.io/badge/Socket.io-black)
+![pnpm](https://img.shields.io/badge/pnpm-black)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- ✅ **User Authentication** – Register, login, logout (JWT + refresh tokens)
+- ✅ **OAuth 2.0** – Sign in with Google or GitHub
+- ✅ **Real-time Messaging** – One-on-one private chats via Socket.io
+- ✅ **Message History** – Persistent storage with PostgreSQL
+- ✅ **Online / Offline Status** – Live presence tracking
+- ✅ **Responsive Design** – Mobile-first UI
+- ✅ **Protected Routes** – Secured frontend & backend
+- ✅ **End-to-End Encryption** – Secure messaging
+- ✅ **Input Validation** – Zod + class-validator
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠 Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Frontend (`../src/src.app`)
+- React 18 + Vite + TypeScript
+- CSS
+- Socket.io Client
+- TanStack Query
+- React Router v7
+- Libsodium
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Backend (`../src/src.server`)
+- NestJS (TypeScript)
+- PostgreSQL + Prisma ORM
+- Socket.io
+- JWT Authentication (Passport + JWT)
+- OAuth 2.0
+- class-validator + class-transformer
+- Redis
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Database
+- PostgreSQL 16
+
+
+## 🚀 Quick Start
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/nazar-r/aMessage.git
+cd aMessage
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Secret Files Structure (`../src/src.server/.env`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+DATABASE_URL="" 
+DIRECT_URL="" 
+REDIS_URL="" 
+JWT_SECRET="" 
+
+GOOGLE_CLIENT_ID="" 
+GOOGLE_CLIENT_SECRET="" 
+GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/redirect 
+
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET="" 
+GITHUB_CALLBACK_URL=http://localhost:3001/auth/github/redirect
+```
+
+Fill `.env` according to your values.
+
+### 3. Frontend Setup
+
+```bash
+cd src
+cd src.app
+pnpm install
+```
+Start frontend:
+```
+pnpm run dev
+```
+Open in browser:  
+```
+http://localhost:5174
+```
+
+### 4. Backend Setup
+
+```bash
+cd src
+cd src.server
+pnpm install
+```
+Generate Prisma client & run migrations:
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+npx prisma init
+```
+
+Start backend:
+
+```bash
+pnpm start:dev
+```
+
+Server will run at:
+```
+http://localhost:3001
+```
+
+## 🧪 Optional Scripts
+
+```
+pnpm build # production build 
+pnpm start:prod # run built app 
+npx prisma studio # open Prisma Studio
+```
+### ⭐ Show Your Support! If you like this project, give it a star ⭐

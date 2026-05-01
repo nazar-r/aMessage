@@ -45,7 +45,7 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24,
         path: '/',
@@ -57,13 +57,13 @@ async function bootstrap() {
   app.use(passport.session());
 
   app.enableCors({
-    origin: 'https://amessage.site',
+    origin: process.env.FRONTEND_ORIGIN_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 
 bootstrap();

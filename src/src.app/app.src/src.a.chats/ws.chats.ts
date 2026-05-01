@@ -161,7 +161,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         );
       }
 
-      const s = io("https://api.amessage.site", {
+      const s = io(import.meta.env.VITE_BACKEND_URL, {
         withCredentials: true,
         query: { peerId: peerWsId },
       });

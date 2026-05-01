@@ -24,28 +24,26 @@ let AuthController = class AuthController {
     async googleOauth() { }
     async googleAuthRedirect(req, res) {
         const { access_token } = await this.authService.googleLogin(req.user);
-        console.log(access_token);
         res.cookie('access_token', access_token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: false,
+            sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 24,
+            path: '/',
         });
-        console.log(res.cookie);
-        return res.redirect('https://amessage.site/chat-prev');
+        return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
     async githubOauth() { }
     async githubAuthRedirect(req, res) {
         const { access_token } = await this.authService.googleLogin(req.user);
-        console.log(access_token);
         res.cookie('access_token', access_token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: false,
+            sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 24,
+            path: '/',
         });
-        console.log(res.cookie);
-        return res.redirect('https://amessage.site/chat-prev');
+        return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
     checkLogin(req) {
         return { isLoggedIn: true, user: req.user };
