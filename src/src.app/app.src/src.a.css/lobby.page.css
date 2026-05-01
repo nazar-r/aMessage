@@ -24,7 +24,7 @@
     animation: fadeIn 0.2s ease forwards;
     list-style: none;
     overflow-y: auto;
-    margin: 40px 0 6dvh 0;
+    margin: 40px 0 5dvh 0;
     scroll-behavior: smooth;
     mask-image: linear-gradient(to top, #00000000, #000000 10%);
     mask-repeat: no-repeat;
