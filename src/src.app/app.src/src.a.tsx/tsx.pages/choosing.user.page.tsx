@@ -23,7 +23,9 @@ const ChoosingUserPageContent = () => {
                     ))}
                 </ul>
             </div>
-            <Menu />
+            <div className="spec">
+                <Menu />
+            </div >
         </>
     );
 };

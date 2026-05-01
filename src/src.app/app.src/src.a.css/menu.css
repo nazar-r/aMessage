@@ -8,7 +8,7 @@
     flex-direction: column;
     justify-content: flex-end;
     box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(10px);
     padding: 0 12vw;
     animation: fadeIn 0.2s ease forwards;
@@ -68,7 +68,7 @@
     margin: 0 0 12px 0;
     max-height: calc(1.2em * 2);
     overflow: hidden;
-        z-index: 2147483646;
+    z-index: 2147483646;
 }
 
 .menu-content__item--list-item__users {
@@ -106,7 +106,7 @@
     flex-direction: column;
     color: #fff;
     font-size: 18px;
-     z-index: 2147483646;
+    z-index: 2147483646;
 }
 
 .menu-container__item {

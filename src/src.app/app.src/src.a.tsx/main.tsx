@@ -7,6 +7,7 @@ import type { ReactElement } from 'react';
 import '../src.a.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
+const LobbyPage = lazy(() => import('./tsx.pages/lobby.page.tsx'));
 const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
 const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
 const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
@@ -36,6 +37,7 @@ const contentRoutes: RouteObject[] = [
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
       { path: 'chat-prev', element: privateAuth(withSuspense(<ChoosingUserPage />)) },
+      { path: 'lobby', element: privateAuth(withSuspense(<LobbyPage />)) },
       { path: 'chat', element: privateAuth(withSuspense(<ChatPage />)) },
     ],
   },
