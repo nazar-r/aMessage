@@ -13,7 +13,7 @@ const ChoosingUserPageContent = () => {
         <>
             <div className="lobby-prev-page--container">
                 <div className="lobby-prev-page">
-                    <div className="lobby-prev-page__title">Your Chats</div>
+                    <div className="lobby-prev-page__title">Your Contacts</div>
                     <ul className="lobby-prev-page__users-list">
                         {users?.map(user => (
                             <li key={user.userId} className="lobby-prev-page__users-list--item" onClick={() => navigate("/chat", { state: { peerWsId: user.userId } })}>
@@ -24,8 +24,8 @@ const ChoosingUserPageContent = () => {
                         ))}
                     </ul>
                 </div>
-                <Menu />
             </div>
+                <Menu />
         </>
     );
 };

@@ -7,11 +7,12 @@ import type { ReactElement } from 'react';
 import '../src.a.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
-const LobbyPage = lazy(() => import('./tsx.pages/lobby.page.tsx'));
+const ChatsListPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
+const ContactsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
 const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
 const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
 const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
-const ChoosingUserPage = lazy(() => import('./tsx.pages/choosing.user.page.tsx'));
+// const ChoosingUserPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
 
 const withSuspense = (component: ReactElement) => (
   <Suspense>{component}</Suspense>
@@ -36,8 +37,8 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
-      { path: 'chat-prev', element: privateAuth(withSuspense(<ChoosingUserPage />)) },
-      { path: 'lobby', element: privateAuth(withSuspense(<LobbyPage />)) },
+      { path: 'contactslist', element: privateAuth(withSuspense(<ContactsListPage />)) },
+      { path: 'chatslist', element: privateAuth(withSuspense(<ChatsListPage />)) },
       { path: 'chat', element: privateAuth(withSuspense(<ChatPage />)) },
     ],
   },

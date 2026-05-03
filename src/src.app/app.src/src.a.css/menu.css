@@ -8,9 +8,9 @@
     flex-direction: column;
     justify-content: flex-end;
     box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
-    padding: 0 12vw;
+    padding: 0 8vw;
     animation: fadeIn 0.2s ease forwards;
     color: #fff;
     z-index: 2147483646;
@@ -68,7 +68,7 @@
     margin: 0 0 12px 0;
     max-height: calc(1.2em * 2);
     overflow: hidden;
-    z-index: 2147483646;
+        z-index: 2147483646;
 }
 
 .menu-content__item--list-item__users {
@@ -87,27 +87,26 @@
 .menu-content__item--list-item__users:hover {
     cursor: pointer;
     text-shadow: 0px 0px 5px #00000040;
-    margin: 0 0 60px 0;
+    /* margin: 0 0 60px 0; */
     transition: 0.2s;
     opacity: 50%;
 }
 
 .menu-content__item--list {
-    height: 30vh;
+    height: 40vh;
     list-style: none;
     overflow-y: auto;
     scroll-behavior: smooth;
 }
 
 .menu-container {
-    /* position: fixed; */
-    /* bottom: 10vh; */
-    margin: 0 0 -20dvh 0;
+    position: fixed;
+    bottom: 10vh;
     display: flex;
     flex-direction: column;
     color: #fff;
     font-size: 18px;
-    z-index: 2147483646;
+     z-index: 2147483646;
 }
 
 .menu-container__item {

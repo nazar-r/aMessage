@@ -35,6 +35,7 @@
     list-style: none;
     overflow-y: auto;
     margin: 40px 0 5dvh 0;
+    padding: 0 10px 0 0;
     scroll-behavior: smooth;
     mask-image: linear-gradient(to top, #00000000, #000000 10%);
     mask-repeat: no-repeat;
