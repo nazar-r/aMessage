@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 export interface MessagesData {
   messageStatus: "mine" | "got";
   messageId: string;
@@ -62,6 +64,10 @@ export interface Message {
   text: string;
   encrypted?: EncryptedMessage;
 }
+
+export type MenuProps = {
+  scrollRef: RefObject<HTMLUListElement | null>;
+};
 
 export interface RemovedMessagePayload {
   messageId: string;

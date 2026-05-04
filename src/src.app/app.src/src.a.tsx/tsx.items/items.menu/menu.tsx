@@ -1,46 +1,38 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
-import { ChatsList } from './menu.chats.list';
-import { ContactsList } from './menu.contacts.list';
-import { SettingsPage } from './menu.settings';
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+import { useMenuScrollFade } from "../items.menu.animation";
+import type { MenuProps } from "../../tsx.extensions/types";
 
-export const Menu = () => {
-    const navigate = useNavigate();
+export const Menu = ({ scrollRef }: MenuProps) => {
     const [defMenu, setMenu] = useState(false);
-    const [defMenuItems, setMenuItems] = useState<"chats" | "contacts" | "settings" | null>(null);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 1250);
+    const isFaded = useMenuScrollFade(scrollRef);
+    const isMobile = window.innerWidth <= 1250;
+    const menuButtonClass = `menu-button ${isFaded ? "fade" : ""}`;
 
-    const switchMenu = () => setMenu(prev => !prev);
-    const closeOrSwitchMenu = () => { defMenuItems ? setMenuItems(null) : setMenu(prev => !prev) };
-    const openMenuItem = (item: "chats" | "contacts" | "settings") => { setMenuItems(item) };
+    const navigate = useNavigate();
+    const launchMenu = () => setMenu((prev) => !prev);
 
-    useEffect(() => {
-        const resizedPage = () => setIsMobile(window.innerWidth <= 1250);
-        window.addEventListener("resize", resizedPage);
-        return () => window.removeEventListener("resize", resizedPage);
-    }, []);
-
-    const menuContent = defMenuItems === "chats"
-        ? <ChatsList />
-        : defMenuItems === "contacts"
-            ? <ContactsList />
-            : defMenuItems === "settings"
-                ? <SettingsPage />
-                : null;
+    const menuButton = createPortal(
+        <div className={menuButtonClass} onClick={launchMenu}>Menu</div>, document.body
+    );
 
     const menuItems = (
-        <>
+        <div className="menu">
+            {!isMobile && (<div className="menu-container__item" onClick={launchMenu}>Menu</div>)}
             <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>
-            <div className="menu-container__item" onClick={() => navigate("/contactslist")}>Contacts</div>
-            <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>    </>
+            <div className="menu-container__item" onClick={() => navigate("/contactslist")}>Contacts </div>
+            <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>
+            {isMobile && (<div className="menu-container__item" onClick={launchMenu}>Menu</div>)}
+        </div>
     );
 
+    const menuContainer = defMenu && createPortal(<div className="menu-container">{menuItems}</div>, document.body);
+
     return (
-        <>{defMenu && <div className="menu"><div className="menu-content">{menuContent}</div></div>}
-            <div className="menu-container" style={{ bottom: defMenu ? (isMobile ? "23vh" : "15vh") : "8vh" }}>
-                {!isMobile ? <div className="menu-button" onClick={switchMenu} style={{ fontSize: defMenu ? 18 : 19 }}>Menu</div> : null}
-                {defMenu && (isMobile ? (!defMenuItems ? menuItems : null) : menuItems)}
-                {isMobile ? <div className="menu-button" onClick={closeOrSwitchMenu} style={{ fontSize: defMenu ? 18 : 19 }}>Menu</div> : null}
-            </div> </>
+        <>
+            {menuButton}
+            {menuContainer}
+        </>
     );
-}
+};

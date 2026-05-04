@@ -1,35 +1,34 @@
-// items.menu.animation.ts
 import { useEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
+import { type RefObject } from "react";
 
-export const useMenuScroll = <T extends HTMLElement>(
-  scrollRef: RefObject<T | null>,
-  threshold = 5
-): boolean => {
-  const [isHidden, setIsHidden] = useState(false);
+export const useMenuScrollFade = (scrollRef: RefObject<HTMLUListElement | null>, threshold: number = 5) => {
+  const [isFaded, setIsFaded] = useState(false);
   const lastScrollTop = useRef(0);
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    const hasElement = !!el;
+    hasElement && (lastScrollTop.current = el.scrollTop);
 
-    lastScrollTop.current = el.scrollTop;
+    const onScroll = () => {
+      const current = el?.scrollTop ?? lastScrollTop.current;
+      const diff = current - lastScrollTop.current;
+      const shouldFade = diff > threshold;
+      const shouldShow = diff < -threshold;
 
-    const handleScroll = () => {
-      const currentScrollTop = el.scrollTop;
-      const diff = currentScrollTop - lastScrollTop.current;
+      shouldFade && setIsFaded(true);
+      shouldShow && setIsFaded(false);
 
-      if (Math.abs(diff) > threshold) {
-        setIsHidden(diff > 0);
-      }
-
-      lastScrollTop.current = currentScrollTop;
+      lastScrollTop.current = current;
     };
 
-    el.addEventListener("scroll", handleScroll, { passive: true });
+    hasElement && el.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => el.removeEventListener("scroll", handleScroll);
+    return () => {
+      hasElement && el.removeEventListener("scroll", onScroll);
+    };
   }, [scrollRef, threshold]);
 
-  return isHidden;
+  const fadedValue = !!isFaded;
+  return fadedValue;
 };
