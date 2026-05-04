@@ -7,8 +7,7 @@ export const useFetchingUsers = () => {
         queryKey: ["users"],
         queryFn: fetchingUsers,
         staleTime: 1000 * 60 * 60 * 6,
-        cacheTime: 1000 * 60 * 60 * 3, 
+        gcTime: 1000 * 60 * 60 * 3,
         retry: 1,
     });
-    
 };

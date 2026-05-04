@@ -24,11 +24,24 @@ const LobbyPageContent = () => {
     return (
         <>
             <div className="chat-page">
-
+                <div className="chat-page__header">
+                    <svg xmlns="http://www.w3.org/2000/svg" opacity="100%" viewBox="0 0 24 24" className="chat-page__button--icon">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                    <div className="chat-page__title">
+                        <div className="chat-page__title--name">Unknown</div>
+                        <div className="chat-page__status">{isPeerOnline ? <>
+                                <div className="chat-page__status--icon"></div>
+                                <div className="chat-page__status--title">Online</div> </> : <>
+                                <div className="chat-page__status--icon-1"></div>
+                                <div className="chat-page__status--title">Offline</div> </>}</div>
+                    </div>
+                </div>
                 <ul className="chat-page__container">
                     {messages.map(message => (
-                        <li id={message.messageId} key={message.messageId} style={{ margin: message.messageStatus === "got" ? "20px auto 0 0" : "20px 0 0 auto" }} className="chat-message">
-                            <div contentEditable={true} className="chat-message--text">{message.content}</div>
+                        <li id={message.messageId} key={message.messageId} style={{ margin: message.messageStatus === "got" ? "17px auto 0 0" : "17px 0 0 auto" }} className="chat-message">
+                            <div className="chat-message--text">{message.content}</div>
                             <div className="chat-message__hidden">
                                 {message.messageStatus === "mine" ? <div className="chat-message__hidden--item" onClick={e => { e.stopPropagation(); defEdit ? updateMessage(message.messageId, message.content) : switchEdit(e) }}>
                                     {defEdit
@@ -48,28 +61,14 @@ const LobbyPageContent = () => {
                 </ul>
                 <div className="chat-page__add-message">
                     <div className="chat-page__add-message--pin">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                        {/* <div className="chat-page__add-message--pin__note">This feature is not yet available</div> */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </div>
                     <div onClick={handleSubmit} className="chat-page__add-message--icon">
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="white" /></g></svg>
                     </div>
                     <textarea className="chat-page__add-message--field" placeholder="SEND MESSAGE" value={text} onChange={(e) => setText(e.target.value)} />
                 </div>
-                <div className="chat-page__status">
-                    {isPeerOnline
-                        ? <div className="chat-page__status">
-                            <div className="chat-page__status--icon"></div>
-                            <div className="">Online</div>
-                        </div>
-
-                        : <div className="chat-page__status">
-                            <div className="chat-page__status--icon-1"></div>
-                            <div className="">Offline</div>
-                        </div>}
-                </div>
             </div>
-            <Menu />
         </>
     );
 };

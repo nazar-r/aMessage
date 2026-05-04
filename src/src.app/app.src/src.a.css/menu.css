@@ -19,7 +19,7 @@
     backdrop-filter: blur(10px);
 }
 
-.container {
+.menu {
     margin: 20% 0 0 0;
 }
 
@@ -32,16 +32,16 @@
     background: linear-gradient(to right, #76CFF6 -60%, #70A7C8 50%, #0D72C5 130%);
     color: #ffffff;
 
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
     transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .menu-button {
     bottom: 0;
     width: 100%;
-    height: 13vh;
-    padding: 6dvh 0 0 8dvw;
+    height: 15dvh;
+    padding: 8dvh 0 0 8dvw;
 }
 
 .menu-button.fade {

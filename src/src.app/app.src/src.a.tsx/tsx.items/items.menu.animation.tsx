@@ -1,34 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import { type RefObject } from "react";
 
-export const useMenuScrollFade = (scrollRef: RefObject<HTMLUListElement | null>, threshold: number = 5) => {
-  const [isFaded, setIsFaded] = useState(false);
-  const lastScrollTop = useRef(0);
+export const useMenuScrollFade = (
+    scrollRef?: RefObject<HTMLUListElement | null>,
+    threshold: number = 5
+) => {
+    const [isFaded, setIsFaded] = useState(false);
+    const lastScrollTop = useRef(0);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    const hasElement = !!el;
-    hasElement && (lastScrollTop.current = el.scrollTop);
+    useEffect(() => {
+        const el = scrollRef?.current;
+        if (!el) return;
 
-    const onScroll = () => {
-      const current = el?.scrollTop ?? lastScrollTop.current;
-      const diff = current - lastScrollTop.current;
-      const shouldFade = diff > threshold;
-      const shouldShow = diff < -threshold;
+        lastScrollTop.current = el.scrollTop;
 
-      shouldFade && setIsFaded(true);
-      shouldShow && setIsFaded(false);
+        const onScroll = () => {
+            const current = el.scrollTop;
+            const diff = current - lastScrollTop.current;
 
-      lastScrollTop.current = current;
-    };
+            const shouldFade = diff > threshold;
+            const shouldShow = diff < -threshold;
 
-    hasElement && el.addEventListener("scroll", onScroll, { passive: true });
+            shouldFade && setIsFaded(true);
+            shouldShow && setIsFaded(false);
 
-    return () => {
-      hasElement && el.removeEventListener("scroll", onScroll);
-    };
-  }, [scrollRef, threshold]);
+            lastScrollTop.current = current;
+        };
 
-  const fadedValue = !!isFaded;
-  return fadedValue;
+        el.addEventListener("scroll", onScroll, { passive: true });
+
+        return () => {
+            el.removeEventListener("scroll", onScroll);
+        };
+    }, [scrollRef, threshold]);
+
+    return !!isFaded;
 };
