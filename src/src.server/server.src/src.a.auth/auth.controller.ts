@@ -49,4 +49,9 @@ export class AuthController {
   checkLogin(@Req() req: Request) {
     return { isLoggedIn: true, user: req.user };
   }
+
+  @Get('health')
+  health() {
+    return { status: 'ok' };
+  }
 }

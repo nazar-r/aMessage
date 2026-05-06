@@ -11,4 +11,7 @@ export declare class AuthController {
         isLoggedIn: boolean;
         user: Express.User;
     };
+    health(): {
+        status: string;
+    };
 }

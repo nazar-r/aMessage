@@ -48,6 +48,9 @@ let AuthController = class AuthController {
     checkLogin(req) {
         return { isLoggedIn: true, user: req.user };
     }
+    health() {
+        return { status: 'ok' };
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -90,6 +93,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "checkLogin", null);
+__decorate([
+    (0, common_1.Get)('health'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "health", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
