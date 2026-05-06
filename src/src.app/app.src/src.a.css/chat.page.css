@@ -212,9 +212,9 @@
 
 .chat-page__add-message {
     position: absolute;
-    width: 100%;
+    width: calc(100% - 20px);
     bottom: 0;
-    right: 0;
+    right: 10px;
     height: 55px;
     display: grid;
     grid-template-columns: 45px 45px calc(100% - 90px);
@@ -247,7 +247,7 @@
 .chat-page__add-message--field {
     border-radius: 0;
     box-shadow: 5px 5px 50px #00000065;
-    padding: 10px 50px 20px 15px;
+    padding: 18px 50px 20px 15px;
     font-size: 15px;
     text-transform: none;
     font-weight: 600;
