@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOneOnOneRoom } from "../../src.a.chats/ws.chats";
 import { useLocation } from "react-router-dom";
 import { Menu } from '../tsx.items/items.menu/menu';
@@ -10,7 +10,7 @@ const LobbyPageContent = () => {
     const [defEdit, setEdit] = useState(false);
     const [text, setText] = useState("");
     const [keyboardOffset, setKeyboardOffset] = useState(0);
-    const [composerActive, setComposerActive] = useState(false);
+    const composerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const vv = window.visualViewport;
@@ -31,13 +31,12 @@ const LobbyPageContent = () => {
         };
     }, []);
 
-    const activateComposer = () => {
-        setComposerActive(true);
-        setKeyboardOffset(prev => Math.max(prev, 120));
+    const liftComposer = () => {
+        composerRef.current?.classList.add("chat-page__add-message--lifted");
     };
 
-    const deactivateComposer = () => {
-        setComposerActive(false);
+    const lowerComposer = () => {
+        composerRef.current?.classList.remove("chat-page__add-message--lifted");
     };
 
     const switchEdit = (e: React.MouseEvent) => {
@@ -50,8 +49,6 @@ const LobbyPageContent = () => {
         sendMessage({ messageStatus: "mine", messageId: "", content: text });
         setText("");
     };
-
-    const bottomOffset = Math.max(keyboardOffset, composerActive ? 120 : 0);
 
     return (
         <>
@@ -94,14 +91,14 @@ const LobbyPageContent = () => {
                     ))}
                 </ul>
 
-                <div className="chat-page__add-message" style={{ position: "fixed", left: 0, right: 0, bottom: `calc(env(safe-area-inset-bottom, 0px) + ${bottomOffset}px)`, zIndex: 1000, willChange: "bottom", transition: "bottom 0.15s ease" }}>
+                <div ref={composerRef} className="chat-page__add-message" style={{ position: "fixed", left: 0, right: 0, bottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardOffset}px)`, zIndex: 1000, willChange: "transform, bottom", transition: "bottom 0.15s ease, transform 0.15s ease" }}>
                     <div className="chat-page__add-message--pin">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </div>
                     <div onClick={handleSubmit} className="chat-page__add-message--icon">
                         <svg width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="1"><path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" /><path d="M17 7.34091V9.65909L0 9.65909L0 7.34091L17 7.34091Z" fill="white" /></g></svg>
                     </div>
-                    <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onPointerDown={activateComposer} onTouchStart={activateComposer} onFocus={activateComposer} onBlur={deactivateComposer} onChange={(e) => setText(e.target.value)} />
+                    <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onPointerDown={liftComposer} onTouchStart={liftComposer} onFocus={liftComposer} onBlur={lowerComposer} onChange={(e) => setText(e.target.value)} />
                 </div>
             </div>
         </>
