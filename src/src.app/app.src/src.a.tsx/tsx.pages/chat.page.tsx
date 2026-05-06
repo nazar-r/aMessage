@@ -13,7 +13,6 @@ const LobbyPageContent = () => {
 
     useEffect(() => {
         const vv = window.visualViewport;
-
         if (!vv) return;
 
         const updateOffset = () => {
@@ -81,7 +80,8 @@ const LobbyPageContent = () => {
                         </li>
                     ))}
                 </ul>
-                <div className="chat-page__add-message" style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardOffset}px)` }}>
+
+                <div className="chat-page__add-message" style={{ position: "fixed", left: 0, right: 0, bottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardOffset}px)`, zIndex: 1000, willChange: "bottom", transition: "bottom 0.2s ease" }}>
                     <div className="chat-page__add-message--pin">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </div>
