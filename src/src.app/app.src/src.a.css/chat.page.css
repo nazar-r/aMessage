@@ -211,7 +211,7 @@
 }
 
 .chat-page__add-message {
-    position: absolute;
+    position: fixed;
     width: calc(100% - 20px);
     bottom: 10px;
     right: 10px;
