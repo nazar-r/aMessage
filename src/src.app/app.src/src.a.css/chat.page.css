@@ -215,6 +215,7 @@
     width: calc(100% - 20px);
     bottom: 10px;
     right: 10px;
+      will-change: bottom;
     height: 55px;
     display: grid;
     grid-template-columns: 45px 45px calc(100% - 90px);

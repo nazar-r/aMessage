@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useOneOnOneRoom } from "../../src.a.chats/ws.chats";
 import { useLocation } from "react-router-dom";
 import { Menu } from '../tsx.items/items.menu/menu';
@@ -9,6 +9,27 @@ const LobbyPageContent = () => {
     const { messages, isPeerOnline, sendMessage, removeMessage, updateMessage } = useOneOnOneRoom({ peerWsId });
     const [defEdit, setEdit] = useState(false);
     const [text, setText] = useState("");
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+    useEffect(() => {
+        const vv = window.visualViewport;
+
+        if (!vv) return;
+
+        const updateOffset = () => {
+            const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+            setKeyboardOffset(offset);
+        };
+
+        updateOffset();
+        vv.addEventListener("resize", updateOffset);
+        vv.addEventListener("scroll", updateOffset);
+
+        return () => {
+            vv.removeEventListener("resize", updateOffset);
+            vv.removeEventListener("scroll", updateOffset);
+        };
+    }, []);
 
     const switchEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -60,7 +81,7 @@ const LobbyPageContent = () => {
                         </li>
                     ))}
                 </ul>
-                <div className="chat-page__add-message">
+                <div className="chat-page__add-message" style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardOffset}px)` }}>
                     <div className="chat-page__add-message--pin">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </div>
@@ -69,7 +90,7 @@ const LobbyPageContent = () => {
                     </div>
                     <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
                 </div>
-            </div >
+            </div>
         </>
     );
 };
