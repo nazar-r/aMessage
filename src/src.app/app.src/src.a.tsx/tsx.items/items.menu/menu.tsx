@@ -21,13 +21,13 @@ export const Menu = ({ scrollRef }: MenuProps) => {
     );
 
     const menuItems = (
-        <div className="menu">
+        <>
             {!isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
             <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>
             <div className="menu-container__item" onClick={() => navigate("/contactslist")}>Contacts</div>
             <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>
             {isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
-        </div>
+        </>
     );
 
     const menuContainer = defMenu

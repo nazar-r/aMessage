@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useOneOnOneRoom } from "../../src.a.chats/ws.chats";
+import { useNavigate } from 'react-router-dom';
 import { useLocation } from "react-router-dom";
 import { Menu } from '../tsx.items/items.menu/menu';
 
 const LobbyPageContent = () => {
+    const navigate = useNavigate();
     const location = useLocation();
     const peerWsId = location.state?.peerWsId || "";
     const { messages, isPeerOnline, sendMessage, removeMessage, updateMessage } = useOneOnOneRoom({ peerWsId });
     const [defEdit, setEdit] = useState(false);
+    const userName = location.state?.userName;
     const [text, setText] = useState("");
 
     const switchEdit = (e: React.MouseEvent) => {
@@ -25,12 +28,12 @@ const LobbyPageContent = () => {
         <>
             <div className="chat-page">
                 <div className="chat-page__header">
-                    <svg xmlns="http://www.w3.org/2000/svg" opacity="100%" viewBox="0 0 24 24" className="chat-page__button--icon">
+                    <svg onClick={() => navigate("/chatslist")} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="chat-page__button--icon">
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />
                     </svg>
                     <div className="chat-page__title">
-                        <div className="chat-page__title--name">Unknown</div>
+                        <div className="chat-page__title--name">{userName}</div>
                         <div className="chat-page__status">{isPeerOnline ? <>
                             <div className="chat-page__status--icon"></div>
                             <div className="chat-page__status--title">Online</div> </> : <>

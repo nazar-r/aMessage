@@ -15,7 +15,7 @@ const ChoosingUserPageContent = () => {
 
             <ul ref={listRef} className="list-page__list">
                 {users?.map((user) => (
-                    <li key={user.userId} className="list-page__list-item" onClick={() => navigate("/chat", { state: { peerWsId: user.userId } })}>
+                    <li key={user.userId} className="list-page__list-item" onClick={() => navigate("/chat", { state: { peerWsId: user.userId, userName: user.userName} })}>
                         <div className="list-page__list-item--image"></div>
                         <div className="list-page__list-item--content">
                             <div className="list-page__list-item--title">
