@@ -24,17 +24,28 @@ let GithubOauth = class GithubOauth extends (0, passport_1.PassportStrategy)(pas
         });
         this.usersService = usersService;
     }
-    async validate(accessToken, refreshToken, profile, done) {
-        const { id, emails, displayName } = profile;
-        const email = emails?.[0]?.value;
-        const name = displayName;
-        if (!id)
-            return done(new common_1.UnauthorizedException('Github profile ID is missing'), null);
-        if (!email)
-            return done(new common_1.UnauthorizedException('Email is missing in Github profile'), null);
-        const prefixedId = `gt_${id}`;
-        const user = await this.usersService.findOrCreateUser({ userId: prefixedId, email, name });
-        done(null, user);
+    async validate(accessToken, refreshToken, profile) {
+        const githubId = profile?.id;
+        const email = profile?.emails?.[0]?.value ||
+            profile?._json?.email ||
+            null;
+        const name = profile?.displayName ||
+            profile?.username ||
+            profile?._json?.name ||
+            profile?._json?.login ||
+            email?.split('@')[0] ||
+            'Unknown';
+        if (!githubId) {
+            throw new common_1.UnauthorizedException('Github profile ID is missing');
+        }
+        if (!email) {
+            throw new common_1.UnauthorizedException('Email is missing in Github profile');
+        }
+        return this.usersService.findOrCreateUser({
+            userId: `gt_${githubId}`,
+            email,
+            name,
+        });
     }
 };
 exports.GithubOauth = GithubOauth;
