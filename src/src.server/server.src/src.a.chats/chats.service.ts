@@ -1,27 +1,12 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  OnGatewayInit,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-} from '@nestjs/websockets';
-import {
-  ConnectedSocket,
-  MessageBody,
-  WsException,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, WsException } from '@nestjs/websockets';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
 import { MessagesService } from '../src.a.messages/messages.service';
-import type {
-  JwtPayload,
-  E2EEPublicKeyPayload,
-  E2EEPeerPublicKeyPayload,
-} from '../src.extensions/extensions.types/types';
+import type { JwtPayload, E2EEPublicKeyPayload, E2EEPeerPublicKeyPayload } from '../src.extensions/extensions.types/types';
 import * as cookie from 'cookie';
 
 @UseGuards(WsJwtGuard)
@@ -32,8 +17,7 @@ import * as cookie from 'cookie';
   },
 })
 export class ChatsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatsGateway.name);
   private readonly publicKeys = new Map<string, string>();
 
@@ -42,7 +26,7 @@ export class ChatsGateway
   constructor(
     private readonly jwtService: JwtService,
     private readonly messagesService: MessagesService,
-  ) {}
+  ) { }
 
   @WebSocketServer()
   server: Server;

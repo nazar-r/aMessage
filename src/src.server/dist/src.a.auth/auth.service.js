@@ -34,7 +34,7 @@ let AuthService = class AuthService {
                 access_token: this.jwtService.sign({
                     userId: user.userId,
                     name: user.userName,
-                    email: user.email ?? undefined,
+                    email: user.email,
                 }),
             });
             return loginUser();

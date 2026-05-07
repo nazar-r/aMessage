@@ -5,20 +5,13 @@ export declare class UsersService {
         userId: string;
         userName: string;
     }[]>;
-    findOrCreateUser(profile: AuthUser): import("@prisma/client").Prisma.Prisma__UserClient<{
-        userId: string;
-        createdAt: Date;
+    findOrCreateUser(profile: AuthUser): Promise<{
+        name: string;
         role: import("@prisma/client").$Enums.Role;
+        userId: string;
         userName: string;
         email: string | null;
         refreshToken: string | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
-    updateRefreshToken(userId: string, refreshTokenHash: string): import("@prisma/client").Prisma.Prisma__UserClient<{
-        userId: string;
         createdAt: Date;
-        role: import("@prisma/client").$Enums.Role;
-        userName: string;
-        email: string | null;
-        refreshToken: string | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+    }>;
 }

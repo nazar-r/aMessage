@@ -24,23 +24,35 @@ let UsersService = class UsersService {
             },
         });
     }
-    findOrCreateUser(profile) {
-        if (!profile.userId)
+    async findOrCreateUser(profile) {
+        if (!profile.userId) {
             throw new common_1.UnauthorizedException({
                 message: 'ID is missing in your Service profile',
                 error: 'Unauthorized',
             });
-        return this.prisma.user.upsert({
+        }
+        if (!profile.email) {
+            throw new common_1.UnauthorizedException({
+                message: 'Email is missing in your Service profile',
+                error: 'Unauthorized',
+            });
+        }
+        const user = await this.prisma.user.upsert({
             where: { email: profile.email },
-            update: { userName: profile.name || 'Unknown' },
-            create: { email: profile.email, userId: profile.userId, userName: profile.name || 'Unknown' },
+            update: {
+                userName: profile.name || 'Unknown',
+                userId: profile.userId,
+            },
+            create: {
+                email: profile.email,
+                userId: profile.userId,
+                userName: profile.name || 'Unknown',
+            },
         });
-    }
-    updateRefreshToken(userId, refreshTokenHash) {
-        return this.prisma.user.update({
-            where: { userId: userId },
-            data: { refreshToken: refreshTokenHash },
-        });
+        return {
+            ...user,
+            name: user.userName,
+        };
     }
 };
 exports.UsersService = UsersService;

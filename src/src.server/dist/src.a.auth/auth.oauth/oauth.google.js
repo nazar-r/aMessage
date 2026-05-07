@@ -24,17 +24,24 @@ let GoogleOauth = class GoogleOauth extends (0, passport_1.PassportStrategy)(pas
         });
         this.usersService = usersService;
     }
-    async validate(accessToken, refreshToken, profile, done) {
-        const { id, emails, displayName } = profile;
-        const email = emails?.[0]?.value;
-        const name = displayName;
-        if (!id)
-            return done(new common_1.UnauthorizedException('Google profile ID is missing'), null);
-        if (!email)
-            return done(new common_1.UnauthorizedException('Email is missing in Google profile'), null);
-        const prefixedId = `ggl_${id}`;
-        const user = await this.usersService.findOrCreateUser({ userId: prefixedId, email, name });
-        done(null, user);
+    async validate(accessToken, refreshToken, profile) {
+        const googleId = profile?.id;
+        const email = profile?.emails?.[0]?.value;
+        const name = profile?.displayName ??
+            [profile?.name?.givenName, profile?.name?.familyName].filter(Boolean).join(' ') ??
+            email?.split('@')[0] ??
+            'Unknown';
+        if (!googleId) {
+            throw new common_1.UnauthorizedException('Google profile ID is missing');
+        }
+        if (!email) {
+            throw new common_1.UnauthorizedException('Email is missing in Google profile');
+        }
+        return this.usersService.findOrCreateUser({
+            userId: `ggl_${googleId}`,
+            email,
+            name,
+        });
     }
 };
 exports.GoogleOauth = GoogleOauth;
