@@ -42,7 +42,7 @@
 
 .list-page__list-item {
     width: 100%;
-    height: 70px;
+    height: 80px;
     font-size: 15px;
 }
 
@@ -76,59 +76,16 @@
     margin: 0 0 0 auto;
 }
 
-@media (min-width: 950px) {
-    .list-page {
-        width: 100%;
-        height: 100%;
-        padding: 30dvh 0 0 0;
-        color: var(--color-text);
-    }
-
-    .list-page__title {
-        font-size: 38px;
-    }
-
-    .list-page__list-item {
-        width: 100%;
-    }
-
-    .list-page__list-item:hover {
+@media (min-width: 1250px) {
+    .lobby-prev-page__users-list--item:hover {
         cursor: pointer;
-        height: 90px;
-        opacity: 0.6 !important;
-    }
-}
-
-@media (min-width: 1550px) {
-    .list-page {
-        width: 100%;
-        height: 100%;
-        padding: 40dvh 0 0 0;
-        color: var(--color-text);
+        height: 120px;
+        text-shadow: 0px 0px 30px #00000060;
+        opacity: 80%;
     }
 
-    .list-page__title {
-        font-size: 50px;
-    }
-
-    .list-page__list-item {
-        width: 100%;
-    }
-
-    .list-page__list-item:hover {
-        cursor: pointer;
-        height: 90px;
-        opacity: 0.6 !important;
-    }
-
-    .list-page__list {
-        flex: 1;
-        margin: 40px 0 8dvh 0;
-        /* padding: 0 10px 8dvh 0; */
-        mask-size: 100% 102%;
-        -webkit-mask-size: 100% 102%;
-        mask-image: linear-gradient(to top, #00000000, #000000 10%);
-        -webkit-mask-image: linear-gradient(to top, #00000000, #000000 10%);
+    .lobby-prev-page__title {
+        font-size: 45px;
     }
 }
 
