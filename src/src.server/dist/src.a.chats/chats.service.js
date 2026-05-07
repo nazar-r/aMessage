@@ -19,6 +19,7 @@ const websockets_2 = require("@nestjs/websockets");
 const common_1 = require("@nestjs/common");
 const socket_io_1 = require("socket.io");
 const jwt_1 = require("@nestjs/jwt");
+const crypto_1 = require("crypto");
 const jwt_ws_config_1 = require("../src.b.jwt/jwt.ws.config");
 const messages_service_1 = require("../src.a.messages/messages.service");
 const cookie = require("cookie");
@@ -28,6 +29,7 @@ let ChatsGateway = ChatsGateway_1 = class ChatsGateway {
         this.messagesService = messagesService;
         this.logger = new common_1.Logger(ChatsGateway_1.name);
         this.publicKeys = new Map();
+        this.roomMessageSaveChains = new Map();
     }
     afterInit() {
         this.logger.log('ChatsGateway initialized');
@@ -47,6 +49,19 @@ let ChatsGateway = ChatsGateway_1 = class ChatsGateway {
             throw new websockets_2.WsException('Invalid public key length');
         }
         return normalized;
+    }
+    enqueueRoomMessageSave(roomId, task) {
+        const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
+        const current = previous
+            .catch(() => undefined)
+            .then(task);
+        const tracked = current.then(() => undefined, () => undefined);
+        this.roomMessageSaveChains.set(roomId, tracked);
+        void tracked.finally(() => {
+            if (this.roomMessageSaveChains.get(roomId) === tracked) {
+                this.roomMessageSaveChains.delete(roomId);
+            }
+        });
     }
     async handleConnection(client) {
         const peerId = client.handshake.query.peerId;
@@ -75,7 +90,8 @@ let ChatsGateway = ChatsGateway_1 = class ChatsGateway {
                 status: 'online',
             });
             const socketsInRoom = await this.server.in(roomId).fetchSockets();
-            const onlineUsers = socketsInRoom.map((s) => {
+            const onlineUsers = socketsInRoom
+                .map((s) => {
                 const u = s.data.user;
                 return u?.sub ?? u?.id ?? u?.userId;
             })
@@ -161,17 +177,42 @@ let ChatsGateway = ChatsGateway_1 = class ChatsGateway {
     }
     async handleMessage(client, payload) {
         const roomId = client.data.roomId;
+        if (!roomId) {
+            throw new websockets_2.WsException('Room not found');
+        }
         const user = client.data.user;
         const userId = this.resolveUserId(user);
-        const savedMessage = await this.messagesService.create({
-            userId,
-            roomId,
-            content: payload.text,
-        });
+        const tempMessageId = (0, crypto_1.randomUUID)();
+        const createdAt = new Date();
         this.server.to(roomId).emit('newMessage', {
             userId,
-            messageId: savedMessage.messageId,
-            text: savedMessage.content,
+            messageId: tempMessageId,
+            text: payload.text,
+            time: createdAt,
+            pending: true,
+        });
+        this.enqueueRoomMessageSave(roomId, async () => {
+            try {
+                const savedMessage = await this.messagesService.create({
+                    userId,
+                    roomId,
+                    content: payload.text,
+                });
+                this.server.to(roomId).emit('messageSaved', {
+                    tempMessageId,
+                    messageId: savedMessage.messageId,
+                    text: savedMessage.content,
+                    time: savedMessage.createdAt,
+                    pending: false,
+                });
+            }
+            catch (error) {
+                this.logger.error(error);
+                this.server.to(roomId).emit('messageError', {
+                    tempMessageId,
+                    error: 'Message was not saved',
+                });
+            }
         });
     }
     async handleUpdateMessage(client, payload) {

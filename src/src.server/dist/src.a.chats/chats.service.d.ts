@@ -8,11 +8,13 @@ export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection,
     private readonly messagesService;
     private readonly logger;
     private readonly publicKeys;
+    private readonly roomMessageSaveChains;
     constructor(jwtService: JwtService, messagesService: MessagesService);
     server: Server;
     afterInit(): void;
     private resolveUserId;
     private normalizePublicKey;
+    private enqueueRoomMessageSave;
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): void;
     handlePublicKey(client: Socket, payload: E2EEPublicKeyPayload): Promise<{

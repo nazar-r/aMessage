@@ -20,7 +20,7 @@ const ChoosingUserPageContent = () => {
                     ))}
                 </ul>
             </div>
-            <Menu />
+            {/* <Menu /> */}
         </>
     );
 };

@@ -1,11 +1,27 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
-import { ConnectedSocket, MessageBody, WsException } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+} from '@nestjs/websockets';
+import {
+  ConnectedSocket,
+  MessageBody,
+  WsException,
+} from '@nestjs/websockets';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
 import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
 import { MessagesService } from '../src.a.messages/messages.service';
-import type { JwtPayload, E2EEPublicKeyPayload, E2EEPeerPublicKeyPayload } from '../src.extensions/extensions.types/types';
+import type {
+  JwtPayload,
+  E2EEPublicKeyPayload,
+  E2EEPeerPublicKeyPayload,
+} from '../src.extensions/extensions.types/types';
 import * as cookie from 'cookie';
 
 @UseGuards(WsJwtGuard)
@@ -16,15 +32,17 @@ import * as cookie from 'cookie';
   },
 })
 export class ChatsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(ChatsGateway.name);
-
   private readonly publicKeys = new Map<string, string>();
+
+  private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
 
   constructor(
     private readonly jwtService: JwtService,
     private readonly messagesService: MessagesService,
-  ) { }
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -49,6 +67,27 @@ export class ChatsGateway
     }
 
     return normalized;
+  }
+
+  private enqueueRoomMessageSave(roomId: string, task: () => Promise<void>) {
+    const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
+
+    const current = previous
+      .catch(() => undefined)
+      .then(task);
+
+    const tracked = current.then(
+      () => undefined,
+      () => undefined,
+    );
+
+    this.roomMessageSaveChains.set(roomId, tracked);
+
+    void tracked.finally(() => {
+      if (this.roomMessageSaveChains.get(roomId) === tracked) {
+        this.roomMessageSaveChains.delete(roomId);
+      }
+    });
   }
 
   async handleConnection(client: Socket) {
@@ -85,13 +124,15 @@ export class ChatsGateway
       });
 
       const socketsInRoom = await this.server.in(roomId).fetchSockets();
-      const onlineUsers = socketsInRoom.map((s) => {
-        const u = s.data.user;
-        return u?.sub ?? u?.id ?? u?.userId;
-      })
+      const onlineUsers = socketsInRoom
+        .map((s) => {
+          const u = s.data.user;
+          return u?.sub ?? u?.id ?? u?.userId;
+        })
         .filter(Boolean);
 
       client.emit('users-online', onlineUsers);
+
       const messages = await this.messagesService.findMessagesByRoom(roomId, {
         take: 50,
       });
@@ -203,20 +244,48 @@ export class ChatsGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { text: string; from?: string },
   ) {
-    const roomId = client.data.roomId;
+    const roomId = client.data.roomId as string | undefined;
+    if (!roomId) {
+      throw new WsException('Room not found');
+    }
+
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.resolveUserId(user);
 
-    const savedMessage = await this.messagesService.create({
-      userId,
-      roomId,
-      content: payload.text,
-    });
+    const tempMessageId = randomUUID();
+    const createdAt = new Date();
 
     this.server.to(roomId).emit('newMessage', {
       userId,
-      messageId: savedMessage.messageId,
-      text: savedMessage.content,
+      messageId: tempMessageId,
+      text: payload.text,
+      time: createdAt,
+      pending: true,
+    });
+
+    this.enqueueRoomMessageSave(roomId, async () => {
+      try {
+        const savedMessage = await this.messagesService.create({
+          userId,
+          roomId,
+          content: payload.text,
+        });
+
+        this.server.to(roomId).emit('messageSaved', {
+          tempMessageId,
+          messageId: savedMessage.messageId,
+          text: savedMessage.content,
+          time: savedMessage.createdAt,
+          pending: false,
+        });
+      } catch (error) {
+        this.logger.error(error);
+
+        this.server.to(roomId).emit('messageError', {
+          tempMessageId,
+          error: 'Message was not saved',
+        });
+      }
     });
   }
 
