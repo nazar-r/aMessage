@@ -93,7 +93,7 @@
 }
 
 .chat-page__container {
-    margin: 5px 0 8px 0;
+    margin: 5px 0 5px 0;
     width: 100%;
     height: calc(100% - 100px);
     display: flex;
@@ -112,14 +112,14 @@
 
 .chat-message__mine,
 .chat-message__got {
-    width: auto;
+    width: fit-content;
     background: #000000;
     box-shadow: 0px 0px 30px #00000040;
     animation: fadeIn 0.2s ease forwards;
     padding: 12px 15px 10px 12px;
     height: auto;
     overflow-wrap: anywhere;
-    max-width: 180px;
+    max-width: 190px;
     margin: 17px 0 0 auto;
 }
 
@@ -145,11 +145,10 @@
 }
 
 .chat-message--text {
-    width: 100%;
-    /* max-height: none; */
+    display: inline-block;
+    width: fit-content;
     font-size: 14px;
     letter-spacing: 1.01;
-    /* padding: 15px 5px 0 20px; */
     border: none;
     background: #000000;
     text-transform: none;
@@ -166,22 +165,27 @@
     flex-direction: row;
 }
 
-.chat-message__mine:not(:hover) .chat-message__hidden {
-    animation: fadeOutAdd 0.2s ease forwards;
-    pointer-events: none;
-    width: 0;
-    height: 0 !important;
-
-}
-
 .chat-message__hidden {
     display: flex;
-    /* min-height: 16px; */
     flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
     color: #ffffff;
     font-size: 13px;
-    animation: fadeInAdd 0.2s ease forwards;
-    justify-content: flex-end;
+    width: 100%;
+    overflow: hidden;
+    height: 40px;
+    opacity: 1;
+    transform-origin: bottom;
+    transition: height 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chat-message__mine:not(:hover) .chat-message__hidden {
+    pointer-events: none;
+    height: 0;
+    width: 0;
+    opacity: 0;
+    transform: translateY(4px);
 }
 
 .chat-message__hidden--item {
@@ -212,10 +216,10 @@
 
 .chat-page__add-message {
     position: fixed;
-    width: calc(100% - 20px);
+    width: calc(100% - 40px);
     bottom: 10px;
-    right: 10px;
-      will-change: bottom;
+    right: 20px;
+    will-change: bottom;
     height: 55px;
     display: grid;
     grid-template-columns: 45px 45px calc(100% - 90px);
@@ -266,6 +270,24 @@
 }
 
 @media (min-width: 650px) {
+
+    .chat-message__got,
+    .chat-message__mine {
+        max-width: 220px;
+    }
+
+    .chat-page__add-message {
+        position: static;
+        width: calc(100%);
+        right: 12dvw;
+    }
+
+    .chat-page__container {
+        margin: 5px 0 5px 0;
+        width: 100%;
+        height: calc(100% - 115px);
+    }
+
     .chat-message {
         width: 230px;
     }
@@ -275,20 +297,22 @@
     }
 }
 
-@media (min-height: 690px) {
-    .chat-page {
-        padding: 20px 0 0 0;
-    }
-}
-
 @media (min-width: 950px) {
     .chat-page__add-message {
-        width: calc(100% - 16px);
+        position: fixed;
+        width: calc(100% - 36dvw);
+        bottom: 6dvh;
+        right: 18dvw;
+        will-change: bottom;
+        height: 55px;
         display: grid;
-        grid-template-columns: 60px 60px calc(100% - 120px);
-        gap: 8px;
+        grid-template-columns: 45px 45px calc(100% - 90px);
     }
 
+    .chat-page__container {
+        height: calc(100% - 12dvh - 55px);
+        margin: 10px 0 10px 0;
+    }
 
     .chat-page__add-message--pin:hover,
     .chat-page__add-message--icon:hover,
@@ -303,7 +327,7 @@
 
 
     .chat-page__add-message--pin {
-        display: flex;
+        /* display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
@@ -311,7 +335,7 @@
         box-shadow: 5px 5px 50px #00000065;
         width: 60px;
         height: 50px;
-        color: #ffffff;
+        color: #ffffff; */
     }
 
     .chat-page__status {
@@ -325,8 +349,16 @@
 }
 
 @media (min-width: 1250px) {
-    .chat-message {
-        width: 280px;
+
+    .chat-message__got,
+    .chat-message__mine {
+        max-width: 280px;
+        padding: 15px 10px 10px 10px;
+    }
+
+    .chat-page__container {
+        height: calc(100% - 55px - 10dvh);
+        margin: 10px 0 5px 0;
     }
 
     .chat-page__status {
@@ -335,19 +367,26 @@
 
     .chat-message--text {
         font-size: 14px;
-        padding: 25px 20px 5px 40px;
     }
 
-
     .chat-page__add-message {
-        width: calc(100% - 20px);
+        position: static;
+        width: calc(100%);
+        /* margin: 0 0 8dvh 0; */
         display: grid;
-        grid-template-columns: 120px 120px calc(100% - 240px);
-        gap: 10px;
+        grid-template-columns: 120px 120px calc(100% - 252px);
+        gap: 6px;
+        height: 55px;
     }
 
     .chat-page__add-message--icon,
     .chat-page__add-message--pin {
         width: 120px;
+        height: 50px;
+    }
+
+    .chat-page__add-message--field {
+        padding: 15px 50px 20px 25px;
+        height: 50px;
     }
 }
