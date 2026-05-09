@@ -1,14 +1,16 @@
-.list-page {
-    display: flex;
-    flex-direction: column;
+
+.lobby-page:has(.chat-page) .list-page {
+    display: none;
 }
 
+
 .list-page {
+    display: block;
+    height: calc(100% - 30dvh);
     width: 100%;
-    height: 100%;
-    padding: 20dvh 0 0 0;
+    padding: 15dvh 0 0 0;
     color: var(--color-text);
-}
+}    
 
 .list-page__title {
     color: var(--color-text);
@@ -25,6 +27,7 @@
 }
 
 .list-page__list {
+   min-height: 0;
     flex: 1;
     margin: 40px 0 0 0;
     padding: 0 10px 0 0;
@@ -55,13 +58,17 @@
 }
 
 .list-page__list-item--title {
+    width: 100%;
     display: flex;
     flex-direction: row;
 }
 
+.list-page__list-item--content {
+    width: 100%;
+}
+
 .list-item--title__name {
     font-size: 15.5px;
-
 }
 
 .list-item--title__time,
@@ -77,6 +84,35 @@
 }
 
 @media (min-width: 1250px) {
+    .lobby-page:has(.list-page) .list-page {
+        /* display: flex; */
+    }
+
+    .list-page__list-item:hover {
+        cursor: pointer;
+        height: 150px;
+        text-shadow: 0px 0px 30px #00000060;
+        opacity: 50%;
+        transition: 0.3s;
+    }
+
+    .list-page__list {
+        padding: 0 20px 0 0;
+        margin: 40 -20px 0 0;
+    }
+
+    .lobby-prev-page__title {
+        font-size: 45px;
+    }
+
+    .list-page {
+        /* border: 2px solid red; */
+        height: calc(90dvh + 35px);
+        display: flex;
+        flex-direction: column;
+        /* background: wheat; */
+    }
+
     .lobby-prev-page__users-list--item:hover {
         cursor: pointer;
         height: 120px;
@@ -87,8 +123,41 @@
     .lobby-prev-page__title {
         font-size: 45px;
     }
-}
 
+    .lobby-page {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        gap: 10px;
+        padding: 0 0 0 0;
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .lobby-page:has(> :nth-child(1)) {
+        grid-template-columns: 40dvw 0;
+        justify-items: stretch;
+        padding: 0 0 0 calc(50dvw - 28dvw);
+    }
+
+    .lobby-page:has(> :nth-child(2)) {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        gap: 50px;
+        padding: 0 0 0 0;
+        grid-template-columns: 30dvw auto;
+    }
+
+    .list-page {
+        /* border: 2px solid red; */
+        height: calc(90dvh + 35px);
+        display: flex;
+        flex-direction: column;
+        /* background: wheat; */
+    }
+
+}
 
 /*
 .lobby-prev-page--container {

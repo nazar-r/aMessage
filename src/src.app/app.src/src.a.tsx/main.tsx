@@ -37,9 +37,17 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
-      { path: 'contactslist', element: privateAuth(withSuspense(<ContactsListPage />)) },
-      { path: 'chatslist', element: privateAuth(withSuspense(<ChatsListPage />)) },
-      { path: 'chat', element: privateAuth(withSuspense(<ChatPage />)) },
+      {
+        path: 'chatslist',
+        element: privateAuth(withSuspense(<ChatsListPage />)),
+        children: [
+          {
+            index: true,
+            path: 'chat',
+            element: privateAuth(withSuspense(<ChatPage />)),
+          },
+        ],
+      },
     ],
   },
 ];
@@ -49,9 +57,9 @@ const queryClient = new QueryClient();
 
 const RouterRendering = () => {
   return (
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={appRouter} />
-      </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={appRouter} />
+    </QueryClientProvider>
   );
 };
 

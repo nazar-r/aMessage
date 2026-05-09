@@ -1,24 +1,22 @@
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useMenuScrollFade } from "../items.menu.animation";
 import type { MenuProps } from "../../tsx.extensions/types";
 
 export const Menu = ({ scrollRef }: MenuProps) => {
     const [defMenu, setMenu] = useState(false);
-
     const isFaded = useMenuScrollFade(scrollRef ?? undefined);
     const isMobile = window.innerWidth <= 1250;
-
     const menuButtonClass = `menu-button ${isFaded ? "fade" : ""}`;
 
     const navigate = useNavigate();
     const launchMenu = () => setMenu((prev) => !prev);
 
-    const menuButton = createPortal(
-        <div className={menuButtonClass} onClick={launchMenu}>Menu</div>,
-        document.body
-    );
+    const menuButton = () => {
+        return (
+            <div className={menuButtonClass} onClick={launchMenu}>Menu</div>
+        );
+    }
 
     const menuItems = (
         <>
@@ -31,11 +29,11 @@ export const Menu = ({ scrollRef }: MenuProps) => {
     );
 
     const menuContainer = defMenu
-        ? createPortal(<div className="menu-container">{menuItems}</div>, document.body)
+        ? <div className="menu-container">{menuItems}</div>
         : null;
 
     return <>
-        {menuButton}
+        {menuButton()}
         {menuContainer}
     </>;
 };

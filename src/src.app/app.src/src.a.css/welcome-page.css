@@ -132,4 +132,10 @@
     .welcome-page__button {
         font-size: var(--font-size-xs);
     }
+    .welcome-page {
+        padding: 0 19dvw 0 19dvw;
+    }
+}
+
+@media(min-width: 1550px) {
 }

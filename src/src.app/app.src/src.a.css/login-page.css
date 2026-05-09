@@ -159,7 +159,12 @@
     }
 
     @media(min-width: 1250px) {
-        .login-page__button-container {
+
+        .login-page {
+            padding: 0 19dvw 0 19dvw;
+        }
+
+        /* .login-page__button-container {
             display: flex;
             flex-direction: row;
             margin: 60px 0 0 0;
@@ -196,5 +201,5 @@
             box-shadow: 7px 7px 50px #00000073;
             cursor: pointer;
             transition: 0.35s;
-        }
+        } */
     }

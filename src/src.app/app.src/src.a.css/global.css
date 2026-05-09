@@ -12,9 +12,8 @@
 }
 
 ::-webkit-scrollbar {
-    display: none;
+    /* display: none; */
 }
-
 
 body {
     position: fixed;
@@ -41,6 +40,18 @@ input:-webkit-autofill {
     }
 }
 
+
+@keyframes fadeRight {
+    from {
+        transform: translateX(200px);
+        opacity: 0;
+    }
+
+    to {
+        transform: none;
+        opacity: 1
+    }
+}
 
 @keyframes fadeOutAddSpec {
     from {
@@ -132,14 +143,33 @@ input:-webkit-autofill {
 
 @media(min-width: 1250px) {
     .main-container {
-        padding: 0 21dvw 0 21dvw;
+        padding: 0 5dvw 0 5dvw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);
+    }
+
+    ::-webkit-scrollbar {
+        display: initial;
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #ffffff30;
+        border-radius: 100px;
+        max-height: 50px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #ffffff50;
     }
 }
 
 @media(min-width: 1550px) {
     .main-container {
-        padding: 0 25dvw 0 25dvw;
+        padding: 0 8dvw 0 8dvw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);
     }
 }

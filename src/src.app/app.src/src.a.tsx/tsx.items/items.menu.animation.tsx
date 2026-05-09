@@ -3,7 +3,7 @@ import { type RefObject } from "react";
 
 export const useMenuScrollFade = (
     scrollRef?: RefObject<HTMLUListElement | null>,
-    threshold: number = 5
+    threshold: number = 2
 ) => {
     const [isFaded, setIsFaded] = useState(false);
     const lastScrollTop = useRef(0);
