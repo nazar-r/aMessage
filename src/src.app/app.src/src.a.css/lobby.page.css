@@ -1,6 +1,10 @@
+.lobby-page {
+    width: 100%;
+    height: 100%;
+}
+
 .list-page {
-    display: revert;
-    height: calc(100% - 30dvh);
+    height: calc(100%);
     width: 100%;
     padding: 15dvh 0 0 0;
     color: var(--color-text);
@@ -9,13 +13,6 @@
 .lobby-page:has(.chat-page) .list-page {
     display: none;
 }
-
-
-
-/* .lobby-page:has(.list-page)> :not(.list-page) {
-    display: none;
-} */
-
 
 .list-page__title {
     color: var(--color-text);
@@ -32,7 +29,7 @@
 }
 
 .list-page__list {
-   min-height: 0;
+    height: 100%;
     flex: 1;
     margin: 40px 0 0 0;
     padding: 0 10px 0 0;
