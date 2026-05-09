@@ -1,16 +1,21 @@
+.list-page {
+    display: revert;
+    height: calc(100% - 30dvh);
+    width: 100%;
+    padding: 15dvh 0 0 0;
+    color: var(--color-text);
+}
 
 .lobby-page:has(.chat-page) .list-page {
     display: none;
 }
 
 
-.list-page {
-    display: block;
-    height: calc(100% - 30dvh);
-    width: 100%;
-    padding: 15dvh 0 0 0;
-    color: var(--color-text);
-}    
+
+/* .lobby-page:has(.list-page)> :not(.list-page) {
+    display: none;
+} */
+
 
 .list-page__title {
     color: var(--color-text);
@@ -85,7 +90,7 @@
 
 @media (min-width: 1250px) {
     .lobby-page:has(.list-page) .list-page {
-        /* display: flex; */
+        display: flex;
     }
 
     .list-page__list-item:hover {
