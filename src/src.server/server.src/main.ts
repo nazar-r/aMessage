@@ -8,35 +8,14 @@ import * as cookieParser from 'cookie-parser';
 import * as connectRedis from 'connect-redis';
 import 'reflect-metadata';
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  app.set('trust proxy', 1);
-  app.use(cookieParser());
-
-  app.use((req, res, next) => {
-    const ip =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.headers['x-real-ip'] ||
-      req.ip;
-
-    console.log(`[IP] ${ip} → ${req.method} ${req.url}`);
-
-    next();
-  });
-
-  const redisClient = createClient({
-    url: process.env.REDIS_URL as string,
-  });
-
-  redisClient.on('error', (err) => {
-    console.error('Redis error:', err);
-  });
-
-  await redisClient.connect();
-
   const RedisStore = connectRedis(session);
-
+  const redisClient = createClient({ url: process.env.REDIS_URL as string});
+  redisClient.on('error', (err) => {console.error('Redis error:', err)});
+  
+  await redisClient.connect();
+  app.set('trust proxy', 1);
   app.use(
     session({
       store: new RedisStore({ client: redisClient, prefix: 'sess:' }),
@@ -45,17 +24,17 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: false,
+        secure: process.env.COOKIE_SECURE === 'true',
         sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24,
         path: '/',
       },
     }),
   );
-
+  
+  app.use(cookieParser());
   app.use(passport.initialize());
   app.use(passport.session());
-
   app.enableCors({
     origin: process.env.FRONTEND_ORIGIN_URL,
     credentials: true,

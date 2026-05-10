@@ -26,8 +26,8 @@ let AuthController = class AuthController {
         const { access_token } = await this.authService.googleLogin(req.user);
         res.cookie('access_token', access_token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: process.env.COOKIE_SECURE === 'true',
+            sameSite: 'lax',
             maxAge: 1000 * 60 * 60 * 24,
             path: '/',
         });
@@ -38,7 +38,7 @@ let AuthController = class AuthController {
         const { access_token } = await this.authService.googleLogin(req.user);
         res.cookie('access_token', access_token, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.COOKIE_SECURE === 'true',
             sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 24,
             path: '/',
