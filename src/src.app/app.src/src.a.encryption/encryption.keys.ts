@@ -155,7 +155,7 @@ export const decryptRoomText = (
   sharedKey: Uint8Array | null
 ) => {
   if (!wireText.startsWith(E2EE_PREFIX)) return wireText;
-  if (!sharedKey) return "[Encrypted message]";
+  if (!sharedKey) return "[This message is not available]";
 
   try {
     const payload = JSON.parse(
