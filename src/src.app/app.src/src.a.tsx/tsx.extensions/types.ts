@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import type { Socket } from "socket.io-client";
 
 export interface MessagesData {
   messageStatus: "mine" | "got";
@@ -18,6 +19,19 @@ export interface RoomConfig {
   peerWsId: string;
 };
 
+export type RoomKeyPair = {
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
+};
+
+export type UseOneOnOneRoomQueryArgs = RoomConfig & {
+  onCursorChange: (cursor: string | null) => void;
+  socketRef: RefObject<Socket | null>;
+  myKeyPairRef: RefObject<RoomKeyPair | null>;
+  sharedKeyRef: RefObject<Uint8Array | null>;
+  encryptedTextByMessageIdRef: RefObject<Map<string, string>>;
+  pendingOwnMessageIdsRef: RefObject<string[]>;
+};
 export interface UsersData {
   userId: string;
   userName: string;
