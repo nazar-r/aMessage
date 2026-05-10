@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useOneOnOneRoom } from "../../src.a.chats/ws.chats";
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from "react-router-dom";
-import { Menu } from '../tsx.items/items.menu/menu';
 
 const LobbyPageContent = () => {
     const navigate = useNavigate();
@@ -45,7 +44,7 @@ const LobbyPageContent = () => {
                     {messages.map(message => (
                         <li id={message.messageId} key={message.messageId} className={message.messageStatus === "mine" ? "chat-message__mine" : "chat-message__got"}>
                             <div className="chat-message--text">{message.content}</div>
-                            <div className={message.messageStatus === "mine" ? "chat-message__time--mine" : "chat-message__time--got"}>17:58</div>
+                            <div className={message.messageStatus === "mine" ? "chat-message__time--mine" : "chat-message__time--got"}>00:00</div>
                             {message.messageStatus === "mine" &&
                                 <div className="chat-message__hidden">
                                     <div className="chat-message__hidden--item" onClick={e => { e.stopPropagation(); defEdit ? updateMessage(message.messageId, message.content) : switchEdit(e) }}>
