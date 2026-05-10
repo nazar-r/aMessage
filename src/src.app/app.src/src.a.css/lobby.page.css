@@ -8,6 +8,7 @@
     width: 100%;
     padding: 15dvh 0 0 0;
     color: var(--color-text);
+    animation: fadeRight 0.2s;
 }
 
 .lobby-page:has(.chat-page) .list-page {
@@ -103,12 +104,12 @@
         margin: 40 -20px 0 0;
     }
 
-    .lobby-prev-page__title {
-        font-size: 45px;
+    .list-page__title {
+        font-size: 40px;
     }
 
     .list-page {
-        /* border: 2px solid red; */
+        padding: 25dvh 0 0 0;
         height: calc(90dvh + 35px);
         display: flex;
         flex-direction: column;
@@ -149,6 +150,14 @@
         gap: 50px;
         padding: 0 0 0 0;
         grid-template-columns: 30dvw auto;
+    }
+
+    .lobby-page:has(> :nth-child(2)) .list-page {
+        padding: 15dvh 0 0 0;
+    }
+
+    .lobby-page:has(> :nth-child(2)) .list-page__title {
+        font-size: 30px;
     }
 
     .list-page {

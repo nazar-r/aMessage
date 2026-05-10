@@ -4,7 +4,7 @@
     align-items: left;
     color: var(--color-text);
     height: var(--height-welcome-page);
-    animation: fadeIn 0.2s ease forwards;
+    animation: fadeRight 0.2s ease forwards;
     margin: 0 4vw 0 4vw;
 }
 
@@ -132,10 +132,10 @@
     .welcome-page__button {
         font-size: var(--font-size-xs);
     }
+
     .welcome-page {
         padding: 0 19dvw 0 19dvw;
     }
 }
 
-@media(min-width: 1550px) {
-}
+@media(min-width: 1550px) {}

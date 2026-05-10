@@ -4,7 +4,7 @@
         color: var(--color-text) !important;
         align-items: left;
         height: var(--height-welcome-page);
-        animation: fadeIn 0.2s ease forwards;
+        animation: fadeRight 0.2s ease forwards;
         margin: 0 4vw 0 4vw;
     }
 
