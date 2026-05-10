@@ -317,7 +317,7 @@
     .chat-page__add-message--pin:hover,
     .chat-page__add-message--icon:hover,
     .chat-page__add-message--field:hover {
-        height: 60px;
+        height: 64px;
         cursor: pointer;
     }
 
