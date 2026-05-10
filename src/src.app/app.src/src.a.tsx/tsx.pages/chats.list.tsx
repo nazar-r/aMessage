@@ -21,7 +21,7 @@ const ChoosingUserPageContent = () => {
                             <div className="list-page__list-item--content">
                                 <div className="list-page__list-item--title">
                                     <div className="list-item--title__name">{user.userName}</div>
-                                    <div className="list-item--title__time">17:28</div>
+                                    <div className="list-item--title__time">00:00</div>
                                 </div>
                                 <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
                             </div>

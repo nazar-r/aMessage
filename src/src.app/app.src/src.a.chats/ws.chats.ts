@@ -29,6 +29,11 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
     queryFn: async () => [] as MessagesData[],
     initialData: [] as MessagesData[],
     enabled: !!peerWsId,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    networkMode: "always",
   });
 
   const [cursor, setCursor] = useState<string | null>(null);
@@ -65,6 +70,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
           replaced = true;
           return incoming;
         }
+
         return m;
       });
 
@@ -142,6 +148,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
   useEffect(() => {
     if (!peerWsId || socketRef.current) return;
+
     let cancelled = false;
 
     const init = async () => {
@@ -170,6 +177,7 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
 
       const announceMyPublicKey = () => {
         if (!myKeyPairRef.current) return;
+
         s.emit("e2ee:publicKey", {
           publicKey: exportPublicKey(myKeyPairRef.current.publicKey),
         });
@@ -303,7 +311,6 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
       s.on("messageRemoved", handleMessageRemoved);
       s.on("messageUpdated", handleMessageUpdated);
       s.on("e2ee:peerPublicKey", handlePeerPublicKey);
-
       s.on("users-online", handleUsersOnline);
       s.on("user-status", handleUserStatus);
     };
@@ -366,7 +373,9 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
         socket.emit("removeMessage", { messageId });
       }, 200);
     } else {
-      setMessagesCache((prev) => prev.filter((msg) => msg.messageId !== messageId));
+      setMessagesCache((prev) =>
+        prev.filter((msg) => msg.messageId !== messageId)
+      );
       socket.emit("removeMessage", { messageId });
     }
   };
@@ -374,7 +383,9 @@ export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const updateMessage = (messageId: string, newContent: string) => {
     const socket = socketRef.current;
     const sharedKey = sharedKeyRef.current;
+
     if (!socket) return;
+
     if (!sharedKey) {
       console.error("E2EE shared key is not ready yet.");
       return;

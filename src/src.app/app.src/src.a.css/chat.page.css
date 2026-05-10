@@ -4,6 +4,10 @@
     animation: fadeRight 0.2s ease forwards;
 }
 
+.chat-page::-webkit-scrollbar {
+    display: none;
+}
+
 .chat-message--fade {
     width: 185px;
     background: #000000;

@@ -30,10 +30,10 @@
 }
 
 .list-page__list {
-    height: 100%;
+    height: 90%;
     flex: 1;
-    margin: 40px 0 0 0;
-    padding: 0 10px 0 0;
+    padding: 0 20px 0 0;
+    margin: 40px -20px 0 0;
     mask-size: 100% 102%;
     -webkit-mask-size: 100% 102%;
     mask-image: linear-gradient(to top, #00000000, #000000 10%);
@@ -44,6 +44,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    cursor: pointer;
 }
 
 .list-page__list-item {
@@ -84,6 +85,10 @@
 
 .list-item--title__time {
     margin: 0 0 0 auto;
+}
+
+.list-page__list-item:hover {
+    height: 110px;
 }
 
 @media (min-width: 1250px) {
