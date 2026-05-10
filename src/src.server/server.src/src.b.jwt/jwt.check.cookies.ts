@@ -17,11 +17,11 @@ export class JwtCheckCookies implements CanActivate {
           throw new UnauthorizedException();
         }
       })()
-      : (() => { throw new UnauthorizedException(); })();
+      : (() => { throw new UnauthorizedException("Unauthorized"); })();
 
     payload
       ? (req.user = payload)
-      : (() => { throw new UnauthorizedException(); })();
+      : (() => { throw new UnauthorizedException("Unauthorized"); })();
 
     return true;
   }

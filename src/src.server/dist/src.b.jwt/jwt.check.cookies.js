@@ -28,10 +28,10 @@ let JwtCheckCookies = class JwtCheckCookies {
                     throw new common_1.UnauthorizedException();
                 }
             })()
-            : (() => { throw new common_1.UnauthorizedException(); })();
+            : (() => { throw new common_1.UnauthorizedException("Unauthorized"); })();
         payload
             ? (req.user = payload)
-            : (() => { throw new common_1.UnauthorizedException(); })();
+            : (() => { throw new common_1.UnauthorizedException("Unauthorized"); })();
         return true;
     }
 };

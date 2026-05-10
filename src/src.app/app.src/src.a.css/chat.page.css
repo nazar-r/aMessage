@@ -207,6 +207,15 @@
     margin: 0 0 0 13px;
 }
 
+.chat-message__hidden--item__delete {
+    transform: rotate(45deg);
+}
+
+.chat-message__hidden--item:hover .chat-message__hidden--item__delete{
+    transform: rotate(135deg);
+}
+
+.chat-message__hidden--item__delete,
 .chat-message__hidden--item__icon {
     margin: 1px 6px 0 0;
 }
