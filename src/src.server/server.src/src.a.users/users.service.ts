@@ -11,13 +11,15 @@ export class UsersService {
       where: {
         userId: { not: userId }
       },
+      orderBy: {
+        userName: 'desc',
+      },
       select: {
         userId: true,
         userName: true,
       },
     });
   }
-
   async findOrCreateUser(profile: AuthUser) {
     if (!profile.userId) {
       throw new UnauthorizedException({

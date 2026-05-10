@@ -18,6 +18,9 @@ let UsersService = class UsersService {
             where: {
                 userId: { not: userId }
             },
+            orderBy: {
+                userName: 'desc',
+            },
             select: {
                 userId: true,
                 userName: true,
