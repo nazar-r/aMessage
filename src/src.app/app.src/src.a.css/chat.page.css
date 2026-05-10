@@ -332,12 +332,14 @@
         grid-template-columns: 120px 120px calc(100% - 252px);
         gap: 6px;
         height: 45px;
+        transition: 0.1s;
     }
 
     .chat-page__add-message--icon,
     .chat-page__add-message--pin {
         width: 120px;
         height: 45px;
+        transition: 0.1s;
     }
 
     .chat-page__status {
