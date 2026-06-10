@@ -2,7 +2,6 @@
   "name": "amessage-server",
   "version": "1.0.0",
   "private": true,
-
   "scripts": {
     "postinstall": "prisma generate --schema=./server.src/src.b.database/schema.prisma",
     "build": "nest build",
@@ -65,6 +64,7 @@
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "artillery": "^2.0.31",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",

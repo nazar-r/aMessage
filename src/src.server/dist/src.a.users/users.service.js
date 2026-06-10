@@ -13,17 +13,43 @@ let UsersService = class UsersService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
     }
-    findAllUsers(userId) {
-        return this.prisma.user.findMany({
+    async findAllUsers(userId) {
+        const [users, contacts] = await Promise.all([
+            this.prisma.user.findMany({
+                where: {
+                    userId: { not: userId },
+                },
+                orderBy: {
+                    userName: 'desc',
+                },
+                select: {
+                    userId: true,
+                    userName: true,
+                },
+            }),
+            this.prisma.contact.findMany({
+                where: { userId },
+                select: { contactId: true },
+            }),
+        ]);
+        const contactsArray = new Set(contacts.map(c => c.contactId));
+        return users.map(usersArray => ({
+            ...usersArray,
+            isContact: contactsArray.has(usersArray.userId),
+        }));
+    }
+    setUserContact(usersContact) {
+        return this.prisma.contact.upsert({
             where: {
-                userId: { not: userId }
+                userId_contactId: {
+                    userId: usersContact.userId,
+                    contactId: usersContact.contactId,
+                },
             },
-            orderBy: {
-                userName: 'desc',
-            },
-            select: {
-                userId: true,
-                userName: true,
+            update: {},
+            create: {
+                userId: usersContact.userId,
+                contactId: usersContact.contactId,
             },
         });
     }

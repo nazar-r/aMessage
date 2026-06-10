@@ -1,12 +1,23 @@
 import { useFetchingUsers } from "../tsx.extensions/getApi/use.get.users.api";
+import { useAddUserAsContact } from "../tsx.extensions/setApi/use.add.contact";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Menu } from "../tsx.items/items.menu/menu";
 import { Outlet } from 'react-router-dom';
 
 const ChoosingUserPageContent = () => {
     const navigate = useNavigate();
     const { data: users } = useFetchingUsers();
+    const { mutate } = useAddUserAsContact();
+
+    const handleAddContact = (user: any) => {
+        mutate({
+            contactId: user.userId,
+            isContact: true,
+        });
+
+        // console.log(user)
+    };
 
     const listRef = useRef<HTMLUListElement | null>(null);
 
@@ -17,13 +28,18 @@ const ChoosingUserPageContent = () => {
                 <ul ref={listRef} className="list-page__list">
                     {users?.map((user) => (
                         <li key={user.userId} className="list-page__list-item" onClick={() => navigate("/chatslist/chat", { state: { peerWsId: user.userId, userName: user.userName } })}>
-                            <div className="list-page__list-item--image"></div>
+                            <div className="list-page__list-item--image">
+                                <div className={user.isContact === true ? "contact" : "contact-none"}>{user.isContact === true ? "C" : ""}</div>
+                            </div>
                             <div className="list-page__list-item--content">
-                                <div className="list-page__list-item--title">
-                                    <div className="list-item--title__name">{user.userName}</div>
-                                    <div className="list-item--title__time">00:00</div>
+                                <div className="list-page__list-item--content__container">
+                                    <div className="list-page__list-item--title">
+                                        <div className="list-item--title__name">{user.userName}</div>
+                                        <div className="list-item--title__time">00:00</div>
+                                    </div>
+                                    <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
                                 </div>
-                                <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
+                                <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), handleAddContact(user))}>{user.isContact === true ? "✓ Contact" : "✓ Add Contact"}</div>
                             </div>
                         </li>
                     ))}

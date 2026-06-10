@@ -14,3 +14,10 @@ export interface E2EEPeerPublicKeyPayload {
     userId: string;
     publicKey: string;
 }
+export interface UserImage {
+    userId: string;
+    contactId: string;
+}
+export declare class SetUserContactDTO {
+    contactId: string;
+}

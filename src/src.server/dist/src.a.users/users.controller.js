@@ -24,6 +24,15 @@ let UsersController = class UsersController {
         const cookiesUserId = req.user.userId;
         return this.usersService.findAllUsers(cookiesUserId);
     }
+    setUserContact(req, newContact) {
+        const userId = req.user.userId;
+        const contactId = newContact.contactId;
+        const usersContact = {
+            userId: userId,
+            contactId: contactId,
+        };
+        return this.usersService.setUserContact(usersContact);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -33,6 +42,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findMessages", null);
+__decorate([
+    (0, common_1.Post)('setcontacts'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Function]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "setUserContact", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

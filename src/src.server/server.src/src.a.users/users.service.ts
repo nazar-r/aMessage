@@ -1,15 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import type { UserImage } from "../src.extensions/extensions.types/types"
 import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
 
 @Injectable()
 export class UsersService {
   private prisma = new PrismaClient();
 
-  findAllUsers(userId: string) {
-    return this.prisma.user.findMany({
+async findAllUsers(userId: string) {
+  const [users, contacts] = await Promise.all([
+    this.prisma.user.findMany({
       where: {
-        userId: { not: userId }
+        userId: { not: userId },
       },
       orderBy: {
         userName: 'desc',
@@ -18,8 +20,37 @@ export class UsersService {
         userId: true,
         userName: true,
       },
+    }),
+    this.prisma.contact.findMany({
+      where: { userId },
+      select: { contactId: true },
+    }),
+  ]);
+
+  const contactsArray = new Set(contacts.map(c => c.contactId));
+
+  return users.map(usersArray => ({
+    ...usersArray,
+    isContact: contactsArray.has(usersArray.userId),
+  }));
+}
+
+  setUserContact(usersContact: UserImage) {
+    return this.prisma.contact.upsert({
+      where: {
+        userId_contactId: {
+          userId: usersContact.userId,
+          contactId: usersContact.contactId,
+        },
+      },
+      update: {},
+      create: {
+        userId: usersContact.userId,
+        contactId: usersContact.contactId,
+      },
     });
   }
+  
   async findOrCreateUser(profile: AuthUser) {
     if (!profile.userId) {
       throw new UnauthorizedException({

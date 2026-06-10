@@ -35,7 +35,8 @@ export type UseOneOnOneRoomQueryArgs = RoomConfig & {
 export interface UsersData {
   userId: string;
   userName: string;
-  userStatus: "Online";
+  userStatus: string;
+  isContact?: boolean;
   email?: string;
 }
 

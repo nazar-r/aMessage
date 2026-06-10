@@ -8,10 +8,10 @@ import '../src.a.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
 const ChatsListPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
-const ContactsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
 const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
 const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
 const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
+// const ContactsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
 // const ChoosingUserPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
 
 const withSuspense = (component: ReactElement) => (
@@ -37,16 +37,13 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
-      {
-        path: 'chatslist',
-        element: privateAuth(withSuspense(<ChatsListPage />)),
-        children: [
+      { path: 'chatslist', element: privateAuth(withSuspense(<ChatsListPage />)), children: [
           {
             index: true,
             path: 'chat',
             element: privateAuth(withSuspense(<ChatPage />)),
           },
-        ],
+        ]
       },
     ],
   },

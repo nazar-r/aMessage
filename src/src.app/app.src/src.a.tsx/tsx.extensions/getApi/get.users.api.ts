@@ -12,5 +12,6 @@ export const fetchingUsers = async (): Promise<UsersData[]> => {
     }
 
     const data: UsersData[] = await response.json();
+    console.log(data)
     return data;
 };
