@@ -9,11 +9,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JwtConfig = void 0;
+exports.JwtExtractor = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const passport_jwt_1 = require("passport-jwt");
-let JwtConfig = class JwtConfig extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
+let JwtExtractor = class JwtExtractor extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
     constructor() {
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromExtractors([
@@ -25,12 +25,14 @@ let JwtConfig = class JwtConfig extends (0, passport_1.PassportStrategy)(passpor
         });
     }
     async validate(payload) {
-        return { userId: payload.userId, name: payload.name };
+        return {
+            userId: payload.sub,
+        };
     }
 };
-exports.JwtConfig = JwtConfig;
-exports.JwtConfig = JwtConfig = __decorate([
+exports.JwtExtractor = JwtExtractor;
+exports.JwtExtractor = JwtExtractor = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [])
-], JwtConfig);
+], JwtExtractor);
 //# sourceMappingURL=jwt.config.js.map

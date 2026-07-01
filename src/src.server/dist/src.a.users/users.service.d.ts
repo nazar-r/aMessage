@@ -1,24 +1,29 @@
-import type { UserImage } from "../src.extensions/extensions.types/types";
-import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
+import { PrismaService } from '../src.b.prisma/prisma.service';
+import { RedisService } from '../src.b.redis/redis.service';
+import type { UserContact, ChosenUser } from '../src.extensions/extensions.types/types';
+import type { AuthUser } from '../src.extensions/extensions.types/auth.types';
 export declare class UsersService {
-    private prisma;
-    findAllUsers(userId: string): Promise<{
-        isContact: boolean;
+    private readonly usePrisma;
+    private readonly useRedis;
+    constructor(usePrisma: PrismaService, useRedis: RedisService);
+    findOrCreateUser(profile: AuthUser): Promise<{
+        name: string;
         userId: string;
+        email: string | null;
+        role: import("@prisma/client").$Enums.Role;
         userName: string;
-    }[]>;
-    setUserContact(usersContact: UserImage): import("@prisma/client").Prisma.Prisma__ContactClient<{
+        refreshToken: string | null;
+        createdAt: Date;
+    }>;
+    findAllUsers(userId: string): Promise<ChosenUser[]>;
+    setUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
         createdAt: Date;
         contactId: string;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
-    findOrCreateUser(profile: AuthUser): Promise<{
-        name: string;
-        role: import("@prisma/client").$Enums.Role;
+    deleteUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
-        userName: string;
-        email: string | null;
-        refreshToken: string | null;
         createdAt: Date;
-    }>;
+        contactId: string;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

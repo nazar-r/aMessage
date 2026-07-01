@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMenuScrollFade } from "../items.menu.animation";
-import type { MenuProps } from "../../tsx.extensions/types";
+import type { MenuProps } from "../../../src.b.extensions/types";
 
 export const Menu = ({ scrollRef }: MenuProps) => {
     const [defMenu, setMenu] = useState(false);
@@ -22,7 +22,7 @@ export const Menu = ({ scrollRef }: MenuProps) => {
         <>
             {!isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
             <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Chats</div>
-            <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Contacts</div>
+            <div className="menu-container__item" onClick={() => navigate("/contactslist")}>Contacts</div>
             <div className="menu-container__item" onClick={() => navigate("/chatslist")}>Settings</div>
             {isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
         </>

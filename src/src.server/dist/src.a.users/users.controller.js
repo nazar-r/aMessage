@@ -15,23 +15,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
-const passport_1 = require("@nestjs/passport");
+const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
-    findMessages(req) {
-        const cookiesUserId = req.user.userId;
-        return this.usersService.findAllUsers(cookiesUserId);
+    loadUsers(req) {
+        const userId = req.user.sub;
+        return this.usersService.findAllUsers(userId);
     }
-    setUserContact(req, newContact) {
-        const userId = req.user.userId;
-        const contactId = newContact.contactId;
-        const usersContact = {
-            userId: userId,
+    ;
+    setUserContact(req, contactId) {
+        const userContact = {
+            userId: req.user.sub,
             contactId: contactId,
         };
-        return this.usersService.setUserContact(usersContact);
+        return this.usersService.setUserContact(userContact);
+    }
+    ;
+    deleteUserContact(req, contactId) {
+        const userContact = {
+            userId: req.user.sub,
+            contactId: contactId,
+        };
+        return this.usersService.deleteUserContact(userContact);
     }
 };
 exports.UsersController = UsersController;
@@ -41,18 +48,26 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "findMessages", null);
+], UsersController.prototype, "loadUsers", null);
 __decorate([
-    (0, common_1.Post)('setcontacts'),
+    (0, common_1.Patch)('contacts/:id'),
     __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Body)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Function]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "setUserContact", null);
+__decorate([
+    (0, common_1.Delete)('contacts/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "deleteUserContact", null);
 exports.UsersController = UsersController = __decorate([
+    (0, common_1.UseGuards)(jwt_extractor_1.JwtCheck),
     (0, common_1.Controller)('users'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

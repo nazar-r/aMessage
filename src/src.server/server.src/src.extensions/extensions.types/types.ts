@@ -4,9 +4,8 @@ export interface ExceptionResponseBody {
 };
 
 export interface JwtPayload {
-  sub?: string;
-  id?: string;
-  userId?: string;
+  sub: string;
+  exp: number;
 };
 
 export interface E2EEPublicKeyPayload {
@@ -19,9 +18,36 @@ export interface E2EEPeerPublicKeyPayload {
 };
 
 
+export type CachedUser = {
+  sub: string;
+  expMs: number;
+};
+
 export interface UserImage {
   userId: string;
   contactId: string;
+};
+
+export interface ChosenUser {
+  userId: string;
+  userName: string;
+  isContact: boolean;
+};
+
+export interface UserContact {
+  userId: string;
+  contactId: string;
+};
+
+export interface UserContactImage {
+  userId: string;
+  userContactId: string;
+};
+
+export interface ContactImage {
+  userId: string;
+  userName: string;
+  isContact: boolean;
 };
 
 export class SetUserContactDTO {

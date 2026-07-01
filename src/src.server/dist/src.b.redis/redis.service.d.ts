@@ -1,0 +1,11 @@
+import { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { RedisClientType } from 'redis';
+export declare class RedisService implements OnModuleInit, OnModuleDestroy {
+    private client;
+    onModuleInit(): Promise<void>;
+    getRedisClient(): RedisClientType;
+    setRedisData(key: string, value: string, ttlSeconds?: number): Promise<string | {}>;
+    getRedisData(key: string): Promise<string | {}>;
+    deleteRedisData(key: string): Promise<number>;
+    onModuleDestroy(): void;
+}

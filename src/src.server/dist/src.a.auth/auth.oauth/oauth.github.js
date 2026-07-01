@@ -9,12 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GithubOauth = void 0;
+exports.GithubStrategy = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const passport_github2_1 = require("passport-github2");
 const users_service_1 = require("../../src.a.users/users.service");
-let GithubOauth = class GithubOauth extends (0, passport_1.PassportStrategy)(passport_github2_1.Strategy, 'github') {
+let GithubStrategy = class GithubStrategy extends (0, passport_1.PassportStrategy)(passport_github2_1.Strategy, 'github') {
     constructor(usersService) {
         super({
             clientID: process.env.GITHUB_CLIENT_ID,
@@ -26,31 +26,28 @@ let GithubOauth = class GithubOauth extends (0, passport_1.PassportStrategy)(pas
     }
     async validate(accessToken, refreshToken, profile) {
         const githubId = profile?.id;
-        const email = profile?.emails?.[0]?.value ||
-            profile?._json?.email ||
-            null;
-        const name = profile?.displayName ||
-            profile?.username ||
-            profile?._json?.name ||
-            profile?._json?.login ||
-            email?.split('@')[0] ||
-            'Unknown';
+        const githubEmail = profile?.emails?.[0]?.value
+            ?? profile?._json?.email
+            ?? null;
+        const githubName = profile?.displayName
+            ?? profile?.username
+            ?? profile?._json?.name
+            ?? profile?._json?.login
+            ?? githubEmail?.split('@')[0]
+            ?? 'Unknown User';
         if (!githubId) {
             throw new common_1.UnauthorizedException('Github profile ID is missing');
         }
-        if (!email) {
-            throw new common_1.UnauthorizedException('Email is missing in Github profile');
-        }
         return this.usersService.findOrCreateUser({
-            userId: `gt_${githubId}`,
-            email,
-            name,
+            userId: `ggl_${githubId}`,
+            userEmail: githubEmail,
+            userName: githubEmail,
         });
     }
 };
-exports.GithubOauth = GithubOauth;
-exports.GithubOauth = GithubOauth = __decorate([
+exports.GithubStrategy = GithubStrategy;
+exports.GithubStrategy = GithubStrategy = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService])
-], GithubOauth);
+], GithubStrategy);
 //# sourceMappingURL=oauth.github.js.map

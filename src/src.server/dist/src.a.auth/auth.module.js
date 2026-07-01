@@ -12,28 +12,27 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
-const users_service_1 = require("../src.a.users/users.service");
+const users_module_1 = require("../src.a.users/users.module");
 const oauth_google_1 = require("./auth.oauth/oauth.google");
 const oauth_github_1 = require("./auth.oauth/oauth.github");
-const jwt_config_1 = require("../src.b.jwt/jwt.config");
+const jwt_extractor_passport_1 = require("../src.b.jwt/jwt.extractor.passport");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule,
+            users_module_1.UsersModule,
             jwt_1.JwtModule.registerAsync({
                 inject: [config_1.ConfigService],
                 useFactory: (config) => ({
                     secret: config.get('JWT_SECRET'),
-                    signOptions: { expiresIn: '24h' },
                 }),
             }),
         ],
-        providers: [auth_service_1.AuthService, users_service_1.UsersService, oauth_google_1.GoogleOauth, oauth_github_1.GithubOauth, jwt_config_1.JwtConfig],
+        providers: [auth_service_1.AuthService, oauth_google_1.GoogleStrategy, oauth_github_1.GithubStrategy, jwt_extractor_passport_1.JwtPassportExtractor],
         controllers: [auth_controller_1.AuthController],
-        exports: [jwt_1.JwtModule, jwt_config_1.JwtConfig],
+        exports: [jwt_1.JwtModule, jwt_extractor_passport_1.JwtPassportExtractor],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

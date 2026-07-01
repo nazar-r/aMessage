@@ -1,5 +1,5 @@
-import { useFetchingUsers } from "../tsx.extensions/getApi/use.get.users.api";
-import { useAddUserAsContact } from "../tsx.extensions/setApi/use.add.contact";
+import { useFetchingUsers } from "../../src.b.extensions/getApi/use.get.users.api";
+import { useAddUserAsContact } from "../../src.b.extensions/setApi/set.api.POST/use.add.contact";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import { Menu } from "../tsx.items/items.menu/menu";
@@ -10,14 +10,14 @@ const ChoosingUserPageContent = () => {
     const { data: users } = useFetchingUsers();
     const { mutate } = useAddUserAsContact();
 
-    const handleAddContact = (user: any) => {
-        mutate({
-            contactId: user.userId,
-            isContact: true,
-        });
+    // const handleAddContact = (user: any) => {
+    //     mutate({
+    //         contactId: user.userId,
+    //         isContact: true,
+    //     });
 
-        // console.log(user)
-    };
+    //     console.log(user)
+    // };
 
     const listRef = useRef<HTMLUListElement | null>(null);
 
@@ -39,7 +39,7 @@ const ChoosingUserPageContent = () => {
                                     </div>
                                     <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
                                 </div>
-                                <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), handleAddContact(user))}>{user.isContact === true ? "✓ Contact" : "✓ Add Contact"}</div>
+                                {/* <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), handleAddContact(user))}>{user.isContact === true ? "✓ Contact" : "✓ Add Contact"}</div> */}
                             </div>
                         </li>
                     ))}

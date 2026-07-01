@@ -7,11 +7,11 @@ import type {
   MessagesData,
   SendMessageVariables,
   UseOneOnOneRoomQueryArgs,
-} from "../src.a.tsx/tsx.extensions/types";
+} from "../src.b.extensions/types";
 import {
   decryptRoomText,
   encryptRoomText,
-} from "../src.a.encryption/encryption.keys";
+} from "../src.b.encryption/encryption.keys";
 
 const isTempMessageId = (id: string) => id.startsWith("tmp-");
 

@@ -16,33 +16,20 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const passport_1 = require("@nestjs/passport");
-const jwt_check_cookies_1 = require("../src.b.jwt/jwt.check.cookies");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    async googleOauth() { }
-    async googleAuthRedirect(req, res) {
-        const { access_token } = await this.authService.googleLogin(req.user);
-        res.cookie('access_token', access_token, {
-            httpOnly: true,
-            secure: process.env.COOKIE_SECURE === 'true',
-            sameSite: 'lax',
-            maxAge: 1000 * 60 * 60 * 24,
-            path: '/',
-        });
+    googleOauth() { }
+    githubOauth() { }
+    async googleRedirect(req, res) {
+        const { access_token } = await this.authService.signUser(req.user);
+        this.authService.signCookies(res, access_token);
         return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
-    async githubOauth() { }
-    async githubAuthRedirect(req, res) {
-        const { access_token } = await this.authService.googleLogin(req.user);
-        res.cookie('access_token', access_token, {
-            httpOnly: true,
-            secure: process.env.COOKIE_SECURE === 'true',
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60 * 24,
-            path: '/',
-        });
+    async githubRedirect(req, res) {
+        const { access_token } = await this.authService.signUser(req.user);
+        this.authService.signCookies(res, access_token);
         return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
     checkLogin(req) {
@@ -58,8 +45,15 @@ __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('google')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], AuthController.prototype, "googleOauth", null);
+__decorate([
+    (0, common_1.Get)('github'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('github')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "githubOauth", null);
 __decorate([
     (0, common_1.Get)('google/redirect'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('google')),
@@ -68,14 +62,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "googleAuthRedirect", null);
-__decorate([
-    (0, common_1.Get)('github'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('github')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "githubOauth", null);
+], AuthController.prototype, "googleRedirect", null);
 __decorate([
     (0, common_1.Get)('github/redirect'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('github')),
@@ -84,10 +71,10 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "githubAuthRedirect", null);
+], AuthController.prototype, "githubRedirect", null);
 __decorate([
     (0, common_1.Get)('check'),
-    (0, common_1.UseGuards)(jwt_check_cookies_1.JwtCheckCookies),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),

@@ -10,9 +10,10 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const auth_module_1 = require("./src.a.auth/auth.module");
+const redis_module_1 = require("./src.b.redis/redis.module");
 const users_module_1 = require("./src.a.users/users.module");
 const messages_module_1 = require("./src.a.messages/messages.module");
-const prisma_service_1 = require("./src.b.database/prisma.service");
+const prisma_module_1 = require("./src.b.prisma/prisma.module");
 const chats_service_1 = require("./src.a.chats/chats.service");
 let AppModule = class AppModule {
 };
@@ -24,11 +25,13 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
+            prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
+            redis_module_1.RedisModule,
             messages_module_1.MessagesModule,
         ],
-        providers: [prisma_service_1.PrismaService, chats_service_1.ChatsGateway],
+        providers: [chats_service_1.ChatsGateway],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

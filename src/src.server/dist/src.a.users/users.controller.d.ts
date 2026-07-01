@@ -1,16 +1,16 @@
 import { UsersService } from './users.service';
-import type { SetUserContactDTO } from "../src.extensions/extensions.types/types";
 export declare class UsersController {
     private usersService;
     constructor(usersService: UsersService);
-    findMessages(req: any): Promise<{
-        isContact: boolean;
+    loadUsers(req: any): Promise<import("../src.extensions/extensions.types/types").ChosenUser[]>;
+    setUserContact(req: any, contactId: string): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
-        userName: string;
-    }[]>;
-    setUserContact(req: any, newContact: SetUserContactDTO): import("@prisma/client").Prisma.Prisma__ContactClient<{
-        userId: string;
-        createdAt: Date;
         contactId: string;
+        createdAt: Date;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+    deleteUserContact(req: any, contactId: string): import("@prisma/client").Prisma.Prisma__ContactClient<{
+        userId: string;
+        contactId: string;
+        createdAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

@@ -1,32 +1,43 @@
-import { Controller, Body, Get, Post, UseGuards, Req } from '@nestjs/common';
+import { Controller, Param, Get, Delete, Patch, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { AuthGuard } from '@nestjs/passport';
-import type { UserImage, SetUserContactDTO } from "../src.extensions/extensions.types/types"
+import { JwtCheck } from '../src.b.jwt/jwt.extractor';
+import type { UserContact, SetUserContactDTO } from "../src.extensions/extensions.types/types"
 
+@UseGuards(JwtCheck)
 @Controller('users')
-@UseGuards(AuthGuard('jwt'))
 export class UsersController {
     constructor(private usersService: UsersService) { }
-
     @Get()
-    findMessages(@Req() req) {
-        const cookiesUserId = req.user.userId;
-        return this.usersService.findAllUsers(cookiesUserId);
-    }
+    loadUsers(
+        @Req() req,
+    ) {
+        const userId = req.user.sub;
+        return this.usersService.findAllUsers(userId);
+    };
 
-    @Post('setcontacts')
+    @Patch('contacts/:id')
     setUserContact(
         @Req() req,
-        @Body() newContact: SetUserContactDTO,
+        @Param('id') contactId: string,
     ) {
-        const userId = req.user.userId;
-        const contactId = newContact.contactId;
-
-        const usersContact: UserImage = {
-            userId: userId,
+        const userContact: UserContact = {
+            userId: req.user.sub,
             contactId: contactId,
         };
 
-        return this.usersService.setUserContact(usersContact);
+        return this.usersService.setUserContact(userContact);
+    };
+
+    @Delete('contacts/:id')
+    deleteUserContact(
+        @Req() req,
+        @Param('id') contactId: string,
+    ) {
+        const userContact: UserContact = {
+            userId: req.user.sub,
+            contactId: contactId,
+        };
+
+        return this.usersService.deleteUserContact(userContact);
     }
 } 

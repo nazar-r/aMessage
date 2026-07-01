@@ -36,7 +36,7 @@ export class ChatsGateway
   }
 
   private resolveUserId(payload: JwtPayload | undefined): string {
-    const userId = payload?.sub ?? payload?.id ?? payload?.userId;
+    const userId = payload?.sub;
     if (!userId) throw new WsException('User not found');
     return userId;
   }

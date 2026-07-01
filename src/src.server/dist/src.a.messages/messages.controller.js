@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessagesController = void 0;
 const common_1 = require("@nestjs/common");
 const messages_service_1 = require("./messages.service");
-const jwt_check_cookies_1 = require("../src.b.jwt/jwt.check.cookies");
+const passport_1 = require("@nestjs/passport");
 let MessagesController = class MessagesController {
     constructor(messagesService) {
         this.messagesService = messagesService;
@@ -35,7 +35,7 @@ __decorate([
 ], MessagesController.prototype, "findMessagesByRoom", null);
 exports.MessagesController = MessagesController = __decorate([
     (0, common_1.Controller)('messages'),
-    (0, common_1.UseGuards)(jwt_check_cookies_1.JwtCheckCookies),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __metadata("design:paramtypes", [messages_service_1.MessagesService])
 ], MessagesController);
 //# sourceMappingURL=messages.controller.js.map

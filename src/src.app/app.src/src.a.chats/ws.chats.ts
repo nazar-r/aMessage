@@ -1,8 +1,8 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { useOneOnOneRoomQuery } from "./use.ws.chats";
-import { deriveSharedRoomKey, ensureRoomKeyPair, exportPublicKey, getStoredPeerPublicKey, importPublicKey, setStoredPeerPublicKey, waitForSodium } from "../src.a.encryption/encryption.keys";
-import type { E2EEPeerPublicKeyPayload, RoomKeyPair, RoomConfig } from "../src.a.tsx/tsx.extensions/types";
+import { deriveSharedRoomKey, ensureRoomKeyPair, exportPublicKey, getStoredPeerPublicKey, importPublicKey, setStoredPeerPublicKey, waitForSodium } from "../src.b.encryption/encryption.keys";
+import type { E2EEPeerPublicKeyPayload, RoomKeyPair, RoomConfig } from "../src.b.extensions/types";
 
 export const useOneOnOneRoom = ({ peerWsId }: RoomConfig) => {
   const socketRef = useRef<Socket | null>(null);

@@ -1,18 +1,17 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { authentication } from './tsx.extensions/authentication.ts';
+import { authentication } from '../src.b.extensions/authentication.ts';
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import type { ReactElement } from 'react';
-import '../src.a.css/index.css';
+import '../src.b.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
-const ChatsListPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
+const ContactsListPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
 const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
 const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
 const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
-// const ContactsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
-// const ChoosingUserPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
+const ChatsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
 
 const withSuspense = (component: ReactElement) => (
   <Suspense>{component}</Suspense>
@@ -37,6 +36,14 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
+      { path: 'contactslist', element: privateAuth(withSuspense(<ContactsListPage />)), children: [
+          {
+            index: true,
+            path: 'chat',
+            element: privateAuth(withSuspense(<ChatPage />)),
+          },
+        ]
+      },
       { path: 'chatslist', element: privateAuth(withSuspense(<ChatsListPage />)), children: [
           {
             index: true,

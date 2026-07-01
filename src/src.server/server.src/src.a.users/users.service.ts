@@ -1,81 +1,28 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import type { UserImage } from "../src.extensions/extensions.types/types"
-import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../src.b.prisma/prisma.service';
+import { RedisService } from '../src.b.redis/redis.service';
+import type { UserContact, ChosenUser, ContactImage } from '../src.extensions/extensions.types/types';
+import type { AuthUser } from '../src.extensions/extensions.types/auth.types';
 
 @Injectable()
 export class UsersService {
-  private prisma = new PrismaClient();
+  constructor(
+    private readonly usePrisma: PrismaService,
+    private readonly useRedis: RedisService,
+  ) { }
 
-async findAllUsers(userId: string) {
-  const [users, contacts] = await Promise.all([
-    this.prisma.user.findMany({
-      where: {
-        userId: { not: userId },
-      },
-      orderBy: {
-        userName: 'desc',
-      },
-      select: {
-        userId: true,
-        userName: true,
-      },
-    }),
-    this.prisma.contact.findMany({
-      where: { userId },
-      select: { contactId: true },
-    }),
-  ]);
-
-  const contactsArray = new Set(contacts.map(c => c.contactId));
-
-  return users.map(usersArray => ({
-    ...usersArray,
-    isContact: contactsArray.has(usersArray.userId),
-  }));
-}
-
-  setUserContact(usersContact: UserImage) {
-    return this.prisma.contact.upsert({
-      where: {
-        userId_contactId: {
-          userId: usersContact.userId,
-          contactId: usersContact.contactId,
-        },
-      },
-      update: {},
-      create: {
-        userId: usersContact.userId,
-        contactId: usersContact.contactId,
-      },
-    });
-  }
-  
   async findOrCreateUser(profile: AuthUser) {
-    if (!profile.userId) {
-      throw new UnauthorizedException({
-        message: 'ID is missing in your Service profile',
-        error: 'Unauthorized',
-      });
-    }
-
-    if (!profile.email) {
-      throw new UnauthorizedException({
-        message: 'Email is missing in your Service profile',
-        error: 'Unauthorized',
-      });
-    }
-
-    const user = await this.prisma.user.upsert({
-      where: { email: profile.email },
+    const user = await this.usePrisma.user.upsert({
+      where: { userId: profile.userId },
       update: {
-        userName: profile.name || 'Unknown',
         userId: profile.userId,
+        email: profile.userEmail,
+        userName: profile.userName,
       },
       create: {
-        email: profile.email,
         userId: profile.userId,
-        userName: profile.name || 'Unknown',
+        email: profile.userEmail,
+        userName: profile.userName,
       },
     });
 
@@ -83,5 +30,59 @@ async findAllUsers(userId: string) {
       ...user,
       name: user.userName,
     };
+  }
+
+  async findAllUsers(userId: string) {
+    const cacheKey = `users:list:${userId}`;
+
+    const cachedUsers = await this.useRedis.getRedisData(cacheKey);
+    if (typeof cachedUsers === 'string') {
+      return JSON.parse(cachedUsers) as ChosenUser[];
+    }
+
+    const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
+       SELECT
+         u."userId",
+         u."userName",
+         EXISTS (
+           SELECT 1
+           FROM "Contact" c
+           WHERE c."userId" = ${userId}
+             AND c."contactId" = u."userId"
+         ) AS "isContact"
+       FROM "User" u
+       WHERE u."userId" <> ${userId}
+       LIMIT 25;
+    `;
+
+    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 100);
+    return chosenUsers;
+  }
+
+  setUserContact(userContact: UserContact) {
+    return this.usePrisma.contact.upsert({
+      where: {
+        userId_contactId: {
+          userId: userContact.userId,
+          contactId: userContact.contactId,
+        },
+      },
+      update: {},
+      create: {
+        userId: userContact.userId,
+        contactId: userContact.contactId,
+      },
+    });
+  }
+
+  deleteUserContact(userContact: UserContact) {
+    return this.usePrisma.contact.delete({
+      where: {
+        userId_contactId: {
+          userId: userContact.userId,
+          contactId: userContact.contactId,
+        },
+      },
+    });
   }
 }

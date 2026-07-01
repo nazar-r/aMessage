@@ -17,43 +17,31 @@ let AuthService = class AuthService {
     constructor(jwtService, usersService) {
         this.jwtService = jwtService;
         this.usersService = usersService;
-        this.googleLogin = async (profile) => {
-            const user = await this.usersService.findOrCreateUser(profile);
-            const loginUser = () => ({
-                access_token: this.jwtService.sign({
-                    userId: user.userId,
-                    name: user.userName,
-                    email: user.email,
-                }),
-            });
-            return loginUser();
-        };
-        this.githubLogin = async (profile) => {
-            const user = await this.usersService.findOrCreateUser(profile);
-            const loginUser = () => ({
-                access_token: this.jwtService.sign({
-                    userId: user.userId,
-                    name: user.userName,
-                    email: user.email,
-                }),
-            });
-            return loginUser();
-        };
-        this.generateTokens = async (profile) => {
-            const payload = {
-                userId: profile.userId,
-                name: profile.name,
-                email: profile.email
-            };
-            const [accessToken, refreshToken] = await Promise.all([
-                this.jwtService.signAsync(payload, { expiresIn: '1d' }),
-                this.jwtService.signAsync(payload, { expiresIn: '7d' })
-            ]);
-            console.log("ACCESS TOKEN:", accessToken);
-            console.log("REFRESH TOKEN:", refreshToken);
-            return { accessToken, refreshToken };
+    }
+    async signUser(profile) {
+        const user = await this.usersService.findOrCreateUser(profile);
+        const access_token = this.signToken(user);
+        return { access_token };
+    }
+    ;
+    signToken(userProfile) {
+        return this.jwtService.sign({ sub: userProfile.userId }, { expiresIn: '36h' });
+    }
+    ;
+    setCookies() {
+        return {
+            httpOnly: true,
+            secure: process.env.COOKIE_SECURE === 'true',
+            sameSite: 'lax',
+            maxAge: 1000 * 60 * 60 * 24,
+            path: '/',
         };
     }
+    ;
+    signCookies(res, access_token) {
+        res.cookie('access_token', access_token, this.setCookies());
+    }
+    ;
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

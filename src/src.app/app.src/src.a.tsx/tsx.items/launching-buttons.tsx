@@ -1,11 +1,8 @@
-import * as types from "../tsx.extensions/types";
-import { authFetching } from "../tsx.extensions/fetching/fetching";
-import GoogleIcon from "../tsx.extensions/fetching/assets/google.pic";
-import GithubIcon from "../tsx.extensions/fetching/assets/github.pic";
-
+import * as types from "../../src.b.extensions/types";
+import { authFetching } from "../../src.b.extensions/fetching/fetching";
 const buttons: types.ButtonConfig[] = [
-  { key: "google", label: "Via Google", icon: GoogleIcon },
-  { key: "github", label: "Via Github", icon: GithubIcon },
+  { key: "google", label: "Via Google"},
+  { key: "github", label: "Via Github"},
 ];
 
 export const RenderingButtons = () => (
@@ -19,7 +16,6 @@ export const RenderingButtons = () => (
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </div>
-        <item.icon />
       </div>
     ))}
   </div>

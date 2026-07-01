@@ -1,4 +1,4 @@
-import { useFetchingUsers } from "../../tsx.extensions/getApi/use.get.users.api";
+import { useFetchingUsers } from "../../../src.b.extensions/getApi/use.get.users.api";
 
 export const ContactsList = () => {
     const { data: users } = useFetchingUsers();

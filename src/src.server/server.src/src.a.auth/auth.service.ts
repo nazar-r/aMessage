@@ -1,56 +1,40 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 import { UsersService } from '../src.a.users/users.service';
-import type { AuthUser } from "../src.extensions/extensions.types/auth.types";
+import type { AuthUser } from '../src.extensions/extensions.types/auth.types';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private jwtService: JwtService,
-        private usersService: UsersService,
-    ) { }
+        private readonly jwtService: JwtService,
+        private readonly usersService: UsersService) { }
 
-    googleLogin = async (profile: AuthUser) => {
+    async signUser(profile: AuthUser) {
         const user = await this.usersService.findOrCreateUser(profile);
-        const loginUser = () => ({
-            access_token: this.jwtService.sign({
-                userId: user.userId,
-                name: user.userName,
-                email: user.email,
-            }),
-        });
+        const access_token = this.signToken(user);
 
-        return loginUser();
+        return { access_token };
     };
 
-    githubLogin = async (profile: AuthUser) => {
-        const user = await this.usersService.findOrCreateUser(profile);
-        const loginUser = () => ({
-            access_token: this.jwtService.sign({
-                userId: user.userId,
-                name: user.userName,
-                email: user.email,
-            }),
-        });
-
-        return loginUser();
+    signToken(userProfile: AuthUser): string {
+        return this.jwtService.sign(
+            { sub: userProfile.userId },
+            { expiresIn: '36h' },
+        );
     };
 
-    generateTokens = async (profile: AuthUser) => {
-        const payload = {
-            userId: profile.userId,
-            name: profile.name,
-            email: profile.email
+    setCookies() {
+        return {
+            httpOnly: true,
+            secure: process.env.COOKIE_SECURE === 'true',
+            sameSite: 'lax' as const,
+            maxAge: 1000 * 60 * 60 * 24,
+            path: '/',
         };
+    };
 
-        const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync(payload, { expiresIn: '1d' }),
-            this.jwtService.signAsync(payload, { expiresIn: '7d' })
-        ]);
-
-        console.log("ACCESS TOKEN:", accessToken);
-        console.log("REFRESH TOKEN:", refreshToken);
-
-        return { accessToken, refreshToken };
+    signCookies(res: Response, access_token: string) {
+        res.cookie('access_token', access_token, this.setCookies());
     };
 }
