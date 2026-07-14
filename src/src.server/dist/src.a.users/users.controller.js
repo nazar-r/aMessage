@@ -66,8 +66,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "deleteUserContact", null);
 exports.UsersController = UsersController = __decorate([
-    (0, common_1.UseGuards)(jwt_extractor_1.JwtCheck),
     (0, common_1.Controller)('users'),
+    (0, common_1.UseGuards)(jwt_extractor_1.JwtCheck),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

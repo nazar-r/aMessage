@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { AppModule } from './server.module';
+import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import 'reflect-metadata';
 
@@ -8,7 +8,6 @@ const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.set('trust proxy', 1);
-
   app.use(cookieParser());
 
   app.enableCors({

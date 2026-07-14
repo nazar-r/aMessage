@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { Menu } from "../tsx.items/items.menu/menu";
 import { Outlet } from 'react-router-dom';
 
-const ChoosingUserPageContent = () => {
+const UsersListContent = () => {
     const navigate = useNavigate();
     const { data: users } = useFetchingUsers();
     const { mutate: mutateAddUserContact } = useAddUserAsContact();
@@ -31,7 +31,7 @@ const ChoosingUserPageContent = () => {
                 <div className="list-page__title">Your Contacts</div>
                 <ul ref={listRef} className="list-page__list">
                     {users?.map((user) => (
-                        <li key={user.userId} className="list-page__list-item" onClick={() => navigate("/chatslist/chat", { state: { peerWsId: user.userId, userName: user.userName } })}>
+                        <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${user.userId}`, { state: { peerWsId: user.userId, userName: user.userName } })}>
                             <div className="list-page__list-item--image">
                                 {user.isContact === true && <div className="contact">C</div>}
                             </div>
@@ -62,4 +62,4 @@ const ChoosingUserPageContent = () => {
     );
 };
 
-export default ChoosingUserPageContent;
+export default UsersListContent;

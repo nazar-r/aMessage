@@ -8,10 +8,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatModule = void 0;
 const common_1 = require("@nestjs/common");
+const chats_socket_service_1 = require("./chats.socket.service");
 const chats_service_1 = require("./chats.service");
-const messages_service_1 = require("../src.a.messages/messages.service");
+const messages_module_1 = require("../src.a.messages/messages.module");
 const jwt_1 = require("@nestjs/jwt");
-const jwt_ws_config_1 = require("../src.b.jwt/jwt.ws.config");
+const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
+const redis_module_1 = require("../src.b.redis/redis.module");
 let ChatModule = class ChatModule {
 };
 exports.ChatModule = ChatModule;
@@ -22,9 +24,10 @@ exports.ChatModule = ChatModule = __decorate([
                 secret: process.env.JWT_SECRET,
                 signOptions: { expiresIn: '1d' },
             }),
-            messages_service_1.MessagesService
+            messages_module_1.MessagesModule,
+            redis_module_1.RedisModule,
         ],
-        providers: [chats_service_1.ChatsGateway, jwt_ws_config_1.WsJwtGuard],
+        providers: [chats_service_1.ChatsGatewayLogic, chats_socket_service_1.ChatsGateway, jwt_extractor_1.JwtCheck],
     })
 ], ChatModule);
 //# sourceMappingURL=chats.module.js.map

@@ -10,22 +10,25 @@ exports.RedisService = void 0;
 const common_1 = require("@nestjs/common");
 const redis_1 = require("redis");
 let RedisService = class RedisService {
-    async onModuleInit() {
+    constructor() {
         this.client = (0, redis_1.createClient)({
             url: 'redis://127.0.0.1:6379',
         });
-        this.client.on('error', (err) => {
-            console.error('Redis error:', err);
-        });
-        await this.client.connect();
     }
-    getRedisClient() {
+    onModuleInit() {
+        this.client.connect();
+    }
+    getClient() {
         return this.client;
     }
+    async duplicate() {
+        const duplicated = this.client.duplicate();
+        await duplicated.connect();
+        return duplicated;
+    }
     setRedisData(key, value, ttlSeconds) {
-        if (ttlSeconds) {
+        if (ttlSeconds !== undefined)
             return this.client.set(key, value, { EX: ttlSeconds });
-        }
         return this.client.set(key, value);
     }
     getRedisData(key) {
@@ -34,10 +37,8 @@ let RedisService = class RedisService {
     deleteRedisData(key) {
         return this.client.del(key);
     }
-    onModuleDestroy() {
-        if (this.client) {
-            this.client.quit().catch(() => undefined);
-        }
+    async onModuleDestroy() {
+        this.client.isOpen && await this.client.quit().catch(() => undefined);
     }
 };
 exports.RedisService = RedisService;

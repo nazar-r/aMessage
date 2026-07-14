@@ -34,28 +34,28 @@ export class UsersService {
 
   async findAllUsers(userId: string) {
     const cacheKey = `users:list:${userId}`;
-
     const cachedUsers = await this.useRedis.getRedisData(cacheKey);
+
     if (typeof cachedUsers === 'string') {
       return JSON.parse(cachedUsers) as ChosenUser[];
     }
 
     const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
-       SELECT
-         u."userId",
-         u."userName",
-         EXISTS (
+      SELECT
+        u."userId",
+        u."userName",
+        EXISTS (
            SELECT 1
            FROM "Contact" c
            WHERE c."userId" = ${userId}
              AND c."contactId" = u."userId"
-         ) AS "isContact"
+       ) AS "isContact"
        FROM "User" u
        WHERE u."userId" <> ${userId}
        LIMIT 25;
     `;
 
-    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 100);
+    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 30);
     return chosenUsers;
   }
 

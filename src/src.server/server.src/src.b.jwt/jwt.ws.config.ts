@@ -5,23 +5,26 @@ import * as cookie from 'cookie';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const client: Socket = context.switchToWs().getClient<Socket>();
-    const cookies = client.handshake.headers.cookie;
-    if (!cookies) return false;
+    const client = context.switchToWs().getClient<Socket>();
 
-    const parsed = cookie.parse(cookies);
-    const token = parsed['access_token'];
-    if (!token) return false;
+    const cookies = cookie.parse(
+      client.handshake.headers.cookie ?? '',
+    );
 
-    try {
-      const payload = this.jwtService.verify(token);
-      client.data.user = payload;
-      return true;
-    } catch {
-      return false;
-    }
+    const token = cookies.access_token;
+    const payload = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET,
+    });
+
+    client.data.user = {
+      sub: payload.sub,
+    };
+
+    return true;
   }
 }

@@ -1,4 +1,4 @@
-import { RenderingButtons } from "../tsx.items/launching-buttons";
+import { RenderingButtons } from "../tsx.items/items.login.buttons";
 
 const LoginPageContent = () => (
     <div className="login-page">

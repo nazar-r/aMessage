@@ -3,31 +3,28 @@ import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-    private client: RedisClientType;
+    private readonly client: RedisClientType = createClient({
+        url: 'redis://127.0.0.1:6379',
+        // process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
+    });
 
-    async onModuleInit() {
-        this.client = createClient({
-            url: 
-            // process.env.REDIS_URL ?? 
-            'redis://127.0.0.1:6379',
-        });
-
-        this.client.on('error', (err) => {
-            console.error('Redis error:', err);
-        });
-
-        await this.client.connect();
+    onModuleInit() {
+        this.client.connect();
     }
 
-    getRedisClient() {
+    getClient(): RedisClientType {
         return this.client;
     }
 
-    setRedisData(key: string, value: string, ttlSeconds?: number) {
-        if (ttlSeconds) {
-            return this.client.set(key, value, { EX: ttlSeconds });
-        }
+    async duplicate(): Promise<RedisClientType> {
+        const duplicated = this.client.duplicate();
 
+        await duplicated.connect();
+        return duplicated;
+    }
+
+    setRedisData(key: string, value: string, ttlSeconds?: number) {
+        if (ttlSeconds !== undefined) return this.client.set(key, value, { EX: ttlSeconds })
         return this.client.set(key, value);
     }
 
@@ -39,9 +36,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return this.client.del(key);
     }
 
-    onModuleDestroy() {
-        if (this.client) {
-            this.client.quit().catch(() => undefined);
-        }
+    async onModuleDestroy(): Promise<void> {
+        this.client.isOpen && await this.client.quit().catch(() => undefined) 
     }
 }

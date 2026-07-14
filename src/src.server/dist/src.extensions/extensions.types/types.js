@@ -10,6 +10,7 @@ exports.SetUserContactDTO = void 0;
 ;
 ;
 ;
+;
 class SetUserContactDTO {
 }
 exports.SetUserContactDTO = SetUserContactDTO;

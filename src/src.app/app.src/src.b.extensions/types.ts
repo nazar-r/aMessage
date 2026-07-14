@@ -53,6 +53,11 @@ export type ContextType = {
   prev: any;
 };
 
+export type SocketUser = {
+  userId: string;
+  status: "online" | "offline";
+};
+
 export type ErrorResponse = {
   message: string | string[];
   error?: string;

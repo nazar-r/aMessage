@@ -1,38 +1,33 @@
-import { OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { MessagesService } from '../src.a.messages/messages.service';
-import type { E2EEPublicKeyPayload } from '../src.extensions/extensions.types/types';
-export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+import { Server, Socket } from 'socket.io';
+import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
+export declare class ChatsGatewayLogic {
     private readonly jwtService;
-    private readonly messagesService;
+    private readonly redisAdapter;
     private readonly logger;
-    private readonly publicKeys;
     private readonly roomMessageSaveChains;
-    constructor(jwtService: JwtService, messagesService: MessagesService);
-    server: Server;
-    afterInit(): void;
-    private resolveUserId;
-    private normalizePublicKey;
-    private enqueueRoomMessageSave;
+    private static readonly PUBLIC_KEY_PREFIX;
+    private static readonly ONLINE_SOCKETS_PREFIX;
+    private static readonly WATCHED_ROOMS_PREFIX;
+    private server;
+    constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter);
+    afterInit(server: Server): Promise<void>;
     handleConnection(client: Socket): Promise<void>;
-    handleDisconnect(client: Socket): void;
-    handlePublicKey(client: Socket, payload: E2EEPublicKeyPayload): Promise<{
-        ok: boolean;
-    }>;
-    handleRequestPeerPublicKey(client: Socket): Promise<{
-        ok: boolean;
-        found: boolean;
-    }>;
-    handleMessage(client: Socket, payload: {
-        text: string;
-        from?: string;
-    }): Promise<void>;
-    handleUpdateMessage(client: Socket, payload: {
-        messageId: string;
-        text: string;
-    }): Promise<void>;
-    handleRemoveMessage(client: Socket, payload: {
-        messageId: string;
-    }): Promise<void>;
+    handleDisconnect(client: Socket): Promise<void>;
+    catchSocketError(action: () => Promise<void>, errorMessage: string): Promise<void>;
+    connectSocket(client: Socket): Promise<void>;
+    disconnectSocket(client: Socket): Promise<void>;
+    resolveUserId(payload: JwtPayload | undefined): string;
+    signRoomId(userA: string, userB: string): string;
+    pinOnlineSocket(userId: string, socketId: string): Promise<number>;
+    unpinOnlineSocket(userId: string, socketId: string): Promise<number>;
+    checkUserOnlineStatus(userId: string): Promise<boolean>;
+    addWatchedRoom(userId: string, roomId: string): Promise<void>;
+    getWatchedRooms(userId: string): Promise<string[]>;
+    pinUserStatusIntoServer(userId: string, status: UserStatus): Promise<void>;
+    getPublicKey(userId: string): Promise<string | undefined>;
+    setPublicKeyIntoRedis(userId: string, publicKey: string): Promise<void>;
+    normalizePublicKey(publicKey: string): string;
+    saveMessageIntoDb(roomId: string, task: () => Promise<void>): void;
 }

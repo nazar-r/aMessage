@@ -13,6 +13,7 @@ export interface E2EEPeerPublicKeyPayload {
     userId: string;
     publicKey: string;
 }
+export type UserStatus = 'online' | 'offline';
 export type CachedUser = {
     sub: string;
     expMs: number;
@@ -29,6 +30,10 @@ export interface ChosenUser {
 export interface UserContact {
     userId: string;
     contactId: string;
+}
+export interface ChatUser {
+    userId: string;
+    chatRoomId: string;
 }
 export interface UserContactImage {
     userId: string;

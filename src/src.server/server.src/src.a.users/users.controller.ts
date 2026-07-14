@@ -1,12 +1,13 @@
 import { Controller, Param, Get, Delete, Patch, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
-import type { UserContact, SetUserContactDTO } from "../src.extensions/extensions.types/types"
+import type { UserContact } from "../src.extensions/extensions.types/types"
 
-@UseGuards(JwtCheck)
 @Controller('users')
+@UseGuards(JwtCheck)
 export class UsersController {
-    constructor(private usersService: UsersService) { }
+    constructor(
+        private usersService: UsersService) { }
     @Get()
     loadUsers(
         @Req() req,

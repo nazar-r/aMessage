@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ChatsGateway } from './chats.service';
-import { MessagesService } from '../src.a.messages/messages.service';
+import { ChatsGateway } from './chats.socket.service';
+import { ChatsGatewayLogic } from './chats.service';
+import { MessagesModule } from '../src.a.messages/messages.module';
 import { JwtModule } from '@nestjs/jwt';
-import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
+import { JwtCheck } from '../src.b.jwt/jwt.extractor';
+import { RedisModule } from '../src.b.redis/redis.module';
 
 @Module({
   imports: [
@@ -10,9 +12,9 @@ import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
-    
-    MessagesService
+    MessagesModule,
+    RedisModule,
   ],
-  providers: [ChatsGateway, WsJwtGuard],
+  providers: [ChatsGatewayLogic, ChatsGateway, JwtCheck],
 })
 export class ChatModule { }

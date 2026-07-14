@@ -1,17 +1,18 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authentication } from '../src.b.extensions/authentication.ts';
+import { LaunchSocketConnection } from '../src.a.chats/ws.root.tsx';
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import '../src.b.css/index.css';
 
 const Layout = lazy(() => import('./tsx.items/layout.tsx'));
-const ContactsListPage = lazy(() => import('./tsx.pages/chats.list.tsx'));
-const LoginPage = lazy(() => import('./tsx.pages/login.page.tsx'));
-const WelcomePage = lazy(() => import('./tsx.pages/welcome.page.tsx'));
-const ChatPage = lazy(() => import('./tsx.pages/chat.page.tsx'));
-const ChatsListPage = lazy(() => import('./tsx.pages/contacts.list.tsx'));
+const LoginPage = lazy(() => import('./tsx.pages/page.login.tsx'));
+const WelcomePage = lazy(() => import('./tsx.pages/page.welcome.tsx'));
+const ChatPage = lazy(() => import('./tsx.pages/page.chat.tsx'));
+const UsersListPage = lazy(() => import('./tsx.pages/list.contacts.tsx'));
+const ChatsListPage = lazy(() => import('./tsx.pages/list.chats.tsx'));
 
 const withSuspense = (component: ReactElement) => (
   <Suspense>{component}</Suspense>
@@ -23,7 +24,7 @@ const privateAuth = (component: ReactElement) => {
     return isLoading
       ? null
       : data
-        ? component
+        ? <LaunchSocketConnection>{component}</LaunchSocketConnection>
         : <Navigate to="/login" replace />;
   };
   return <Wrapper />;
@@ -36,18 +37,18 @@ const contentRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
-      { path: 'contactslist', element: privateAuth(withSuspense(<ContactsListPage />)), children: [
+      {
+        path: 'users', element: privateAuth(withSuspense(<UsersListPage />)), children: [
           {
-            index: true,
-            path: 'chat',
+            path: "/users/:chatId",
             element: privateAuth(withSuspense(<ChatPage />)),
           },
         ]
       },
-      { path: 'chatslist', element: privateAuth(withSuspense(<ChatsListPage />)), children: [
+      {
+        path: 'chats', element: privateAuth(withSuspense(<ChatsListPage />)), children: [
           {
-            index: true,
-            path: 'chat',
+            path: "/chats/:chatId",
             element: privateAuth(withSuspense(<ChatPage />)),
           },
         ]

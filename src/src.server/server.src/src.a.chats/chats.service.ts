@@ -1,51 +1,192 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
-import { ConnectedSocket, MessageBody, WsException } from '@nestjs/websockets';
-import { Logger, UseGuards } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
-import { WsJwtGuard } from '../src.b.jwt/jwt.ws.config';
-import { MessagesService } from '../src.a.messages/messages.service';
-import type { JwtPayload, E2EEPublicKeyPayload, E2EEPeerPublicKeyPayload } from '../src.extensions/extensions.types/types';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Server, Socket } from 'socket.io';
+import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
+import { WsException } from '@nestjs/websockets';
 import * as cookie from 'cookie';
 
-@UseGuards(WsJwtGuard)
-@WebSocketGateway({
-  cors: {
-    origin: process.env.FRONTEND_ORIGIN_URL,
-    credentials: true,
-  },
-})
-export class ChatsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  private readonly logger = new Logger(ChatsGateway.name);
-  private readonly publicKeys = new Map<string, string>();
-
+@Injectable()
+export class ChatsGatewayLogic {
+  private readonly logger = new Logger(ChatsGatewayLogic.name);
   private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
+
+  private static readonly PUBLIC_KEY_PREFIX = 'chat:e2ee:pubkey:';
+  private static readonly ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
+  private static readonly WATCHED_ROOMS_PREFIX = 'chat:watched-rooms:';
+
+  private server: Server;
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly messagesService: MessagesService,
+    private readonly redisAdapter: ChatRedisAdapter,
   ) { }
 
-  @WebSocketServer()
-  server: Server;
+  async afterInit(server: Server) {
+    this.server = server;
 
-  afterInit() {
-    this.logger.log('ChatsGateway initialized');
+    this.server.use((client: Socket, next) => {
+      try {
+        const rawCookie = client.handshake.headers.cookie ?? '';
+        const cookies = cookie.parse(rawCookie);
+        const token = cookies['access_token'];
+
+        if (!token) {
+          return next(new Error('Unauthorized'));
+        }
+
+        const payload = this.jwtService.verify(token, {
+          secret: process.env.JWT_SECRET,
+        }) as JwtPayload;
+
+        client.data.user = payload;
+
+        next();
+      } catch (error) {
+        this.logger.error(error);
+        next(new Error('Unauthorized'));
+      }
+    });
+
+    await this.redisAdapter.initialize();
+
+    this.server.adapter(
+      createAdapter(
+        this.redisAdapter.pubClient,
+        this.redisAdapter.subClient,
+      ),
+    );
   }
 
-  private resolveUserId(payload: JwtPayload | undefined): string {
+  async handleConnection(client: Socket) {
+    await this.connectSocket(client);
+  }
+
+  async handleDisconnect(client: Socket) {
+    await this.disconnectSocket(client);
+  }
+
+  async catchSocketError(
+    action: () => Promise<void>,
+    errorMessage: string,
+  ): Promise<void> {
+    try {
+      await action();
+    } catch (error) {
+      this.logger.error(error);
+      throw new WsException(errorMessage);
+    }
+  }
+
+  async connectSocket(client: Socket) {
+    const connectUser = async () => {
+      const user = client.data.user as JwtPayload | undefined;
+      const userId = this.resolveUserId(user);
+      const nextCount = await this.pinOnlineSocket(userId, client.id);
+
+      client.join(userId);
+
+      if (nextCount === 1) {
+        await this.pinUserStatusIntoServer(userId, 'online');
+      }
+    };
+
+    const disconnectUser = (error: unknown) => {
+      this.logger.error(error);
+      client.disconnect(true);
+    };
+
+    try {
+      await connectUser();
+    } catch (error) {
+      disconnectUser(error);
+    }
+  }
+
+  async disconnectSocket(client: Socket) {
+    const userId = client.data.user?.sub;
+
+    if (!userId) return;
+
+    const nextCount = await this.unpinOnlineSocket(userId, client.id);
+    nextCount === 0 && await this.pinUserStatusIntoServer(userId, 'offline');
+  }
+
+  resolveUserId(payload: JwtPayload | undefined): string {
     const userId = payload?.sub;
+
     if (!userId) throw new WsException('User not found');
     return userId;
   }
 
-  private normalizePublicKey(publicKey: string): string {
+  signRoomId(userA: string, userB: string): string {
+    return JSON.stringify([userA, userB].sort());
+  }
+
+  async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
+    const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
+    await this.redisAdapter.redisClient.sAdd(key, socketId);
+
+    return (await this.redisAdapter.redisClient.sCard(key)) as number;
+  }
+
+  async unpinOnlineSocket(userId: string, socketId: string): Promise<number> {
+    const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
+    await this.redisAdapter.redisClient.sRem(key, socketId);
+
+    const count = (await this.redisAdapter.redisClient.sCard(key)) as number;
+    count === 0 && await this.redisAdapter.redisClient.del(key);
+
+    return count;
+  }
+
+  async checkUserOnlineStatus(userId: string): Promise<boolean> {
+    const count = (await this.redisAdapter.redisClient.sCard(
+      ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
+    )) as number;
+
+    return count > 0;
+  }
+
+  async addWatchedRoom(userId: string, roomId: string): Promise<void> {
+    await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId, roomId);
+  }
+
+  async getWatchedRooms(userId: string): Promise<string[]> {
+    return (await this.redisAdapter.redisClient.sMembers(
+      ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId,
+    )) as string[];
+  }
+
+  async pinUserStatusIntoServer(userId: string, status: UserStatus): Promise<void> {
+    const rooms = await this.getWatchedRooms(userId);
+
+    for (const roomId of rooms) {
+      this.server.to(roomId).emit('user-status', {
+        userId,
+        status,
+      });
+    }
+  }
+
+  async getPublicKey(userId: string): Promise<string | undefined> {
+    return (await this.redisAdapter.redisClient.get(
+      ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId,
+    )) as string | undefined;
+  }
+
+  async setPublicKeyIntoRedis(userId: string, publicKey: string): Promise<void> {
+    await this.redisAdapter.redisClient.set(ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId, publicKey);
+  }
+
+  normalizePublicKey(publicKey: string): string {
     const normalized = publicKey?.trim();
+
     if (!normalized) throw new WsException('Invalid public key');
 
     const decoded = Buffer.from(normalized, 'base64');
+
     if (decoded.length !== 32) {
       throw new WsException('Invalid public key length');
     }
@@ -53,12 +194,9 @@ export class ChatsGateway
     return normalized;
   }
 
-  private enqueueRoomMessageSave(roomId: string, task: () => Promise<void>) {
+  saveMessageIntoDb(roomId: string, task: () => Promise<void>) {
     const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
-
-    const current = previous
-      .catch(() => undefined)
-      .then(task);
+    const current = previous.catch(() => undefined).then(task);
 
     const tracked = current.then(
       () => undefined,
@@ -72,255 +210,5 @@ export class ChatsGateway
         this.roomMessageSaveChains.delete(roomId);
       }
     });
-  }
-
-  async handleConnection(client: Socket) {
-    const peerId = client.handshake.query.peerId as string;
-    if (!peerId) {
-      client.disconnect(true);
-      return;
-    }
-
-    try {
-      const rawCookie = client.handshake.headers.cookie ?? '';
-      const cookies = cookie.parse(rawCookie);
-      const token = cookies['access_token'];
-
-      if (!token) {
-        client.disconnect(true);
-        return;
-      }
-
-      const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      }) as JwtPayload;
-
-      const userId = this.resolveUserId(payload);
-      const roomId = [userId, peerId].sort().join('-');
-
-      client.data.user = payload;
-      client.data.roomId = roomId;
-
-      client.join(roomId);
-      this.server.to(roomId).emit('user-status', {
-        userId,
-        status: 'online',
-      });
-
-      const socketsInRoom = await this.server.in(roomId).fetchSockets();
-      const onlineUsers = socketsInRoom
-        .map((s) => {
-          const u = s.data.user;
-          return u?.sub ?? u?.id ?? u?.userId;
-        })
-        .filter(Boolean);
-
-      client.emit('users-online', onlineUsers);
-
-      const messages = await this.messagesService.findMessagesByRoom(roomId, {
-        take: 50,
-      });
-
-      const orderedMessages = messages.reverse();
-      const mapMessage = (msg: any) => ({
-        userId: msg.userId,
-        messageId: msg.messageId,
-        text: msg.content,
-        createdAt: msg.createdAt,
-      });
-
-      client.emit('messagesHistory', {
-        messages: orderedMessages.map(mapMessage),
-        nextCursor: orderedMessages[0]?.messageId || null,
-      });
-
-      const myPublicKey = this.publicKeys.get(userId);
-      if (myPublicKey) {
-        client.to(roomId).emit('e2ee:peerPublicKey', {
-          userId,
-          publicKey: myPublicKey,
-        } satisfies E2EEPeerPublicKeyPayload);
-      }
-
-      const peerPublicKey = this.publicKeys.get(peerId);
-      if (peerPublicKey) {
-        client.emit('e2ee:peerPublicKey', {
-          userId: peerId,
-          publicKey: peerPublicKey,
-        } satisfies E2EEPeerPublicKeyPayload);
-      }
-
-      client.to(roomId).emit('user-joined', { userId });
-
-      this.logger.log(
-        `WS Connection Launched: ${client.id} | User ID: ${userId} | Peer ID: ${peerId} | Room: ${roomId}`,
-      );
-    } catch (error) {
-      this.logger.error(error);
-      client.disconnect(true);
-    }
-  }
-
-  handleDisconnect(client: Socket) {
-    const userId =
-      client.data.user?.sub ??
-      client.data.user?.id ??
-      client.data.user?.userId;
-
-    const roomId = client.data.roomId;
-
-    if (userId && roomId) {
-      this.server.to(roomId).emit('user-status', {
-        userId,
-        status: 'offline',
-      });
-    }
-
-    this.logger.log(`WS Connection Closed: ${client.id} | User ID: ${userId}`);
-  }
-
-  @SubscribeMessage('e2ee:publicKey')
-  async handlePublicKey(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: E2EEPublicKeyPayload,
-  ) {
-    const user = client.data.user as JwtPayload | undefined;
-    const userId = this.resolveUserId(user);
-    const roomId = client.data.roomId as string | undefined;
-
-    if (!roomId) {
-      throw new WsException('Room not found');
-    }
-
-    const publicKey = this.normalizePublicKey(payload?.publicKey);
-
-    this.publicKeys.set(userId, publicKey);
-    client.data.e2eePublicKey = publicKey;
-
-    client.to(roomId).emit('e2ee:peerPublicKey', {
-      userId,
-      publicKey,
-    } satisfies E2EEPeerPublicKeyPayload);
-
-    this.logger.log(`Stored E2EE public key for user ${userId}`);
-
-    return { ok: true };
-  }
-
-  @SubscribeMessage('e2ee:requestPeerPublicKey')
-  async handleRequestPeerPublicKey(@ConnectedSocket() client: Socket) {
-    const peerId = client.handshake.query.peerId as string;
-    if (!peerId) {
-      throw new WsException('Peer not found');
-    }
-
-    const publicKey = this.publicKeys.get(peerId);
-    client.emit('e2ee:peerPublicKey', {
-      userId: peerId,
-      publicKey: publicKey ?? null,
-    });
-
-    return { ok: true, found: Boolean(publicKey) };
-  }
-
-  @SubscribeMessage('message')
-  async handleMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { text: string; from?: string },
-  ) {
-    const roomId = client.data.roomId as string | undefined;
-    if (!roomId) {
-      throw new WsException('Room not found');
-    }
-
-    const user = client.data.user as JwtPayload | undefined;
-    const userId = this.resolveUserId(user);
-
-    const tempMessageId = randomUUID();
-    const createdAt = new Date();
-
-    this.server.to(roomId).emit('newMessage', {
-      userId,
-      messageId: tempMessageId,
-      text: payload.text,
-      time: createdAt,
-      pending: true,
-    });
-
-    this.enqueueRoomMessageSave(roomId, async () => {
-      try {
-        const savedMessage = await this.messagesService.create({
-          userId,
-          roomId,
-          content: payload.text,
-        });
-
-        this.server.to(roomId).emit('messageSaved', {
-          tempMessageId,
-          messageId: savedMessage.messageId,
-          text: savedMessage.content,
-          time: savedMessage.createdAt,
-          pending: false,
-        });
-      } catch (error) {
-        this.logger.error(error);
-
-        this.server.to(roomId).emit('messageError', {
-          tempMessageId,
-          error: 'Message was not saved',
-        });
-      }
-    });
-  }
-
-  @SubscribeMessage('updateMessage')
-  async handleUpdateMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { messageId: string; text: string },
-  ) {
-    const user = client.data.user as JwtPayload | undefined;
-    const userId = this.resolveUserId(user);
-
-    try {
-      await this.messagesService.update({
-        messageId: payload.messageId,
-        content: payload.text,
-      });
-
-      this.server.to(client.data.roomId).emit('messageUpdated', {
-        messageId: payload.messageId,
-        userId,
-        text: payload.text,
-      });
-
-      this.logger.log(`Message updated: ${payload.messageId} by User ${userId}`);
-    } catch (error) {
-      this.logger.error(error);
-      throw new WsException('Failed to update message');
-    }
-  }
-
-  @SubscribeMessage('removeMessage')
-  async handleRemoveMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { messageId: string },
-  ) {
-    const user = client.data.user as JwtPayload | undefined;
-    const userId = this.resolveUserId(user);
-
-    try {
-      await this.messagesService.remove(payload.messageId, userId);
-
-      const roomId = client.data.roomId;
-      this.server.to(roomId).emit('messageRemoved', {
-        messageId: payload.messageId,
-        userId,
-      });
-
-      this.logger.log(`Message removed: ${payload.messageId} by User ${userId}`);
-    } catch (error) {
-      this.logger.error(error);
-      throw new WsException('Failed to remove message');
-    }
   }
 }
