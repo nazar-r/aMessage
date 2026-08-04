@@ -1,8 +1,8 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { MessageDTO } from './messages.image/messages.create.dto';
 export declare class MessagesService {
-    private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly usePrisma;
+    constructor(usePrisma: PrismaService);
     createMessage(message: MessageDTO): import("@prisma/client").Prisma.Prisma__MessageClient<{
         userId: string;
         createdAt: Date;
@@ -39,4 +39,9 @@ export declare class MessagesService {
         updatedAt: Date;
         roomId: string;
     }[]>;
+    findUserChats(userId: string): Promise<unknown>;
+    deleteUserChat(userId: string, roomId: string): import("@prisma/client").Prisma.Prisma__RoomClient<{
+        createdAt: Date;
+        roomId: string;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

@@ -48,12 +48,14 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
 const redis_adapter_2 = require("../src.b.redis/redis.adapter");
+const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const websockets_1 = require("@nestjs/websockets");
 const cookie = __importStar(require("cookie"));
 let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
-    constructor(jwtService, redisAdapter) {
+    constructor(jwtService, redisAdapter, usePrisma) {
         this.jwtService = jwtService;
         this.redisAdapter = redisAdapter;
+        this.usePrisma = usePrisma;
         this.logger = new common_1.Logger(ChatsGatewayLogic_1.name);
         this.roomMessageSaveChains = new Map();
     }
@@ -124,14 +126,44 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         const nextCount = await this.unpinOnlineSocket(userId, client.id);
         nextCount === 0 && await this.pinUserStatusIntoServer(userId, 'offline');
     }
-    resolveUserId(payload) {
-        const userId = payload?.sub;
-        if (!userId)
-            throw new websockets_1.WsException('User not found');
-        return userId;
-    }
-    signRoomId(userA, userB) {
-        return JSON.stringify([userA, userB].sort());
+    async ensureRoomExists(roomId, userId, peerId) {
+        const existsKey = `room:exists:${roomId}`;
+        const lockKey = `room:lock:${roomId}`;
+        const cached = await this.redisAdapter.redisClient.get(existsKey);
+        if (cached)
+            return;
+        const lock = await this.redisAdapter.redisClient.set(lockKey, '1', {
+            NX: true,
+            EX: 5,
+        });
+        if (!lock)
+            return;
+        try {
+            const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
+            if (cachedAgain)
+                return;
+            await this.usePrisma.$transaction(async (tx) => {
+                await tx.room.create({
+                    data: {
+                        roomId,
+                    },
+                }).catch((e) => {
+                    if (e.code !== 'P2002')
+                        throw e;
+                });
+                await tx.roomUser.createMany({
+                    data: [
+                        { roomId, userId },
+                        { roomId, userId: peerId },
+                    ],
+                    skipDuplicates: true,
+                });
+            });
+            await this.redisAdapter.redisClient.set(existsKey, '1');
+        }
+        finally {
+            await this.redisAdapter.redisClient.del(lockKey);
+        }
     }
     async pinOnlineSocket(userId, socketId) {
         const key = ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId;
@@ -142,7 +174,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         const key = ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId;
         await this.redisAdapter.redisClient.sRem(key, socketId);
         const count = (await this.redisAdapter.redisClient.sCard(key));
-        count === 0 && await this.redisAdapter.redisClient.del(key);
+        await this.redisAdapter.redisClient.del(key);
         return count;
     }
     async checkUserOnlineStatus(userId) {
@@ -158,7 +190,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     async pinUserStatusIntoServer(userId, status) {
         const rooms = await this.getWatchedRooms(userId);
         for (const roomId of rooms) {
-            this.server.to(roomId).emit('user-status', {
+            this.server.to(roomId).emit('userStatus', {
                 userId,
                 status,
             });
@@ -180,6 +212,15 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         }
         return normalized;
     }
+    resolveUserId(payload) {
+        const userId = payload?.sub;
+        if (!userId)
+            throw new websockets_1.WsException('User not found');
+        return userId;
+    }
+    signRoomId(userA, userB) {
+        return JSON.stringify([userA, userB].sort());
+    }
     saveMessageIntoDb(roomId, task) {
         const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
         const current = previous.catch(() => undefined).then(task);
@@ -199,6 +240,7 @@ ChatsGatewayLogic.WATCHED_ROOMS_PREFIX = 'chat:watched-rooms:';
 exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
-        redis_adapter_2.ChatRedisAdapter])
+        redis_adapter_2.ChatRedisAdapter,
+        prisma_service_1.PrismaService])
 ], ChatsGatewayLogic);
 //# sourceMappingURL=chats.service.js.map

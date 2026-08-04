@@ -15,14 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessagesController = void 0;
 const common_1 = require("@nestjs/common");
 const messages_service_1 = require("./messages.service");
-const passport_1 = require("@nestjs/passport");
+const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
 let MessagesController = class MessagesController {
     constructor(messagesService) {
         this.messagesService = messagesService;
     }
-    findMessagesByRoom(req) {
-        const cookiesUserId = req.user.userId;
-        return this.messagesService.findMessagesByRoom(cookiesUserId);
+    findUserChats(req) {
+        const userId = req.user.sub;
+        return this.messagesService.findUserChats(userId);
+    }
+    deleteUserChat(req) {
+        const userId = req.user.sub;
+        const roomId = req.params.chatId;
+        return this.messagesService.deleteUserChat(userId, roomId);
     }
 };
 exports.MessagesController = MessagesController;
@@ -32,10 +37,17 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], MessagesController.prototype, "findMessagesByRoom", null);
+], MessagesController.prototype, "findUserChats", null);
+__decorate([
+    (0, common_1.Delete)(':chatId'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MessagesController.prototype, "deleteUserChat", null);
 exports.MessagesController = MessagesController = __decorate([
-    (0, common_1.Controller)('messages'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Controller)('chats'),
+    (0, common_1.UseGuards)(jwt_extractor_1.JwtCheck),
     __metadata("design:paramtypes", [messages_service_1.MessagesService])
 ], MessagesController);
 //# sourceMappingURL=messages.controller.js.map

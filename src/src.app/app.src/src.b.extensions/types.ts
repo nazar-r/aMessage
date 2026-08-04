@@ -1,22 +1,26 @@
 import type { RefObject } from "react";
 import type { Socket } from "socket.io-client";
 
-export interface MessagesData {
+export interface MessageInterface {
   messageStatus: "mine" | "got";
   messageId: string;
   content: string;
+  createdAt?: string;
 }
 
-export interface GotMessagesData {
-  userId: string;
-  messageId: string;
-  text: string;
-  createdAt: string;
+export interface MessagesHistory {
+  messages: NewMessagePayload[];
+  nextCursor: string | null;
 };
+
+export interface SocketUserStatus {
+  userId: string;
+  status: "online" | "offline";
+}
 
 export interface RoomConfig {
   userWsId?: string;
-  peerWsId: string;
+  peerWsId?: string;
 };
 
 export type RoomKeyPair = {
@@ -33,11 +37,20 @@ export type UseOneOnOneRoomQueryArgs = RoomConfig & {
   pendingOwnMessageIdsRef: RefObject<string[]>;
 };
 export interface UsersData {
+  user?: any;
   userId: string;
   userName: string;
   userStatus: string;
   isContact?: boolean;
   email?: string;
+}
+
+export interface RoomData {
+  roomId: string;
+  // participants: UsersData[];
+  userId: string;
+  userName: string;
+  isContact?: boolean;
 }
 
 export interface SharedTextContextType {
@@ -102,22 +115,11 @@ export interface NewMessagePayload {
   messageId: string;
 };
 
-export interface MessagesHistoryPayload {
-  messages: GotMessagesData[];
-  nextCursor: string | null;
-};
-
 export interface E2EEPeerPublicKeyPayload {
   userId: string;
   publicKey: string | null;
 };
 
-export interface NewMessagePayload {
-  userId: string;
-  text: string;
-  messageId: string;
-  clientMessageId?: string;
-}
 export interface SendMessageVariables {
   content: string;
   tempId: string;

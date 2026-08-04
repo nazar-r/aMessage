@@ -10,6 +10,7 @@ export declare class UsersService {
         name: string;
         userId: string;
         email: string | null;
+        pubKey: string | null;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
         refreshToken: string | null;

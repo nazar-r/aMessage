@@ -1,21 +1,18 @@
-import { useState, type MouseEvent } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useOneOnOneRoom } from "../../src.a.chats/ws.chats";
+import { useState} from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
+import type { MessageInterface } from "../../src.b.extensions/chats.types";
+import type { MouseEvent } from "react";
 
 const LobbyPageContent = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const peerWsId = location.state?.peerWsId || "";
-    const userName = location.state?.userName || "";
-
-    const { messages, isPeerOnline, sendMessage, removeMessage, updateMessage } = useOneOnOneRoom({ peerWsId });
-
+    const { username: userName = "" } = useParams<{ username: string }>();
+    const { messages, sendMessage, deleteMessage, updateMessage } = useChatAdapter();
     const [text, setText] = useState("");
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editText, setEditText] = useState("");
+    const navigate = useNavigate();
 
-    const handleSubmit = () => {
+    const setMessage = () => {
         const messageText = text.trim();
 
         if (!messageText) return;
@@ -24,40 +21,36 @@ const LobbyPageContent = () => {
         setText("");
     };
 
-    const startEdit = (messageId: string, content: string) => {
-        setEditingMessageId(messageId);
-        setEditText(content);
-    };
-
-    const saveEdit = (messageId: string) => {
-        const nextContent = editText.trim();
-
-        if (!nextContent) return;
-
-        updateMessage(messageId, nextContent);
-        setEditingMessageId(null);
-        setEditText("");
-    };
-
-    const handleEditClick = (
-        e: MouseEvent<HTMLDivElement>,
-        messageId: string,
-        content: string,
-    ) => {
+    const editMessage = (e: MouseEvent<any>, message: MessageInterface) => {
         e.stopPropagation();
 
-        if (editingMessageId === messageId) {
-            saveEdit(messageId);
+        if (editingMessageId === message.messageId) {
+            saveEdit(message);
             return;
         }
 
-        startEdit(messageId, content);
+        startEdit(message);
+    };
+
+    const startEdit = (message: MessageInterface) => {
+        setEditingMessageId(message.messageId);
+        setEditText(message.content);
+    };
+
+    const saveEdit = (message: MessageInterface) => {
+        const messageText = editText.trim();
+
+        if (!messageText) return;
+
+        updateMessage({ ...message, content: messageText });
+        setEditingMessageId(null);
+        setEditText("");
     };
 
     return (
         <div className="chat-page">
             <div className="chat-page__header">
-                <svg onClick={() => navigate("/chats")} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="chat-page__button--icon">
+                <svg onClick={() => navigate("/users")} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="chat-page__button--icon">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                 </svg>
@@ -66,7 +59,7 @@ const LobbyPageContent = () => {
                     <div className="chat-page__title--name">{userName}</div>
 
                     <div className="chat-page__status">
-                        {isPeerOnline ? (
+                        {/* {isPeerOnline ? (
                             <>
                                 <div className="chat-page__status--icon"></div>
                                 <div className="chat-page__status--title">Online</div>
@@ -76,27 +69,19 @@ const LobbyPageContent = () => {
                                 <div className="chat-page__status--icon-1"></div>
                                 <div className="chat-page__status--title">Offline</div>
                             </>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </div>
 
             <ul className="chat-page__container">
-                {messages.map(message => {
+                {messages.map((message) => {
                     const isEditing = editingMessageId === message.messageId;
 
                     return (
-                        <li
-                            id={message.messageId}
-                            key={message.messageId}
-                            className={message.messageStatus === "mine" ? "chat-message__mine" : "chat-message__got"}
-                        >
+                        <li id={message.messageId} key={message.messageId} className={message.messageStatus === "mine" ? "chat-message__mine" : "chat-message__got"}>
                             {isEditing ? (
-                                <textarea
-                                    className="chat-message--text chat-message--text__edit"
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                />
+                                <textarea className="chat-message--text chat-message--text__edit" value={editText} onChange={(e) => setEditText(e.target.value)} />
                             ) : (
                                 <div className="chat-message--text">{message.content}</div>
                             )}
@@ -105,10 +90,7 @@ const LobbyPageContent = () => {
 
                             {message.messageStatus === "mine" && (
                                 <div className="chat-message__hidden">
-                                    <div
-                                        className="chat-message__hidden--item"
-                                        onClick={(e) => handleEditClick(e, message.messageId, message.content)}
-                                    >
+                                    <div className="chat-message__hidden--item" onClick={(e) => editMessage(e, message)}>
                                         {isEditing ? (
                                             <svg className="chat-message__hidden--item__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <polyline points="20 6 9 17 4 12"></polyline>
@@ -119,9 +101,7 @@ const LobbyPageContent = () => {
                                             </svg>
                                         )}
 
-                                        <div className="chat-message__hidden--item__edit">
-                                            {isEditing ? "Save" : "Edit"}
-                                        </div>
+                                        <div className="chat-message__hidden--item__edit">{isEditing ? "Save" : "Edit"}</div>
                                     </div>
 
                                     <div className="chat-message__hidden--item">
@@ -132,9 +112,7 @@ const LobbyPageContent = () => {
                                             </g>
                                         </svg>
 
-                                        <div className="chat-message__hidden--item__edit" onClick={() => removeMessage(message.messageId)}>
-                                            Delete
-                                        </div>
+                                        <div className="chat-message__hidden--item__edit" onClick={() => deleteMessage(message.messageId)}>Delete</div>
                                     </div>
                                 </div>
                             )}
@@ -150,7 +128,7 @@ const LobbyPageContent = () => {
                     </svg>
                 </div>
 
-                <div onClick={handleSubmit} className="chat-page__add-message--icon">
+                <div onClick={setMessage} className="chat-page__add-message--icon">
                     <svg width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g opacity="1">
                             <path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" />
@@ -159,12 +137,7 @@ const LobbyPageContent = () => {
                     </svg>
                 </div>
 
-                <textarea
-                    className="chat-page__add-message--field"
-                    placeholder="Send Message"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                />
+                <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
             </div>
         </div>
     );

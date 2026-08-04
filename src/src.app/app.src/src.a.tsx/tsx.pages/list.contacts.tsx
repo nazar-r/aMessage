@@ -31,7 +31,7 @@ const UsersListContent = () => {
                 <div className="list-page__title">Your Contacts</div>
                 <ul ref={listRef} className="list-page__list">
                     {users?.map((user) => (
-                        <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${user.userId}`, { state: { peerWsId: user.userId, userName: user.userName } })}>
+                        <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { peerWsId: user.userId, userName: user.userName } })}>
                             <div className="list-page__list-item--image">
                                 {user.isContact === true && <div className="contact">C</div>}
                             </div>

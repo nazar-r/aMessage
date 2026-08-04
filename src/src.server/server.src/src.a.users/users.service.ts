@@ -40,20 +40,21 @@ export class UsersService {
       return JSON.parse(cachedUsers) as ChosenUser[];
     }
 
-    const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
-      SELECT
-        u."userId",
-        u."userName",
-        EXISTS (
-           SELECT 1
-           FROM "Contact" c
-           WHERE c."userId" = ${userId}
-             AND c."contactId" = u."userId"
-       ) AS "isContact"
-       FROM "User" u
-       WHERE u."userId" <> ${userId}
-       LIMIT 25;
-    `;
+const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
+  SELECT
+    u."userId",
+    u."userName",
+    EXISTS (
+      SELECT 1
+      FROM "Contact" c
+      WHERE c."userId" = ${userId}
+        AND c."contactId" = u."userId"
+    ) AS "isContact"
+  FROM "User" u
+  WHERE u."userId" <> ${userId}
+  ORDER BY u."userName" DESC
+  LIMIT 25;
+`;
 
     await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 30);
     return chosenUsers;

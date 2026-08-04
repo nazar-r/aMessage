@@ -5,14 +5,14 @@ export const options = {
     scenarios: {
         create_80_users: {
             executor: 'shared-iterations',
-            vus: 10,
-            iterations: 80,
+            vus: 25,
+            iterations: 45,
             maxDuration: '1m',
         },
     },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3001';
+const BASE_URL = 'http://localhost:3001';
 
 export default function () {
     const uid = `${Date.now()}-${__VU}-${__ITER}-${Math.random().toString(36).slice(2, 8)}`;
@@ -20,7 +20,7 @@ export default function () {
     const payload = JSON.stringify({
         userId: `test-${uid}`,
         userEmail: `test-${uid}@example.com`,
-        userName: `Test User ${uid}`,
+        userName: `Mykola Parasuk ${uid}`,
     });
 
     const res = http.post(`${BASE_URL}/auth/test/register`, payload, {

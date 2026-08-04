@@ -7,6 +7,7 @@
     display: none;
 }
 
+.online,
 .contact {
     animation: fadeIn 0.2s;
     display: flex;
@@ -17,7 +18,15 @@
     height: 20px;
     margin: 0 -6px -6px 0;
     border-radius: 50%;
+    /* border: 2px solid #80f34b; */
     background: #006952;
+}
+
+.online {
+    margin: 0 -7px -4px 0;
+    width: 17px;
+    height: 17px;
+    background: #80f34b;
 }
 
 .list-page {
@@ -66,7 +75,7 @@
 }
 
 .list-page__list-item--add-contact {
-    margin: 20px 0 0 0;
+    margin: 20px 0px 0 0;
     width: 130px;
     font-size: 12px;
     background: none;
@@ -127,6 +136,11 @@
 
 .list-item--title__time {
     margin: 0 0 0 auto;
+}
+
+.list-page__list-item--actions {
+    display: flex;
+    flex-direction: row;
 }
 
 .list-page__list-item:hover {

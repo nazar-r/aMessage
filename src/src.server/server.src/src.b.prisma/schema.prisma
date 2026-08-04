@@ -14,54 +14,55 @@ enum Role {
 }
 
 model User {
-  role         Role       @default(USER)
-  userId       String     @id
+  role         Role     @default(USER)
+  userId       String   @id
   userName     String
-  email        String?    @unique
+  email        String?  @unique
+  pubKey       String?  @unique
   refreshToken String?
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime @default(now())
 
-  messages     Message[]
-  contacts     Contact[]  @relation("userContacts")
-  rooms        RoomUser[]
-}
-
-model Contact {
-  userId       String
-  contactId    String
-  createdAt    DateTime   @default(now())
-
-  user         User       @relation("userContacts", fields: [userId], references: [userId])
-
-  @@id([userId, contactId])
+  messages Message[]
+  contacts Contact[]  @relation("userContacts")
+  rooms    RoomUser[]
 }
 
 model Room {
-  roomId       String     @id
-  createdAt    DateTime   @default(now())
+  roomId    String   @id
+  createdAt DateTime @default(now())
 
   messages     Message[]
   participants RoomUser[]
 }
 
-model RoomUser {
-  roomId       String
-  userId       String
+model Contact {
+  userId    String
+  contactId String
+  createdAt DateTime @default(now())
 
-  room         Room       @relation(fields: [roomId], references: [roomId])
-  user         User       @relation(fields: [userId], references: [userId])
+  user User @relation("userContacts", fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([userId, contactId])
+}
+
+model RoomUser {
+  roomId String
+  userId String
+
+  room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@id([roomId, userId])
 }
 
 model Message {
-  roomId       String
-  messageId    String     @id @default(uuid())
-  userId       String
-  content      String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  roomId    String
+  messageId String   @id @default(uuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user         User       @relation(fields: [userId], references: [userId])
-  room         Room       @relation(fields: [roomId], references: [roomId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
 }

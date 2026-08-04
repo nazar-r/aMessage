@@ -13,11 +13,11 @@ exports.MessagesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
 let MessagesService = class MessagesService {
-    constructor(prisma) {
-        this.prisma = prisma;
+    constructor(usePrisma) {
+        this.usePrisma = usePrisma;
     }
     createMessage(message) {
-        return this.prisma.message.create({
+        return this.usePrisma.message.create({
             data: {
                 roomId: message.roomId,
                 userId: message.userId,
@@ -33,7 +33,7 @@ let MessagesService = class MessagesService {
         });
     }
     updateMessage(message) {
-        return this.prisma.message.update({
+        return this.usePrisma.message.update({
             where: {
                 messageId: message.messageId,
             },
@@ -43,7 +43,7 @@ let MessagesService = class MessagesService {
         });
     }
     findMessagesByRoom(roomId, options) {
-        return this.prisma.message.findMany({
+        return this.usePrisma.message.findMany({
             where: { roomId },
             orderBy: { createdAt: 'desc' },
             take: options?.take,
@@ -60,7 +60,7 @@ let MessagesService = class MessagesService {
         });
     }
     removeMessage(messageId, userId) {
-        return this.prisma.message.deleteMany({
+        return this.usePrisma.message.deleteMany({
             where: {
                 userId,
                 messageId,
@@ -68,8 +68,40 @@ let MessagesService = class MessagesService {
         });
     }
     findMessages(userId) {
-        return this.prisma.message.findMany({
+        return this.usePrisma.message.findMany({
             where: { userId },
+        });
+    }
+    async findUserChats(userId) {
+        return this.usePrisma.$queryRaw `
+    SELECT
+      r."roomId",
+      u."userId",
+      u."userName",
+      EXISTS (
+        SELECT 1
+        FROM "Contact" c
+        WHERE c."userId" = ${userId}
+          AND c."contactId" = u."userId"
+      ) AS "isContact"
+    FROM "Room" r
+    JOIN "RoomUser" ru
+      ON ru."roomId" = r."roomId"
+    JOIN "User" u
+      ON u."userId" = ru."userId"
+    WHERE r."roomId" IN (
+      SELECT ru2."roomId"
+      FROM "RoomUser" ru2
+      WHERE ru2."userId" = ${userId}
+    )
+    AND u."userId" <> ${userId};
+  `;
+    }
+    deleteUserChat(userId, roomId) {
+        return this.usePrisma.room.delete({
+            where: {
+                roomId,
+            }
         });
     }
 };

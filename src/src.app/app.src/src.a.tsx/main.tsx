@@ -1,71 +1,85 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { lazy, Suspense, type ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { authentication } from '../src.b.extensions/authentication.ts';
-import { LaunchSocketConnection } from '../src.a.chats/ws.root.tsx';
-import { lazy, Suspense } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import type { ReactElement } from 'react';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider, type RouteObject } from 'react-router-dom';
+import { authentication } from '../src.b.extensions/authentication';
+import { useSocketService } from '../src.a.socket/socket.a.config/use.socket.service';
 import '../src.b.css/index.css';
 
-const Layout = lazy(() => import('./tsx.items/layout.tsx'));
-const LoginPage = lazy(() => import('./tsx.pages/page.login.tsx'));
-const WelcomePage = lazy(() => import('./tsx.pages/page.welcome.tsx'));
-const ChatPage = lazy(() => import('./tsx.pages/page.chat.tsx'));
-const UsersListPage = lazy(() => import('./tsx.pages/list.contacts.tsx'));
-const ChatsListPage = lazy(() => import('./tsx.pages/list.chats.tsx'));
+const Layout = lazy(() => import('./tsx.items/layout'));
+const LoginPage = lazy(() => import('./tsx.pages/page.login'));
+const WelcomePage = lazy(() => import('./tsx.pages/page.welcome'));
+const ChatPage = lazy(() => import('./tsx.pages/page.chat'));
+const UsersListPage = lazy(() => import('./tsx.pages/list.contacts'));
+const ChatsListPage = lazy(() => import('./tsx.pages/list.chats'));
 
-const withSuspense = (component: ReactElement) => (
-  <Suspense>{component}</Suspense>
-);
+const withSuspense = (component: ReactElement) => <Suspense fallback={null}>{component}</Suspense>;
 
-const privateAuth = (component: ReactElement) => {
-  const Wrapper = () => {
-    const { data, isLoading } = authentication();
-    return isLoading
-      ? null
-      : data
-        ? <LaunchSocketConnection>{component}</LaunchSocketConnection>
-        : <Navigate to="/login" replace />;
-  };
-  return <Wrapper />;
+const PrivateGate = () => {
+  const { data, isLoading } = authentication();
+
+  if (isLoading) return null;
+  if (!data) return <Navigate to="/login" replace />;
+
+  return <AuthenticatedSocketShell />;
 };
 
-const contentRoutes: RouteObject[] = [
+const AuthenticatedSocketShell = () => {
+  useSocketService();
+  return <Outlet />;
+};
+
+const UsersLayout = () => (
+  <>
+    <Suspense fallback={null}><UsersListPage /></Suspense>
+    <Outlet />
+  </>
+);
+
+const ChatsLayout = () => (
+  <>
+    <Suspense fallback={null}><ChatsListPage /></Suspense>
+    <Outlet />
+  </>
+);
+
+const routes: RouteObject[] = [
   {
-    path: '/', element: <Layout />,
+    path: '/',
+    element: withSuspense(<Layout />),
     children: [
       { index: true, element: <Navigate to="/welcome" replace /> },
       { path: 'welcome', element: withSuspense(<WelcomePage />) },
       { path: 'login', element: withSuspense(<LoginPage />) },
       {
-        path: 'users', element: privateAuth(withSuspense(<UsersListPage />)), children: [
+        element: <PrivateGate />,
+        children: [
           {
-            path: "/users/:chatId",
-            element: privateAuth(withSuspense(<ChatPage />)),
+            path: 'users',
+            element: <UsersLayout />,
+            children: [
+              { path: ':username/:chatId', element: withSuspense(<ChatPage />) },
+            ],
           },
-        ]
-      },
-      {
-        path: 'chats', element: privateAuth(withSuspense(<ChatsListPage />)), children: [
           {
-            path: "/chats/:chatId",
-            element: privateAuth(withSuspense(<ChatPage />)),
+            path: 'chats',
+            element: <ChatsLayout />,
+            children: [
+              { path: ':username/:chatId', element: withSuspense(<ChatPage />) },
+            ],
           },
-        ]
+        ],
       },
     ],
   },
 ];
 
-const appRouter = createBrowserRouter(contentRoutes);
+const router = createBrowserRouter(routes);
 const queryClient = new QueryClient();
 
-const RouterRendering = () => {
+export default function Main() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={appRouter} />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   );
-};
-
-export default RouterRendering;
+}

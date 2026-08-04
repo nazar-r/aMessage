@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate --schema=./server.src/src.b.database/schema.prisma",
+    "postinstall": "prisma generate --schema=./server.src/src.b.prisma/schema.prisma",
     "build": "nest build",
     "start:prod": "node dist/main",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

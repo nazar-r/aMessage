@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server, Socket } from 'socket.io';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { PrismaService } from '../src.b.prisma/prisma.service';
 import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
 import { WsException } from '@nestjs/websockets';
 import * as cookie from 'cookie';
@@ -21,6 +22,7 @@ export class ChatsGatewayLogic {
   constructor(
     private readonly jwtService: JwtService,
     private readonly redisAdapter: ChatRedisAdapter,
+    private readonly usePrisma: PrismaService,
   ) { }
 
   async afterInit(server: Server) {
@@ -113,15 +115,46 @@ export class ChatsGatewayLogic {
     nextCount === 0 && await this.pinUserStatusIntoServer(userId, 'offline');
   }
 
-  resolveUserId(payload: JwtPayload | undefined): string {
-    const userId = payload?.sub;
+  async ensureRoomExists(roomId: string, userId: string, peerId: string) {
+    const existsKey = `room:exists:${roomId}`;
+    const lockKey = `room:lock:${roomId}`;
 
-    if (!userId) throw new WsException('User not found');
-    return userId;
-  }
+    const cached = await this.redisAdapter.redisClient.get(existsKey);
+    if (cached) return;
 
-  signRoomId(userA: string, userB: string): string {
-    return JSON.stringify([userA, userB].sort());
+    const lock = await this.redisAdapter.redisClient.set(lockKey, '1', {
+      NX: true,
+      EX: 5,
+    });
+    
+    if (!lock) return;
+
+    try {
+      const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
+      if (cachedAgain) return;
+
+      await this.usePrisma.$transaction(async (tx) => {
+        await tx.room.create({
+          data: {
+            roomId,
+          },
+        }).catch((e) => {
+          if (e.code !== 'P2002') throw e;
+        });
+
+        await tx.roomUser.createMany({
+          data: [
+            { roomId, userId },
+            { roomId, userId: peerId },
+          ],
+          skipDuplicates: true,
+        });
+      });
+
+      await this.redisAdapter.redisClient.set(existsKey, '1');
+    } finally {
+      await this.redisAdapter.redisClient.del(lockKey);
+    }
   }
 
   async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
@@ -136,7 +169,8 @@ export class ChatsGatewayLogic {
     await this.redisAdapter.redisClient.sRem(key, socketId);
 
     const count = (await this.redisAdapter.redisClient.sCard(key)) as number;
-    count === 0 && await this.redisAdapter.redisClient.del(key);
+    // count === 0 &&
+    await this.redisAdapter.redisClient.del(key);
 
     return count;
   }
@@ -163,7 +197,7 @@ export class ChatsGatewayLogic {
     const rooms = await this.getWatchedRooms(userId);
 
     for (const roomId of rooms) {
-      this.server.to(roomId).emit('user-status', {
+      this.server.to(roomId).emit('userStatus', {
         userId,
         status,
       });
@@ -192,6 +226,17 @@ export class ChatsGatewayLogic {
     }
 
     return normalized;
+  }
+
+  resolveUserId(payload: JwtPayload | undefined): string {
+    const userId = payload?.sub;
+
+    if (!userId) throw new WsException('User not found');
+    return userId;
+  }
+
+  signRoomId(userA: string, userB: string): string {
+    return JSON.stringify([userA, userB].sort());
   }
 
   saveMessageIntoDb(roomId: string, task: () => Promise<void>) {

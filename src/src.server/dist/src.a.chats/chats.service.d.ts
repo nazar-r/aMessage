@@ -1,25 +1,26 @@
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { PrismaService } from '../src.b.prisma/prisma.service';
 import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
 export declare class ChatsGatewayLogic {
     private readonly jwtService;
     private readonly redisAdapter;
+    private readonly usePrisma;
     private readonly logger;
     private readonly roomMessageSaveChains;
     private static readonly PUBLIC_KEY_PREFIX;
     private static readonly ONLINE_SOCKETS_PREFIX;
     private static readonly WATCHED_ROOMS_PREFIX;
     private server;
-    constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter);
+    constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter, usePrisma: PrismaService);
     afterInit(server: Server): Promise<void>;
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): Promise<void>;
     catchSocketError(action: () => Promise<void>, errorMessage: string): Promise<void>;
     connectSocket(client: Socket): Promise<void>;
     disconnectSocket(client: Socket): Promise<void>;
-    resolveUserId(payload: JwtPayload | undefined): string;
-    signRoomId(userA: string, userB: string): string;
+    ensureRoomExists(roomId: string, userId: string, peerId: string): Promise<void>;
     pinOnlineSocket(userId: string, socketId: string): Promise<number>;
     unpinOnlineSocket(userId: string, socketId: string): Promise<number>;
     checkUserOnlineStatus(userId: string): Promise<boolean>;
@@ -29,5 +30,7 @@ export declare class ChatsGatewayLogic {
     getPublicKey(userId: string): Promise<string | undefined>;
     setPublicKeyIntoRedis(userId: string, publicKey: string): Promise<void>;
     normalizePublicKey(publicKey: string): string;
+    resolveUserId(payload: JwtPayload | undefined): string;
+    signRoomId(userA: string, userB: string): string;
     saveMessageIntoDb(roomId: string, task: () => Promise<void>): void;
 }
