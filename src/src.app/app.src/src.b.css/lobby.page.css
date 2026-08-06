@@ -69,6 +69,7 @@
 .list-page__list-item:not(:hover) .list-page__list-item--add-contact {
     pointer-events: none;
     height: 0;
+    margin: 0;
     width: 130px;
     opacity: 0;
     transform: translateY(4px);

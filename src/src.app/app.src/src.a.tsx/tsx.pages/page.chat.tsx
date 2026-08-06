@@ -1,4 +1,4 @@
-import { useState} from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
 import type { MessageInterface } from "../../src.b.extensions/chats.types";
@@ -6,7 +6,7 @@ import type { MouseEvent } from "react";
 
 const LobbyPageContent = () => {
     const { username: userName = "" } = useParams<{ username: string }>();
-    const { messages, sendMessage, deleteMessage, updateMessage } = useChatAdapter();
+    const { messages, sendMessage, deleteMessage, updateMessage, userStatus } = useChatAdapter();
     const [text, setText] = useState("");
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editText, setEditText] = useState("");
@@ -59,17 +59,19 @@ const LobbyPageContent = () => {
                     <div className="chat-page__title--name">{userName}</div>
 
                     <div className="chat-page__status">
-                        {/* {isPeerOnline ? (
-                            <>
-                                <div className="chat-page__status--icon"></div>
-                                <div className="chat-page__status--title">Online</div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="chat-page__status--icon-1"></div>
-                                <div className="chat-page__status--title">Offline</div>
-                            </>
-                        )} */}
+                        <div className="chat-page__status">
+                            {userStatus?.status === "online" ? (
+                                <>
+                                    <div className="chat-page__status--icon"></div>
+                                    <div className="chat-page__status--title">Online</div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="chat-page__status--icon-1"></div>
+                                    <div className="chat-page__status--title">Offline</div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

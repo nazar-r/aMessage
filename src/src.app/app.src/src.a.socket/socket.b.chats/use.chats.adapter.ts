@@ -1,6 +1,6 @@
 import { ChatAdapter } from "./chats.b.adapter";
 import { useParams } from "react-router-dom";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryChatAdapter } from "./use.query.chats.adapter";
 import type { MessageInterface } from "../../src.b.extensions/chats.types";
 
@@ -8,6 +8,11 @@ export const useChatAdapter = () => {
   const { chatId: peerWsId = "" } = useParams<{ chatId: string }>();
   const useAdapter = useRef<ChatAdapter | null>(null);
   const useQuery = useQueryChatAdapter(peerWsId);
+
+  const [userStatus, setUserStatus] = useState<{
+    userId: string;
+    status: string;
+  } | null>(null);
 
   const sendMessage = useCallback((payload: MessageInterface) => {
     const adapter = useAdapter.current;
@@ -56,6 +61,13 @@ export const useChatAdapter = () => {
     adapter.setMessageRemoveCallback(useQuery.setRecievedMessageRemove);
     adapter.setMessagesHistoryCallback(useQuery.mergeMessages);
 
+    adapter.setUserStatusCallback((payload: {
+      userId: string;
+      status: string;
+    }) => {
+      setUserStatus(payload);
+    });
+
     void adapter.init();
 
     return () => {
@@ -71,5 +83,6 @@ export const useChatAdapter = () => {
     loadHistory,
     messages: useQuery.messages,
     adapter: useAdapter.current,
+    userStatus,
   };
 };

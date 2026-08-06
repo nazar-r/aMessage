@@ -12,11 +12,11 @@ export class SocketService {
     });
 
     this.socket.on("connect", () => {
-      console.log(`[WS CONNECTED] ${this.socket.id}`);
+      // console.log(`[WS CONNECTED] ${this.socket.id}`);
     });
 
     this.socket.on("disconnect", () => {
-      console.log(`[WS DISCONNECTED] ${this.socket.id}`);
+      // console.log(`[WS DISCONNECTED] ${this.socket.id}`);
     });
   }
 

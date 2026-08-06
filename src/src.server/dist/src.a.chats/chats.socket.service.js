@@ -63,11 +63,10 @@ let ChatsGateway = class ChatsGateway {
         });
         const myPublicKey = await this.chatsGatewayLogic.getPublicKey(userId);
         if (myPublicKey) {
-            console.log('myPublicKey', myPublicKey),
-                client.to(roomId).emit('e2ee:peerPublicKey', {
-                    userId,
-                    publicKey: myPublicKey,
-                });
+            client.to(roomId).emit('e2ee:peerPublicKey', {
+                userId,
+                publicKey: myPublicKey,
+            });
         }
         const peerPublicKey = await this.chatsGatewayLogic.getPublicKey(peerId);
         if (peerPublicKey) {
@@ -76,8 +75,7 @@ let ChatsGateway = class ChatsGateway {
                 publicKey: peerPublicKey,
             });
         }
-        console.log('peerPublicKey', peerPublicKey),
-            client.to(roomId).emit('user-joined', { userId });
+        client.to(roomId).emit('user-joined', { userId });
     }
     async handleMessagesHistory(client, payload) {
         const roomId = client.data.roomId;

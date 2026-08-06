@@ -10,6 +10,6 @@ const root = createRoot(container);
 root.render(
   <StrictMode>
     <RouterRendering />
-    <Analytics />
+    {import.meta.env.VITE_VERCEL_ENABLED === "true" && <Analytics />}
   </StrictMode>
 );

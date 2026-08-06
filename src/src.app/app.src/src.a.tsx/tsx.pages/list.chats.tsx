@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Menu } from "../tsx.items/items.menu/menu";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useChatAdapter } from "../../src.a.socket";
+// import { useChatAdapter } from "../../src.a.socket";
 import { useFetchingUserChats } from "../../src.b.extensions/getApi/use.get.list.of.chats";
 import { useAddUserAsContact } from "../../src.b.extensions/setApi/set.api.POST/use.add.contact";
 import { useRemoveUserContact } from "../../src.b.extensions/setApi/set.api.DELETE/use.remove.contact";
@@ -12,7 +12,6 @@ const ChatsListContent = () => {
     const { data: chats } = useFetchingUserChats();
     const { mutate: mutateAddUserContact } = useAddUserAsContact();
     const { mutate: removeAddUserContact } = useRemoveUserContact();
-    const { isPeerOnline } = useOneOnOneRoom();
 
     const { mutate: deleteUserChat } = useRemoveUserChat();
     const listRef = useRef<HTMLUListElement | null>(null);
@@ -43,7 +42,7 @@ const ChatsListContent = () => {
                     {chats?.map((chat) => (
                         <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.roomId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
                             <div className="list-page__list-item--image">
-                                {isPeerOnline && <div className="online"></div>}
+                                {/* {isPeerOnline && <div className="online"></div>} */}
                                 {chat.isContact === true && <div className="contact">C</div>}
                             </div>
                             <div className="list-page__list-item--content">
