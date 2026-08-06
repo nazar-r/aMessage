@@ -213,6 +213,7 @@ export class ChatAdapter {
 
   private getUserPublicKey(payload: E2EEPeerPublicKeyPayload) {
     this.useEncryption.receivePeerPublicKey(payload);
+    console.log("Received peer public key:", payload);
   }
 
   private getUserStatus(payload: any) {

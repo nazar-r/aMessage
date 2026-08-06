@@ -13,12 +13,12 @@ const LobbyPageContent = () => {
     const navigate = useNavigate();
 
     const setMessage = () => {
+        setText("");
         const messageText = text.trim();
 
         if (!messageText) return;
 
         sendMessage({ messageStatus: "mine", messageId: "", content: messageText });
-        setText("");
     };
 
     const editMessage = (e: MouseEvent<any>, message: MessageInterface) => {
