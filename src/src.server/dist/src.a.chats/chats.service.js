@@ -154,13 +154,10 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             if (cachedAgain)
                 return;
             await this.usePrisma.$transaction(async (tx) => {
-                await tx.room.create({
-                    data: {
-                        roomId,
-                    },
-                }).catch((e) => {
-                    if (e.code !== 'P2002')
-                        throw e;
+                await tx.room.upsert({
+                    where: { roomId },
+                    update: {},
+                    create: { roomId },
                 });
                 await tx.roomUser.createMany({
                     data: [
