@@ -9,7 +9,7 @@ import type { E2EEPeerPublicKeyPayload, E2EEPublicKeyPayload, JwtPayload } from 
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:5174',
+    origin: 'https://amessage.site',
     credentials: true,
   },
 })

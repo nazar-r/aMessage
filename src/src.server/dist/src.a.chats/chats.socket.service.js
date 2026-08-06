@@ -266,7 +266,7 @@ __decorate([
 exports.ChatsGateway = ChatsGateway = __decorate([
     (0, websockets_2.WebSocketGateway)({
         cors: {
-            origin: 'http://localhost:5174',
+            origin: 'https://amessage.site',
             credentials: true,
         },
     }),
