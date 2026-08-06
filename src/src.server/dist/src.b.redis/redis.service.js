@@ -12,11 +12,11 @@ const redis_1 = require("redis");
 let RedisService = class RedisService {
     constructor() {
         this.client = (0, redis_1.createClient)({
-            url: 'redis://127.0.0.1:6379',
+            url: process.env.REDIS_URL,
         });
     }
-    onModuleInit() {
-        this.client.connect();
+    async onModuleInit() {
+        await this.client.connect();
     }
     getClient() {
         return this.client;

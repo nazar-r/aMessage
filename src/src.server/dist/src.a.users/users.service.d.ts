@@ -8,10 +8,10 @@ export declare class UsersService {
     constructor(usePrisma: PrismaService, useRedis: RedisService);
     findOrCreateUser(profile: AuthUser): Promise<{
         name: string;
+        role: import("@prisma/client").$Enums.Role;
         userId: string;
         email: string | null;
         pubKey: string | null;
-        role: import("@prisma/client").$Enums.Role;
         userName: string;
         refreshToken: string | null;
         createdAt: Date;

@@ -2,7 +2,7 @@ import { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 export declare class RedisService implements OnModuleInit, OnModuleDestroy {
     private readonly client;
-    onModuleInit(): void;
+    onModuleInit(): Promise<void>;
     getClient(): RedisClientType;
     duplicate(): Promise<RedisClientType>;
     setRedisData(key: string, value: string, ttlSeconds?: number): Promise<string | {}>;
