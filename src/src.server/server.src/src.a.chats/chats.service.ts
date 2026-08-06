@@ -109,12 +109,27 @@ export class ChatsGatewayLogic {
   async disconnectSocket(client: Socket) {
     const userId = client.data.user?.sub;
 
+    this.logger.debug({
+      userId,
+      socketId: client.id,
+      sockets: await this.redisAdapter.redisClient.sMembers(
+        ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
+      ),
+    });
+
     if (!userId) return;
 
     const nextCount = await this.unpinOnlineSocket(userId, client.id);
-    nextCount === 0 && await this.pinUserStatusIntoServer(userId, 'offline');
-  }
 
+    this.logger.debug({
+      userId,
+      nextCount,
+    });
+
+    if (nextCount === 0) {
+      await this.pinUserStatusIntoServer(userId, 'offline');
+    }
+  }
   async ensureRoomExists(roomId: string, userId: string, peerId: string) {
     const existsKey = `room:exists:${roomId}`;
     const lockKey = `room:lock:${roomId}`;
@@ -126,7 +141,7 @@ export class ChatsGatewayLogic {
       NX: true,
       EX: 5,
     });
-    
+
     if (!lock) return;
 
     try {
@@ -169,8 +184,8 @@ export class ChatsGatewayLogic {
     await this.redisAdapter.redisClient.sRem(key, socketId);
 
     const count = (await this.redisAdapter.redisClient.sCard(key)) as number;
-    // count === 0 &&
-    await this.redisAdapter.redisClient.del(key);
+    count === 0 &&
+      await this.redisAdapter.redisClient.del(key);
 
     return count;
   }
