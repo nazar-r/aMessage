@@ -101,16 +101,13 @@ let ChatsGateway = class ChatsGateway {
     async setPublicKey(client, payload) {
         const publicKey = this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
         const user = client.data.user;
-        const roomId = client.data.roomId;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
-        if (!roomId)
-            throw new websockets_2.WsException('Room not found');
         await this.chatsGatewayLogic.setPublicKeyIntoRedis(userId, publicKey);
         client.data.e2eePublicKey = publicKey;
-        client.to(roomId).emit('e2ee:peerPublicKey', {
-            userId,
-            publicKey,
-        });
+        const roomId = client.data.roomId;
+        if (roomId) {
+            client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
+        }
     }
     async requestPeerPublicKey(client) {
         const peerId = client.data.peerId;

@@ -80,15 +80,15 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     });
 
     const myPublicKey = await this.chatsGatewayLogic.getPublicKey(userId);
-    
+
     if (myPublicKey) {
       console.log('myPublicKey', myPublicKey),
-      client.to(roomId).emit('e2ee:peerPublicKey', {
-        userId,
-        publicKey: myPublicKey,
-      });
+        client.to(roomId).emit('e2ee:peerPublicKey', {
+          userId,
+          publicKey: myPublicKey,
+        });
     }
-    
+
     const peerPublicKey = await this.chatsGatewayLogic.getPublicKey(peerId);
 
     if (peerPublicKey) {
@@ -97,9 +97,9 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
         publicKey: peerPublicKey,
       });
     }
-    
+
     console.log('peerPublicKey', peerPublicKey),
-    client.to(roomId).emit('user-joined', { userId });
+      client.to(roomId).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('messagesHistory')
@@ -136,21 +136,15 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   ) {
     const publicKey = this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
     const user = client.data.user as JwtPayload | undefined;
-    const roomId = client.data.roomId as string | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
 
-    if (!roomId) throw new WsException('Room not found');
-
     await this.chatsGatewayLogic.setPublicKeyIntoRedis(userId, publicKey);
-
     client.data.e2eePublicKey = publicKey;
-    client.to(roomId).emit(
-      'e2ee:peerPublicKey',
-      {
-        userId,
-        publicKey,
-      } satisfies E2EEPeerPublicKeyPayload,
-    );
+
+    const roomId = client.data.roomId as string | undefined;
+    if (roomId) {
+      client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
+    }
   }
 
   @SubscribeMessage('e2ee:requestPeerPublicKey')
