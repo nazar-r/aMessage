@@ -1,6 +1,7 @@
 import { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 export declare class RedisService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger;
     private readonly client;
     onModuleInit(): Promise<void>;
     getClient(): RedisClientType;

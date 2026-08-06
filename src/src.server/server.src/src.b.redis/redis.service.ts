@@ -9,43 +9,44 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         url: process.env.REDIS_URL,
     });
 
-    constructor() {
-        this.logger.log(`Redis URL: ${process.env.REDIS_URL}`);
-
-        this.client.on('error', (err) => {
-            this.logger.error(`Redis error: ${err.message}`);
-        });
-
-        this.client.on('connect', () => {
-            this.logger.log('Redis connect event');
-        });
-
-        this.client.on('ready', () => {
-            this.logger.log('Redis ready event');
-        });
-    }
-
     async onModuleInit() {
-        this.logger.log('RedisService initializing...');
+        this.logger.log('Connecting to Redis...');
 
-        try {
-            await this.client.connect();
+        await this.client.connect();
 
-            this.logger.log('Redis connected successfully');
-        } catch (error) {
-            this.logger.error(
-                'Redis connection failed',
-                error instanceof Error ? error.stack : String(error),
-            );
-        }
+        this.logger.log('Redis connected');
     }
 
-    async onModuleDestroy() {
-        await this.client.quit();
-        this.logger.log('Redis disconnected');
-    }
-
-    getClient() {
+    getClient(): RedisClientType {
         return this.client;
+    }
+
+    async duplicate(): Promise<RedisClientType> {
+        const duplicated = this.client.duplicate();
+
+        await duplicated.connect();
+
+        this.logger.log('Redis duplicate connected');
+
+        return duplicated;
+    }
+
+    setRedisData(key: string, value: string, ttlSeconds?: number) {
+        if (ttlSeconds !== undefined) return this.client.set(key, value, { EX: ttlSeconds });
+        return this.client.set(key, value);
+    }
+
+    getRedisData(key: string) {
+        return this.client.get(key);
+    }
+
+    deleteRedisData(key: string) {
+        return this.client.del(key);
+    }
+
+    async onModuleDestroy(): Promise<void> {
+        this.client.isOpen && await this.client.quit().catch(() => undefined);
+
+        this.logger.log('Redis disconnected');
     }
 }

@@ -5,18 +5,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var RedisService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RedisService = void 0;
 const common_1 = require("@nestjs/common");
 const redis_1 = require("redis");
-let RedisService = class RedisService {
+let RedisService = RedisService_1 = class RedisService {
     constructor() {
+        this.logger = new common_1.Logger(RedisService_1.name);
         this.client = (0, redis_1.createClient)({
             url: process.env.REDIS_URL,
         });
     }
     async onModuleInit() {
+        this.logger.log('Connecting to Redis...');
         await this.client.connect();
+        this.logger.log('Redis connected');
     }
     getClient() {
         return this.client;
@@ -24,6 +28,7 @@ let RedisService = class RedisService {
     async duplicate() {
         const duplicated = this.client.duplicate();
         await duplicated.connect();
+        this.logger.log('Redis duplicate connected');
         return duplicated;
     }
     setRedisData(key, value, ttlSeconds) {
@@ -39,10 +44,11 @@ let RedisService = class RedisService {
     }
     async onModuleDestroy() {
         this.client.isOpen && await this.client.quit().catch(() => undefined);
+        this.logger.log('Redis disconnected');
     }
 };
 exports.RedisService = RedisService;
-exports.RedisService = RedisService = __decorate([
+exports.RedisService = RedisService = RedisService_1 = __decorate([
     (0, common_1.Injectable)()
 ], RedisService);
 //# sourceMappingURL=redis.service.js.map
