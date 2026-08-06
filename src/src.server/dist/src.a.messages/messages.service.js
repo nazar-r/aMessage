@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessagesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
+const redis_adapter_1 = require("../src.b.redis/redis.adapter");
 let MessagesService = class MessagesService {
-    constructor(usePrisma) {
+    constructor(usePrisma, redisAdapter) {
         this.usePrisma = usePrisma;
+        this.redisAdapter = redisAdapter;
     }
     createMessage(message) {
         return this.usePrisma.message.create({
@@ -74,40 +76,46 @@ let MessagesService = class MessagesService {
     }
     async findUserChats(userId) {
         return this.usePrisma.$queryRaw `
-    SELECT
-      r."roomId",
-      u."userId",
-      u."userName",
-      EXISTS (
-        SELECT 1
-        FROM "Contact" c
-        WHERE c."userId" = ${userId}
-          AND c."contactId" = u."userId"
-      ) AS "isContact"
-    FROM "Room" r
-    JOIN "RoomUser" ru
-      ON ru."roomId" = r."roomId"
-    JOIN "User" u
-      ON u."userId" = ru."userId"
-    WHERE r."roomId" IN (
-      SELECT ru2."roomId"
-      FROM "RoomUser" ru2
-      WHERE ru2."userId" = ${userId}
-    )
-    AND u."userId" <> ${userId};
-  `;
+      SELECT
+        r."roomId",
+        u."userId",
+        u."userName",
+        EXISTS (
+          SELECT 1
+          FROM "Contact" c
+          WHERE c."userId" = ${userId}
+            AND c."contactId" = u."userId"
+        ) AS "isContact"
+      FROM "Room" r
+      JOIN "RoomUser" ru
+        ON ru."roomId" = r."roomId"
+      JOIN "User" u
+        ON u."userId" = ru."userId"
+      WHERE r."roomId" IN (
+        SELECT ru2."roomId"
+        FROM "RoomUser" ru2
+        WHERE ru2."userId" = ${userId}
+      )
+      AND u."userId" <> ${userId};
+    `;
     }
-    deleteUserChat(userId, roomId) {
-        return this.usePrisma.room.delete({
+    async deleteUserChat(userId, roomId) {
+        const result = await this.usePrisma.room.delete({
             where: {
                 roomId,
-            }
+            },
         });
+        await Promise.all([
+            this.redisAdapter.redisClient.del(`room:exists:${roomId}`),
+            this.redisAdapter.redisClient.del(`room:lock:${roomId}`),
+        ]);
+        return result;
     }
 };
 exports.MessagesService = MessagesService;
 exports.MessagesService = MessagesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        redis_adapter_1.ChatRedisAdapter])
 ], MessagesService);
 //# sourceMappingURL=messages.service.js.map

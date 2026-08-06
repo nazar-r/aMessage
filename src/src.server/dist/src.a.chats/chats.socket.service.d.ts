@@ -1,14 +1,11 @@
+import type { E2EEPublicKeyPayload } from '../src.extensions/extensions.types/types';
 import { Server, Socket } from 'socket.io';
 import { ChatsGatewayLogic } from './chats.service';
 import { MessagesService } from '../src.a.messages/messages.service';
-import { PrismaService } from '../src.b.prisma/prisma.service';
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
-import type { E2EEPublicKeyPayload } from '../src.extensions/extensions.types/types';
-export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export declare class ChatsGateway {
     private readonly messagesService;
     private readonly chatsGatewayLogic;
-    private readonly usePrisma;
-    constructor(messagesService: MessagesService, chatsGatewayLogic: ChatsGatewayLogic, usePrisma: PrismaService);
+    constructor(messagesService: MessagesService, chatsGatewayLogic: ChatsGatewayLogic);
     server: Server;
     handleJoinRoom(client: Socket, payload: {
         peerId: string;

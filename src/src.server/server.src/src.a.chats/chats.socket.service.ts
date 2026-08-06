@@ -1,11 +1,18 @@
+// chats.gateway.ts
 import { randomUUID } from 'crypto';
+import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
+import type { JwtPayload, E2EEPublicKeyPayload } from '../src.extensions/extensions.types/types';
 import { Server, Socket } from 'socket.io';
 import { ChatsGatewayLogic } from './chats.service';
 import { MessagesService } from '../src.a.messages/messages.service';
-import { PrismaService } from '../src.b.prisma/prisma.service';
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
-import { ConnectedSocket, MessageBody, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
-import type { E2EEPeerPublicKeyPayload, E2EEPublicKeyPayload, JwtPayload } from '../src.extensions/extensions.types/types';
+import type { E2EEPeerPublicKeyPayload } from '../src.extensions/extensions.types/types';
 
 @WebSocketGateway({
   cors: {
@@ -13,16 +20,14 @@ import type { E2EEPeerPublicKeyPayload, E2EEPublicKeyPayload, JwtPayload } from 
     credentials: true,
   },
 })
-
-export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatsGateway {
   constructor(
     private readonly messagesService: MessagesService,
     private readonly chatsGatewayLogic: ChatsGatewayLogic,
+  ) {}
 
-    private readonly usePrisma: PrismaService,
-  ) { }
-
-  @WebSocketServer() server: Server;
+  @WebSocketServer()
+  server: Server;
 
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(
@@ -52,14 +57,13 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       status: (await this.chatsGatewayLogic.checkUserOnlineStatus(peerId)) ? 'online' : 'offline',
     });
 
-    const candidateIds = [userId, peerId].filter(
-      (id, index, arr) => arr.indexOf(id) === index,
-    );
+    const candidateIds = [userId, peerId].filter((id, index, arr) => arr.indexOf(id) === index);
     const onlineFlags = await Promise.all(
       candidateIds.map((id) => this.chatsGatewayLogic.checkUserOnlineStatus(id)),
     );
 
-    client.emit('usersOnline',
+    client.emit(
+      'usersOnline',
       candidateIds.filter((_, i) => onlineFlags[i]),
     );
 
@@ -80,17 +84,14 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     });
 
     const myPublicKey = await this.chatsGatewayLogic.getPublicKey(userId);
-
     if (myPublicKey) {
-      console.log('myPublicKey', myPublicKey),
-        client.to(roomId).emit('e2ee:peerPublicKey', {
-          userId,
-          publicKey: myPublicKey,
-        });
+      client.to(roomId).emit('e2ee:peerPublicKey', {
+        userId,
+        publicKey: myPublicKey,
+      });
     }
 
     const peerPublicKey = await this.chatsGatewayLogic.getPublicKey(peerId);
-
     if (peerPublicKey) {
       client.emit('e2ee:peerPublicKey', {
         userId: peerId,
@@ -98,8 +99,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       });
     }
 
-    console.log('peerPublicKey', peerPublicKey),
-      client.to(roomId).emit('user-joined', { userId });
+    client.to(roomId).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('messagesHistory')
@@ -148,9 +148,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   @SubscribeMessage('e2ee:requestPeerPublicKey')
-  async requestPeerPublicKey(
-    @ConnectedSocket() client: Socket,
-  ) {
+  async requestPeerPublicKey(@ConnectedSocket() client: Socket) {
     const peerId = client.data.peerId as string | undefined;
 
     if (!peerId) {
@@ -194,33 +192,25 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       pending: true,
     });
 
-    this.chatsGatewayLogic.saveMessageIntoDb(roomId, async () => {
-      await this.chatsGatewayLogic.catchSocketError(
-        async () => {
-          await this.chatsGatewayLogic.ensureRoomExists(
-            roomId,
-            userId,
-            client.data.peerId,
-          );
+    await this.chatsGatewayLogic.saveMessageIntoDb(roomId, async () => {
+      await this.chatsGatewayLogic.catchSocketError(async () => {
+        await this.chatsGatewayLogic.ensureRoomExists(roomId, userId, client.data.peerId);
 
-          const savedMessage = await this.messagesService.createMessage({
-            userId,
-            roomId,
-            content: payload.text,
-          });
+        const savedMessage = await this.messagesService.createMessage({
+          userId,
+          roomId,
+          content: payload.text,
+        });
 
-          this.server.to(roomId).emit('messageSaved', {
-            tempMessageId,
-            messageId: savedMessage.messageId,
-            userId: savedMessage.userId,
-            text: savedMessage.content,
-            time: savedMessage.createdAt,
-            pending: false,
-          });
-        },
-
-        'Failed to save message',
-      );
+        this.server.to(roomId).emit('messageSaved', {
+          tempMessageId,
+          messageId: savedMessage.messageId,
+          userId: savedMessage.userId,
+          text: savedMessage.content,
+          time: savedMessage.createdAt,
+          pending: false,
+        });
+      }, 'Failed to save message');
     });
   }
 
@@ -251,7 +241,6 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
           content: payload.text,
         });
       },
-
       'Failed to update message',
     );
   }
@@ -277,12 +266,8 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
           userId,
         });
 
-        await this.messagesService.removeMessage(
-          payload.messageId,
-          userId,
-        );
+        await this.messagesService.removeMessage(payload.messageId, userId);
       },
-
       'Failed to remove message',
     );
   }
