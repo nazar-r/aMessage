@@ -82,7 +82,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const myPublicKey = await this.chatsGatewayLogic.getPublicKey(userId);
     
     if (myPublicKey) {
-      // console.log('myPublicKey', myPublicKey),
+      console.log('myPublicKey', myPublicKey),
       client.to(roomId).emit('e2ee:peerPublicKey', {
         userId,
         publicKey: myPublicKey,
@@ -98,7 +98,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       });
     }
     
-    // console.log('peerPublicKey', peerPublicKey),
+    console.log('peerPublicKey', peerPublicKey),
     client.to(roomId).emit('user-joined', { userId });
   }
 
