@@ -4,8 +4,7 @@ import { createClient, RedisClientType } from 'redis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
     private readonly client: RedisClientType = createClient({
-        url: 'redis://127.0.0.1:6379',
-        // process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
+        url: process.env.REDIS_URL,
     });
 
     onModuleInit() {
@@ -37,6 +36,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleDestroy(): Promise<void> {
-        this.client.isOpen && await this.client.quit().catch(() => undefined) 
+        this.client.isOpen && await this.client.quit().catch(() => undefined)
     }
 }

@@ -2,14 +2,12 @@ import { Injectable} from '@nestjs/common';
 import { RedisClientType } from 'redis';
 import { RedisService } from './redis.service';
 
-type RedisClient = RedisClientType;
-
 @Injectable()
 export class ChatRedisAdapter {
-  readonly pubClient: RedisClient;
+  readonly pubClient: RedisClientType;
 
-  subClient!: RedisClient;
-  redisClient!: RedisClient;
+  subClient!: RedisClientType;
+  redisClient!: RedisClientType;
 
   private initialized = false;
 
