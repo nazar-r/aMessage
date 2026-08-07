@@ -19,6 +19,20 @@ export class MessagesService {
         },
       });
 
+      await tx.roomUser.upsert({
+        where: {
+          roomId_userId: {
+            roomId: message.roomId,
+            userId: message.userId,
+          },
+        },
+        update: {},
+        create: {
+          roomId: message.roomId,
+          userId: message.userId,
+        },
+      });
+
       return tx.message.create({
         data: {
           roomId: message.roomId,

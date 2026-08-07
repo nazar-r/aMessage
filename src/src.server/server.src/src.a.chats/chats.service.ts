@@ -174,6 +174,7 @@ export class ChatsGatewayLogic {
       await this.redisAdapter.redisClient.del(lockKey);
     }
   }
+
   async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
     const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
     await this.redisAdapter.redisClient.sAdd(key, socketId);
