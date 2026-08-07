@@ -89,7 +89,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     async handleDisconnect(client) {
         await this.disconnectSocket(client);
     }
-    async catchSocketError(action, errorMessage) {
+    async formattingRedisData(action, errorMessage) {
         try {
             await action();
         }
@@ -154,21 +154,22 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             if (cachedAgain)
                 return;
             await this.usePrisma.$transaction(async (tx) => {
-                await tx.room.create({
-                    data: {
-                        roomId,
-                    },
-                }).catch((e) => {
-                    if (e.code !== 'P2002')
-                        throw e;
+                const existingRoom = await tx.room.findUnique({
+                    where: { roomId },
+                    select: { roomId: true },
                 });
-                await tx.roomUser.createMany({
-                    data: [
-                        { roomId, userId },
-                        { roomId, userId: peerId },
-                    ],
-                    skipDuplicates: true,
-                });
+                if (!existingRoom) {
+                    await tx.room.create({
+                        data: { roomId },
+                    });
+                    await tx.roomUser.createMany({
+                        data: [
+                            { roomId, userId },
+                            { roomId, userId: peerId },
+                        ],
+                        skipDuplicates: true,
+                    });
+                }
             });
             await this.redisAdapter.redisClient.set(existsKey, '1');
         }
@@ -233,7 +234,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     signRoomId(userA, userB) {
         return JSON.stringify([userA, userB].sort());
     }
-    saveMessageIntoDb(roomId, task) {
+    setDataIntoRedis(roomId, task) {
         const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
         const current = previous.catch(() => undefined).then(task);
         const tracked = current.then(() => undefined, () => undefined);

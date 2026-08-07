@@ -126,9 +126,6 @@ let ChatsGateway = class ChatsGateway {
     }
     async createMessage(client, payload) {
         const roomId = client.data.roomId;
-        if (!roomId) {
-            throw new websockets_2.WsException('Room not found');
-        }
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
         const tempMessageId = payload.clientMessageId ?? (0, crypto_1.randomUUID)();
@@ -140,14 +137,14 @@ let ChatsGateway = class ChatsGateway {
             time: createdAt,
             pending: true,
         });
-        this.chatsGatewayLogic.saveMessageIntoDb(roomId, async () => {
-            await this.chatsGatewayLogic.catchSocketError(async () => {
-                await this.chatsGatewayLogic.ensureRoomExists(roomId, userId, client.data.peerId);
-                const savedMessage = await this.messagesService.createMessage({
-                    userId,
-                    roomId,
-                    content: payload.text,
-                });
+        const savedMessage = await this.messagesService.createMessage({
+            roomId,
+            userId,
+            peerId: client.data.peerId,
+            content: payload.text,
+        });
+        this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
+            await this.chatsGatewayLogic.formattingRedisData(async () => {
                 this.server.to(roomId).emit('messageSaved', {
                     tempMessageId,
                     messageId: savedMessage.messageId,
@@ -166,7 +163,7 @@ let ChatsGateway = class ChatsGateway {
         }
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
-        await this.chatsGatewayLogic.catchSocketError(async () => {
+        await this.chatsGatewayLogic.formattingRedisData(async () => {
             this.server.to(roomId).emit('messageUpdate', {
                 messageId: payload.messageId,
                 userId,
@@ -185,7 +182,7 @@ let ChatsGateway = class ChatsGateway {
         }
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
-        await this.chatsGatewayLogic.catchSocketError(async () => {
+        await this.chatsGatewayLogic.formattingRedisData(async () => {
             this.server.to(roomId).emit('messageRemove', {
                 messageId: payload.messageId,
                 userId,

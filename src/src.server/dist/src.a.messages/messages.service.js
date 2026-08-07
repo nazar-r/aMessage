@@ -16,20 +16,59 @@ let MessagesService = class MessagesService {
     constructor(usePrisma) {
         this.usePrisma = usePrisma;
     }
-    createMessage(message) {
-        return this.usePrisma.message.create({
-            data: {
-                roomId: message.roomId,
-                userId: message.userId,
-                content: message.content,
-            },
-            select: {
-                messageId: true,
-                roomId: true,
-                userId: true,
-                content: true,
-                createdAt: true,
-            },
+    async createMessage(message) {
+        return this.usePrisma.$transaction(async (tx) => {
+            await tx.room.upsert({
+                where: {
+                    roomId: message.roomId,
+                },
+                update: {},
+                create: {
+                    roomId: message.roomId,
+                },
+            });
+            await Promise.all([
+                tx.roomUser.upsert({
+                    where: {
+                        roomId_userId: {
+                            roomId: message.roomId,
+                            userId: message.userId,
+                        },
+                    },
+                    update: {},
+                    create: {
+                        roomId: message.roomId,
+                        userId: message.userId,
+                    },
+                }),
+                tx.roomUser.upsert({
+                    where: {
+                        roomId_userId: {
+                            roomId: message.roomId,
+                            userId: message.peerId,
+                        },
+                    },
+                    update: {},
+                    create: {
+                        roomId: message.roomId,
+                        userId: message.peerId,
+                    },
+                }),
+            ]);
+            return tx.message.create({
+                data: {
+                    roomId: message.roomId,
+                    userId: message.userId,
+                    content: message.content,
+                },
+                select: {
+                    messageId: true,
+                    roomId: true,
+                    userId: true,
+                    content: true,
+                    createdAt: true,
+                },
+            });
         });
     }
     updateMessage(message) {
@@ -73,7 +112,7 @@ let MessagesService = class MessagesService {
         });
     }
     async findUserChats(userId) {
-        return this.usePrisma.$queryRaw `
+        const result = await this.usePrisma.$queryRaw `
     SELECT
       r."roomId",
       u."userId",
@@ -96,13 +135,21 @@ let MessagesService = class MessagesService {
     )
     AND u."userId" <> ${userId};
   `;
+        console.log('[findUserChats]', result);
+        return result;
     }
-    deleteUserChat(userId, roomId) {
-        return this.usePrisma.room.delete({
+    async deleteUserChat(userId, roomId) {
+        const result = await this.usePrisma.room.delete({
             where: {
                 roomId,
-            }
+            },
         });
+        console.log('[deleteUserChat]', {
+            userId,
+            roomId,
+            result,
+        });
+        return result;
     }
 };
 exports.MessagesService = MessagesService;

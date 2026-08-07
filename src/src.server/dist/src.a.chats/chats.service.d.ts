@@ -17,7 +17,7 @@ export declare class ChatsGatewayLogic {
     afterInit(server: Server): Promise<void>;
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): Promise<void>;
-    catchSocketError(action: () => Promise<void>, errorMessage: string): Promise<void>;
+    formattingRedisData(action: () => Promise<void>, errorMessage: string): Promise<void>;
     connectSocket(client: Socket): Promise<void>;
     disconnectSocket(client: Socket): Promise<void>;
     ensureRoomExists(roomId: string, userId: string, peerId: string): Promise<void>;
@@ -32,5 +32,5 @@ export declare class ChatsGatewayLogic {
     normalizePublicKey(publicKey: string): string;
     resolveUserId(payload: JwtPayload | undefined): string;
     signRoomId(userA: string, userB: string): string;
-    saveMessageIntoDb(roomId: string, task: () => Promise<void>): void;
+    setDataIntoRedis(roomId: string, task: () => Promise<void>): void;
 }

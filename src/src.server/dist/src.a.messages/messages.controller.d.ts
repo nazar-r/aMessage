@@ -3,8 +3,8 @@ export declare class MessagesController {
     private readonly messagesService;
     constructor(messagesService: MessagesService);
     findUserChats(req: any): Promise<unknown>;
-    deleteUserChat(req: any): import("@prisma/client").Prisma.Prisma__RoomClient<{
-        createdAt: Date;
+    deleteUserChat(req: any): Promise<{
         roomId: string;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+        createdAt: Date;
+    }>;
 }

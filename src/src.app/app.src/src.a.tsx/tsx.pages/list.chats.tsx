@@ -10,6 +10,7 @@ import { useRemoveUserChat } from "../../src.b.extensions/setApi/set.api.DELETE/
 const ChatsListContent = () => {
     const navigate = useNavigate();
     const { data: chats } = useFetchingUserChats();
+    console.log("chats", chats);
     const { mutate: mutateAddUserContact } = useAddUserAsContact();
     const { mutate: removeAddUserContact } = useRemoveUserContact();
 
@@ -40,7 +41,7 @@ const ChatsListContent = () => {
                 <div className="list-page__title">Your Chats</div>
                 <ul ref={listRef} className="list-page__list">
                     {chats?.map((chat) => (
-                        <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.roomId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
+                        <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
                             <div className="list-page__list-item--image">
                                 {/* {isPeerOnline && <div className="online"></div>} */}
                                 {chat.isContact === true && <div className="contact">C</div>}
