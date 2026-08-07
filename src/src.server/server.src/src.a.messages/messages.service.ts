@@ -81,7 +81,7 @@ export class MessagesService {
   }
 
   async findUserChats(userId: string) {
-    return this.usePrisma.$queryRaw`
+    const result = await this.usePrisma.$queryRaw`
     SELECT
       r."roomId",
       u."userId",
@@ -104,12 +104,25 @@ export class MessagesService {
     )
     AND u."userId" <> ${userId};
   `;
+
+    console.log('[findUserChats]', result);
+
+    return result;
   }
-  deleteUserChat(userId: string, roomId: string) {
-    return this.usePrisma.room.delete({
+
+  async deleteUserChat(userId: string, roomId: string) {
+    const result = await this.usePrisma.room.delete({
       where: {
         roomId,
-      }
+      },
     });
+
+    console.log('[deleteUserChat]', {
+      userId,
+      roomId,
+      result,
+    });
+
+    return result;
   }
 }
