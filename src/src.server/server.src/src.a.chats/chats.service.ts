@@ -130,47 +130,31 @@ async disconnectSocket(client: Socket) {
     await this.pinUserStatusIntoServer(userId, 'offline');
   }
 }
-  async ensureRoomExists(roomId: string, userId: string, peerId: string) {
-    const existsKey = `room:exists:${roomId}`;
-    const lockKey = `room:lock:${roomId}`;
+ async ensureRoomExists(roomId: string, userId: string, peerId: string) {
+  const existsKey = `room:exists:${roomId}`;
 
-    const cached = await this.redisAdapter.redisClient.get(existsKey);
-    if (cached) return;
+  if (await this.redisAdapter.redisClient.get(existsKey)) {
+    return;
+  }
 
-    const lock = await this.redisAdapter.redisClient.set(lockKey, '1', {
-      NX: true,
-      EX: 5,
+  await this.usePrisma.$transaction(async (tx) => {
+    await tx.room.upsert({
+      where: { roomId },
+      update: {},
+      create: { roomId },
     });
 
-    if (!lock) return;
+    await tx.roomUser.createMany({
+      data: [
+        { roomId, userId },
+        { roomId, userId: peerId },
+      ],
+      skipDuplicates: true,
+    });
+  });
 
-    try {
-      const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
-      if (cachedAgain) return;
-
-      await this.usePrisma.$transaction(async (tx) => {
-        await tx.room.create({
-          data: {
-            roomId,
-          },
-        }).catch((e) => {
-          if (e.code !== 'P2002') throw e;
-        });
-
-        await tx.roomUser.createMany({
-          data: [
-            { roomId, userId },
-            { roomId, userId: peerId },
-          ],
-          skipDuplicates: true,
-        });
-      });
-
-      await this.redisAdapter.redisClient.set(existsKey, '1');
-    } finally {
-      await this.redisAdapter.redisClient.del(lockKey);
-    }
-  }
+  await this.redisAdapter.redisClient.set(existsKey, '1');
+}
 
   async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
     const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
