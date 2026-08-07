@@ -197,11 +197,11 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.chatsGatewayLogic.saveMessageIntoDb(roomId, async () => {
       await this.chatsGatewayLogic.catchSocketError(
         async () => {
-          await this.chatsGatewayLogic.ensureRoomExists(
-            roomId,
-            userId,
-            client.data.peerId,
-          );
+          // await this.chatsGatewayLogic.ensureRoomExists(
+          //   roomId,
+          //   userId,
+          //   client.data.peerId,
+          // );
 
           const savedMessage = await this.messagesService.createMessage({
             userId,
