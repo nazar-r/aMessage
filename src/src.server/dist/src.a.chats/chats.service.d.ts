@@ -32,6 +32,5 @@ export declare class ChatsGatewayLogic {
     normalizePublicKey(publicKey: string): string;
     resolveUserId(payload: JwtPayload | undefined): string;
     signRoomId(userA: string, userB: string): string;
-    saveMessageIntoDb(roomId: string, task: () => Promise<void>): Promise<void>;
-    deleteRoomState(roomId: string): Promise<void>;
+    saveMessageIntoDb(roomId: string, task: () => Promise<void>): void;
 }

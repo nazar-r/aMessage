@@ -1,13 +1,12 @@
-// chats.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server, Socket } from 'socket.io';
-import * as cookie from 'cookie';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
 import { WsException } from '@nestjs/websockets';
+import * as cookie from 'cookie';
 
 @Injectable()
 export class ChatsGatewayLogic {
@@ -24,7 +23,7 @@ export class ChatsGatewayLogic {
     private readonly jwtService: JwtService,
     private readonly redisAdapter: ChatRedisAdapter,
     private readonly usePrisma: PrismaService,
-  ) {}
+  ) { }
 
   async afterInit(server: Server) {
     this.server = server;
@@ -55,7 +54,10 @@ export class ChatsGatewayLogic {
     await this.redisAdapter.initialize();
 
     this.server.adapter(
-      createAdapter(this.redisAdapter.pubClient, this.redisAdapter.subClient),
+      createAdapter(
+        this.redisAdapter.pubClient,
+        this.redisAdapter.subClient,
+      ),
     );
   }
 
@@ -67,7 +69,10 @@ export class ChatsGatewayLogic {
     await this.disconnectSocket(client);
   }
 
-  async catchSocketError(action: () => Promise<void>, errorMessage: string): Promise<void> {
+  async catchSocketError(
+    action: () => Promise<void>,
+    errorMessage: string,
+  ): Promise<void> {
     try {
       await action();
     } catch (error) {
@@ -101,33 +106,30 @@ export class ChatsGatewayLogic {
     }
   }
 
-  async disconnectSocket(client: Socket) {
-    const userId = client.data.user?.sub;
+async disconnectSocket(client: Socket) {
+  const userId = client.data.user?.sub;
 
-    this.logger.debug({
-      userId,
-      socketId: client.id,
-      sockets: userId
-        ? await this.redisAdapter.redisClient.sMembers(
-            ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
-          )
-        : [],
-    });
+  this.logger.debug({
+    userId,
+    socketId: client.id,
+    sockets: await this.redisAdapter.redisClient.sMembers(
+      ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
+    ),
+  });
 
-    if (!userId) return;
+  if (!userId) return;
 
-    const nextCount = await this.unpinOnlineSocket(userId, client.id);
+  const nextCount = await this.unpinOnlineSocket(userId, client.id);
 
-    this.logger.debug({
-      userId,
-      nextCount,
-    });
+  this.logger.debug({
+    userId,
+    nextCount,
+  });
 
-    if (nextCount === 0) {
-      await this.pinUserStatusIntoServer(userId, 'offline');
-    }
+  if (nextCount === 0) {
+    await this.pinUserStatusIntoServer(userId, 'offline');
   }
-
+}
   async ensureRoomExists(roomId: string, userId: string, peerId: string) {
     const existsKey = `room:exists:${roomId}`;
     const lockKey = `room:lock:${roomId}`;
@@ -140,22 +142,19 @@ export class ChatsGatewayLogic {
       EX: 5,
     });
 
-    if (!lock) {
-      while (!(await this.redisAdapter.redisClient.get(existsKey))) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-      return;
-    }
+    if (!lock) return;
 
     try {
       const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
       if (cachedAgain) return;
 
       await this.usePrisma.$transaction(async (tx) => {
-        await tx.room.upsert({
-          where: { roomId },
-          update: {},
-          create: { roomId },
+        await tx.room.create({
+          data: {
+            roomId,
+          },
+        }).catch((e) => {
+          if (e.code !== 'P2002') throw e;
         });
 
         await tx.roomUser.createMany({
@@ -185,7 +184,8 @@ export class ChatsGatewayLogic {
     await this.redisAdapter.redisClient.sRem(key, socketId);
 
     const count = (await this.redisAdapter.redisClient.sCard(key)) as number;
-    count === 0 && (await this.redisAdapter.redisClient.del(key));
+    count === 0 &&
+      await this.redisAdapter.redisClient.del(key);
 
     return count;
   }
@@ -199,10 +199,7 @@ export class ChatsGatewayLogic {
   }
 
   async addWatchedRoom(userId: string, roomId: string): Promise<void> {
-    await this.redisAdapter.redisClient.sAdd(
-      ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId,
-      roomId,
-    );
+    await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId, roomId);
   }
 
   async getWatchedRooms(userId: string): Promise<string[]> {
@@ -229,10 +226,7 @@ export class ChatsGatewayLogic {
   }
 
   async setPublicKeyIntoRedis(userId: string, publicKey: string): Promise<void> {
-    await this.redisAdapter.redisClient.set(
-      ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId,
-      publicKey,
-    );
+    await this.redisAdapter.redisClient.set(ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId, publicKey);
   }
 
   normalizePublicKey(publicKey: string): string {
@@ -260,7 +254,7 @@ export class ChatsGatewayLogic {
     return JSON.stringify([userA, userB].sort());
   }
 
-  async saveMessageIntoDb(roomId: string, task: () => Promise<void>): Promise<void> {
+  saveMessageIntoDb(roomId: string, task: () => Promise<void>) {
     const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
     const current = previous.catch(() => undefined).then(task);
 
@@ -271,17 +265,10 @@ export class ChatsGatewayLogic {
 
     this.roomMessageSaveChains.set(roomId, tracked);
 
-    return tracked.finally(() => {
+    void tracked.finally(() => {
       if (this.roomMessageSaveChains.get(roomId) === tracked) {
         this.roomMessageSaveChains.delete(roomId);
       }
     });
-  }
-
-  async deleteRoomState(roomId: string): Promise<void> {
-    await Promise.all([
-      this.redisAdapter.redisClient.del(`room:exists:${roomId}`),
-      this.redisAdapter.redisClient.del(`room:lock:${roomId}`),
-    ]);
   }
 }

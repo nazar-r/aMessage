@@ -92,32 +92,34 @@ export class ChatEncryptionService {
     const cipher = sodium.crypto_box_easy_afternm(plainText, nonce, this.sharedKey);
 
     return (ChatEncryptionService.E2EE_PREFIX + JSON.stringify({
-      n: this.encodeBase64(nonce),
-      c: this.encodeBase64(cipher),
-    })
+        n: this.encodeBase64(nonce),
+        c: this.encodeBase64(cipher),
+      })
     );
   }
 
   decryptRoomText(wireText: string): string {
     if (!wireText.startsWith(ChatEncryptionService.E2EE_PREFIX)) return wireText;
     if (!this.sharedKey) return "[No shared key]";
-    console.log(this.sharedKey)
 
-    const payload = JSON.parse(
-      wireText.slice(ChatEncryptionService.E2EE_PREFIX.length)
-    ) as { n: string; c: string };
+    try {
+      const payload = JSON.parse(
+        wireText.slice(ChatEncryptionService.E2EE_PREFIX.length)
+      ) as { n: string; c: string };
 
-    const nonce = this.decodeBase64(payload.n);
-    const cipher = this.decodeBase64(payload.c);
+      const nonce = this.decodeBase64(payload.n);
+      const cipher = this.decodeBase64(payload.c);
 
-    const opened = sodium.crypto_box_open_easy_afternm(
-      cipher,
-      nonce,
-      this.sharedKey
-    );
+      const opened = sodium.crypto_box_open_easy_afternm(
+        cipher,
+        nonce,
+        this.sharedKey
+      );
 
-    return sodium.to_string(opened);
-
+      return sodium.to_string(opened);
+    } catch {
+      return "[Encrypted message]";
+    }
   }
 
   decryptCachedMessage(messageId: string, fallbackWireText: string): string {

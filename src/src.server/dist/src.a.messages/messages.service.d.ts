@@ -1,10 +1,8 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { MessageDTO } from './messages.image/messages.create.dto';
-import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
 export declare class MessagesService {
     private readonly usePrisma;
-    private readonly redisAdapter;
-    constructor(usePrisma: PrismaService, redisAdapter: ChatRedisAdapter);
+    constructor(usePrisma: PrismaService);
     createMessage(message: MessageDTO): import("@prisma/client").Prisma.Prisma__MessageClient<{
         messageId: string;
         content: string;
@@ -42,8 +40,8 @@ export declare class MessagesService {
         userId: string;
     }[]>;
     findUserChats(userId: string): Promise<unknown>;
-    deleteUserChat(userId: string, roomId: string): Promise<{
+    deleteUserChat(userId: string, roomId: string): import("@prisma/client").Prisma.Prisma__RoomClient<{
         createdAt: Date;
         roomId: string;
-    }>;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

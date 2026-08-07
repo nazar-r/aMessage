@@ -47,10 +47,10 @@ exports.ChatsGatewayLogic = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
-const cookie = __importStar(require("cookie"));
 const redis_adapter_2 = require("../src.b.redis/redis.adapter");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const websockets_1 = require("@nestjs/websockets");
+const cookie = __importStar(require("cookie"));
 let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     constructor(jwtService, redisAdapter, usePrisma) {
         this.jwtService = jwtService;
@@ -124,9 +124,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         this.logger.debug({
             userId,
             socketId: client.id,
-            sockets: userId
-                ? await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId)
-                : [],
+            sockets: await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId),
         });
         if (!userId)
             return;
@@ -149,21 +147,20 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             NX: true,
             EX: 5,
         });
-        if (!lock) {
-            while (!(await this.redisAdapter.redisClient.get(existsKey))) {
-                await new Promise((resolve) => setTimeout(resolve, 50));
-            }
+        if (!lock)
             return;
-        }
         try {
             const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
             if (cachedAgain)
                 return;
             await this.usePrisma.$transaction(async (tx) => {
-                await tx.room.upsert({
-                    where: { roomId },
-                    update: {},
-                    create: { roomId },
+                await tx.room.create({
+                    data: {
+                        roomId,
+                    },
+                }).catch((e) => {
+                    if (e.code !== 'P2002')
+                        throw e;
                 });
                 await tx.roomUser.createMany({
                     data: [
@@ -188,7 +185,8 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         const key = ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId;
         await this.redisAdapter.redisClient.sRem(key, socketId);
         const count = (await this.redisAdapter.redisClient.sCard(key));
-        count === 0 && (await this.redisAdapter.redisClient.del(key));
+        count === 0 &&
+            await this.redisAdapter.redisClient.del(key);
         return count;
     }
     async checkUserOnlineStatus(userId) {
@@ -235,22 +233,16 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     signRoomId(userA, userB) {
         return JSON.stringify([userA, userB].sort());
     }
-    async saveMessageIntoDb(roomId, task) {
+    saveMessageIntoDb(roomId, task) {
         const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
         const current = previous.catch(() => undefined).then(task);
         const tracked = current.then(() => undefined, () => undefined);
         this.roomMessageSaveChains.set(roomId, tracked);
-        return tracked.finally(() => {
+        void tracked.finally(() => {
             if (this.roomMessageSaveChains.get(roomId) === tracked) {
                 this.roomMessageSaveChains.delete(roomId);
             }
         });
-    }
-    async deleteRoomState(roomId) {
-        await Promise.all([
-            this.redisAdapter.redisClient.del(`room:exists:${roomId}`),
-            this.redisAdapter.redisClient.del(`room:lock:${roomId}`),
-        ]);
     }
 };
 exports.ChatsGatewayLogic = ChatsGatewayLogic;
