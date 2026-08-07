@@ -7,21 +7,32 @@ export class MessagesService {
   constructor(
     private readonly usePrisma: PrismaService,
   ) { }
+  async createMessage(message: MessageDTO) {
+    return this.usePrisma.$transaction(async (tx) => {
+      await tx.room.upsert({
+        where: {
+          roomId: message.roomId,
+        },
+        update: {},
+        create: {
+          roomId: message.roomId,
+        },
+      });
 
-  createMessage(message: MessageDTO) {
-    return this.usePrisma.message.create({
-      data: {
-        roomId: message.roomId,
-        userId: message.userId,
-        content: message.content,
-      },
-      select: {
-        messageId: true,
-        roomId: true,
-        userId: true,
-        content: true,
-        createdAt: true,
-      },
+      return tx.message.create({
+        data: {
+          roomId: message.roomId,
+          userId: message.userId,
+          content: message.content,
+        },
+        select: {
+          messageId: true,
+          roomId: true,
+          userId: true,
+          content: true,
+          createdAt: true,
+        },
+      });
     });
   }
 
@@ -69,8 +80,8 @@ export class MessagesService {
     });
   }
 
-async findUserChats(userId: string) {
-  return this.usePrisma.$queryRaw`
+  async findUserChats(userId: string) {
+    return this.usePrisma.$queryRaw`
     SELECT
       r."roomId",
       u."userId",
@@ -93,7 +104,7 @@ async findUserChats(userId: string) {
     )
     AND u."userId" <> ${userId};
   `;
-}
+  }
   deleteUserChat(userId: string, roomId: string) {
     return this.usePrisma.room.delete({
       where: {

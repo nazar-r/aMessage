@@ -69,7 +69,7 @@ export class ChatsGatewayLogic {
     await this.disconnectSocket(client);
   }
 
-  async catchSocketError(
+  async formattingRedisData(
     action: () => Promise<void>,
     errorMessage: string,
   ): Promise<void> {
@@ -254,7 +254,7 @@ async disconnectSocket(client: Socket) {
     return JSON.stringify([userA, userB].sort());
   }
 
-  saveMessageIntoDb(roomId: string, task: () => Promise<void>) {
+  setDataIntoRedis(roomId: string, task: () => Promise<void>) {
     const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
     const current = previous.catch(() => undefined).then(task);
 

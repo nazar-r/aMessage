@@ -194,21 +194,15 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       pending: true,
     });
 
-    this.chatsGatewayLogic.saveMessageIntoDb(roomId, async () => {
-      await this.chatsGatewayLogic.catchSocketError(
+    const savedMessage = await this.messagesService.createMessage({
+      roomId,
+      userId,
+      content: payload.text,
+    });
+
+    this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
+      await this.chatsGatewayLogic.formattingRedisData(
         async () => {
-          // await this.chatsGatewayLogic.ensureRoomExists(
-          //   roomId,
-          //   userId,
-          //   client.data.peerId,
-          // );
-
-          const savedMessage = await this.messagesService.createMessage({
-            userId,
-            roomId,
-            content: payload.text,
-          });
-
           this.server.to(roomId).emit('messageSaved', {
             tempMessageId,
             messageId: savedMessage.messageId,
@@ -238,7 +232,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
 
-    await this.chatsGatewayLogic.catchSocketError(
+    await this.chatsGatewayLogic.formattingRedisData(
       async () => {
         this.server.to(roomId).emit('messageUpdate', {
           messageId: payload.messageId,
@@ -270,7 +264,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
 
-    await this.chatsGatewayLogic.catchSocketError(
+    await this.chatsGatewayLogic.formattingRedisData(
       async () => {
         this.server.to(roomId).emit('messageRemove', {
           messageId: payload.messageId,
