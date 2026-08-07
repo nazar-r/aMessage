@@ -192,6 +192,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const savedMessage = await this.messagesService.createMessage({
       roomId,
       userId,
+      peerId: client.data.peerId,
       content: payload.text,
     });
 

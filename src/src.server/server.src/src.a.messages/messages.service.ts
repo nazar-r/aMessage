@@ -7,19 +7,25 @@ export class MessagesService {
   constructor(
     private readonly usePrisma: PrismaService,
   ) { }
-  async createMessage(message: MessageDTO) {
-    return this.usePrisma.$transaction(async (tx) => {
-      await tx.room.upsert({
-        where: {
-          roomId: message.roomId,
-        },
-        update: {},
-        create: {
-          roomId: message.roomId,
-        },
-      });
+ async createMessage(message: {
+  roomId: string;
+  userId: string;
+  peerId: string;
+  content: string;
+}) {
+  return this.usePrisma.$transaction(async (tx) => {
+    await tx.room.upsert({
+      where: {
+        roomId: message.roomId,
+      },
+      update: {},
+      create: {
+        roomId: message.roomId,
+      },
+    });
 
-      await tx.roomUser.upsert({
+    await Promise.all([
+      tx.roomUser.upsert({
         where: {
           roomId_userId: {
             roomId: message.roomId,
@@ -31,25 +37,39 @@ export class MessagesService {
           roomId: message.roomId,
           userId: message.userId,
         },
-      });
+      }),
 
-      return tx.message.create({
-        data: {
+      tx.roomUser.upsert({
+        where: {
+          roomId_userId: {
+            roomId: message.roomId,
+            userId: message.peerId,
+          },
+        },
+        update: {},
+        create: {
           roomId: message.roomId,
-          userId: message.userId,
-          content: message.content,
+          userId: message.peerId,
         },
-        select: {
-          messageId: true,
-          roomId: true,
-          userId: true,
-          content: true,
-          createdAt: true,
-        },
-      });
-    });
-  }
+      }),
+    ]);
 
+    return tx.message.create({
+      data: {
+        roomId: message.roomId,
+        userId: message.userId,
+        content: message.content,
+      },
+      select: {
+        messageId: true,
+        roomId: true,
+        userId: true,
+        content: true,
+        createdAt: true,
+      },
+    });
+  });
+}
   updateMessage(message: { messageId: string; content: string }) {
     return this.usePrisma.message.update({
       where: {
