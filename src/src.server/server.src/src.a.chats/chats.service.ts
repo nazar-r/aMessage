@@ -106,30 +106,30 @@ export class ChatsGatewayLogic {
     }
   }
 
-async disconnectSocket(client: Socket) {
-  const userId = client.data.user?.sub;
+  async disconnectSocket(client: Socket) {
+    const userId = client.data.user?.sub;
 
-  this.logger.debug({
-    userId,
-    socketId: client.id,
-    sockets: await this.redisAdapter.redisClient.sMembers(
-      ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
-    ),
-  });
+    this.logger.debug({
+      userId,
+      socketId: client.id,
+      sockets: await this.redisAdapter.redisClient.sMembers(
+        ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
+      ),
+    });
 
-  if (!userId) return;
+    if (!userId) return;
 
-  const nextCount = await this.unpinOnlineSocket(userId, client.id);
+    const nextCount = await this.unpinOnlineSocket(userId, client.id);
 
-  this.logger.debug({
-    userId,
-    nextCount,
-  });
+    this.logger.debug({
+      userId,
+      nextCount,
+    });
 
-  if (nextCount === 0) {
-    await this.pinUserStatusIntoServer(userId, 'offline');
+    if (nextCount === 0) {
+      await this.pinUserStatusIntoServer(userId, 'offline');
+    }
   }
-}
   async ensureRoomExists(roomId: string, userId: string, peerId: string) {
     const existsKey = `room:exists:${roomId}`;
     const lockKey = `room:lock:${roomId}`;
@@ -149,21 +149,24 @@ async disconnectSocket(client: Socket) {
       if (cachedAgain) return;
 
       await this.usePrisma.$transaction(async (tx) => {
-        await tx.room.create({
-          data: {
-            roomId,
-          },
-        }).catch((e) => {
-          if (e.code !== 'P2002') throw e;
+        const existingRoom = await tx.room.findUnique({
+          where: { roomId },
+          select: { roomId: true },
         });
 
-        await tx.roomUser.createMany({
-          data: [
-            { roomId, userId },
-            { roomId, userId: peerId },
-          ],
-          skipDuplicates: true,
-        });
+        if (!existingRoom) {
+          await tx.room.create({
+            data: { roomId },
+          });
+
+          await tx.roomUser.createMany({
+            data: [
+              { roomId, userId },
+              { roomId, userId: peerId },
+            ],
+            skipDuplicates: true,
+          });
+        }
       });
 
       await this.redisAdapter.redisClient.set(existsKey, '1');
@@ -171,7 +174,6 @@ async disconnectSocket(client: Socket) {
       await this.redisAdapter.redisClient.del(lockKey);
     }
   }
-
   async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
     const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
     await this.redisAdapter.redisClient.sAdd(key, socketId);
