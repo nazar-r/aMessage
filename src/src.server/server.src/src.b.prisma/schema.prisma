@@ -17,7 +17,7 @@ model User {
   role         Role     @default(USER)
   userId       String   @id
   userName     String
-  email        String?  @unique
+  email        String? 
   pubKey       String?  @unique
   refreshToken String?
   createdAt    DateTime @default(now())

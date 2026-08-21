@@ -8,6 +8,7 @@ export class MessagesService {
     private readonly usePrisma: PrismaService,
   ) { }
   async createMessage(message: {
+    messageId: string;
     roomId: string;
     userId: string;
     peerId: string;
@@ -56,6 +57,7 @@ export class MessagesService {
 
       return tx.message.create({
         data: {
+          messageId: message.messageId,
           roomId: message.roomId,
           userId: message.userId,
           content: message.content,

@@ -13,7 +13,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatsGateway = void 0;
-const crypto_1 = require("crypto");
 const socket_io_1 = require("socket.io");
 const chats_service_1 = require("./chats.service");
 const messages_service_1 = require("../src.a.messages/messages.service");
@@ -156,16 +155,22 @@ let ChatsGateway = class ChatsGateway {
         const roomId = client.data.roomId;
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
-        const tempMessageId = payload.clientMessageId ?? (0, crypto_1.randomUUID)();
+        if (!roomId) {
+            throw new websockets_2.WsException('Room not found');
+        }
+        if (!payload.clientMessageId) {
+            throw new websockets_2.WsException('Message ID not found');
+        }
         const createdAt = new Date();
         this.server.to(roomId).emit('newMessage', {
             userId,
-            messageId: tempMessageId,
+            messageId: payload.clientMessageId,
             text: payload.text,
             time: createdAt,
             pending: true,
         });
         const savedMessage = await this.messagesService.createMessage({
+            messageId: payload.clientMessageId,
             roomId,
             userId,
             peerId: client.data.peerId,
@@ -174,7 +179,6 @@ let ChatsGateway = class ChatsGateway {
         this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
             await this.chatsGatewayLogic.formattingRedisData(async () => {
                 this.server.to(roomId).emit('messageSaved', {
-                    tempMessageId,
                     messageId: savedMessage.messageId,
                     userId: savedMessage.userId,
                     text: savedMessage.content,

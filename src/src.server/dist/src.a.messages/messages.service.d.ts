@@ -3,6 +3,7 @@ export declare class MessagesService {
     private readonly usePrisma;
     constructor(usePrisma: PrismaService);
     createMessage(message: {
+        messageId: string;
         roomId: string;
         userId: string;
         peerId: string;

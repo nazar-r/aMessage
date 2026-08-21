@@ -24,7 +24,7 @@ export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection,
     createMessage(client: Socket, payload: {
         text: string;
         from?: string;
-        clientMessageId?: string;
+        clientMessageId: string;
     }): Promise<void>;
     updateUserMessage(client: Socket, payload: {
         messageId: string;

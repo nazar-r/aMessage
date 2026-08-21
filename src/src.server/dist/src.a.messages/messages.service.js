@@ -57,6 +57,7 @@ let MessagesService = class MessagesService {
             ]);
             return tx.message.create({
                 data: {
+                    messageId: message.messageId,
                     roomId: message.roomId,
                     userId: message.userId,
                     content: message.content,

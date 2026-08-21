@@ -199,49 +199,57 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     };
   }
 
-  @SubscribeMessage('newMessage')
-  async createMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { text: string; from?: string; clientMessageId?: string },
-  ) {
-    const roomId = client.data.roomId as string | undefined;
-    const user = client.data.user as JwtPayload | undefined;
-    const userId = this.chatsGatewayLogic.resolveUserId(user);
-    const tempMessageId = payload.clientMessageId ?? randomUUID();
-    const createdAt = new Date();
+ @SubscribeMessage('newMessage')
+async createMessage(
+  @ConnectedSocket() client: Socket,
+  @MessageBody() payload: { text: string; from?: string; clientMessageId: string },
+) {
+  const roomId = client.data.roomId as string | undefined;
+  const user = client.data.user as JwtPayload | undefined;
+  const userId = this.chatsGatewayLogic.resolveUserId(user);
 
-    this.server.to(roomId).emit('newMessage', {
-      userId,
-      messageId: tempMessageId,
-      text: payload.text,
-      time: createdAt,
-      pending: true,
-    });
-
-    const savedMessage = await this.messagesService.createMessage({
-      roomId,
-      userId,
-      peerId: client.data.peerId,
-      content: payload.text,
-    });
-
-    this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
-      await this.chatsGatewayLogic.formattingRedisData(
-        async () => {
-          this.server.to(roomId).emit('messageSaved', {
-            tempMessageId,
-            messageId: savedMessage.messageId,
-            userId: savedMessage.userId,
-            text: savedMessage.content,
-            time: savedMessage.createdAt,
-            pending: false,
-          });
-        },
-
-        'Failed to save message',
-      );
-    });
+  if (!roomId) {
+    throw new WsException('Room not found');
   }
+
+  if (!payload.clientMessageId) {
+    throw new WsException('Message ID not found');
+  }
+
+  const createdAt = new Date();
+
+  this.server.to(roomId).emit('newMessage', {
+    userId,
+    messageId: payload.clientMessageId,
+    text: payload.text,
+    time: createdAt,
+    pending: true,
+  });
+
+  const savedMessage = await this.messagesService.createMessage({
+    messageId: payload.clientMessageId,
+    roomId,
+    userId,
+    peerId: client.data.peerId,
+    content: payload.text,
+  });
+
+  this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
+    await this.chatsGatewayLogic.formattingRedisData(
+      async () => {
+        this.server.to(roomId).emit('messageSaved', {
+          messageId: savedMessage.messageId,
+          userId: savedMessage.userId,
+          text: savedMessage.content,
+          time: savedMessage.createdAt,
+          pending: false,
+        });
+      },
+
+      'Failed to save message',
+    );
+  });
+}
 
   @SubscribeMessage('messageUpdate')
   async updateUserMessage(
