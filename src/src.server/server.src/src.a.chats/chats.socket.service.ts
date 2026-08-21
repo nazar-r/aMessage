@@ -1,40 +1,26 @@
 import { randomUUID } from 'crypto';
-import { PrismaService } from '../src.b.prisma/prisma.service';
 import { Server, Socket } from 'socket.io';
-import { MessagesService } from '../src.a.messages/messages.service';
 import { ChatsGatewayLogic } from './chats.service';
-import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
-  SubscribeMessage,
-} from '@nestjs/websockets';
-import {
-  ConnectedSocket,
-  MessageBody,
-  WebSocketGateway,
-  WebSocketServer,
-  WsException,
-} from '@nestjs/websockets';
-import type {
-  E2EEPublicKeyPayload,
-  JwtPayload,
-} from '../src.extensions/extensions.types/types';
+import { MessagesService } from '../src.a.messages/messages.service';
+import { PrismaService } from '../src.b.prisma/prisma.service';
+import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
+import type { E2EEPublicKeyPayload, JwtPayload } from '../src.extensions/extensions.types/types';
 
 @WebSocketGateway({
   cors: {
-    origin: 'https://amessage.site',
+    origin: 'http://localhost:5174',
     credentials: true,
   },
 })
-export class ChatsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+
+export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly messagesService: MessagesService,
     private readonly chatsGatewayLogic: ChatsGatewayLogic,
+
     private readonly usePrisma: PrismaService,
-  ) {}
+  ) { }
 
   @WebSocketServer() server: Server;
 
@@ -46,30 +32,36 @@ export class ChatsGateway
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
     const peerId = payload.peerId;
+
+    if (!peerId) throw new WsException('Peer not found');
+
     const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
     const previousRoom = client.data.roomId as string | undefined;
 
-    if (previousRoom && previousRoom !== roomId) {
-      client.leave(previousRoom);
-    }
+    if (previousRoom && previousRoom !== roomId) client.leave(previousRoom);
 
     client.join(roomId);
-
     client.data.roomId = roomId;
     client.data.peerId = peerId;
 
-    const peerOnline =
-      await this.chatsGatewayLogic.checkUserOnlineStatus(peerId);
+    await this.chatsGatewayLogic.addWatchedRoom(userId, roomId);
+    await this.chatsGatewayLogic.addWatchedRoom(peerId, roomId);
 
     client.emit('userStatus', {
       userId: peerId,
-      status: peerOnline ? 'online' : 'offline',
+      status: (await this.chatsGatewayLogic.checkUserOnlineStatus(peerId)) ? 'online' : 'offline',
     });
 
-    client.to(roomId).emit('userStatus', {
-      userId,
-      status: 'online',
-    });
+    const candidateIds = [userId, peerId].filter(
+      (id, index, arr) => arr.indexOf(id) === index,
+    );
+    const onlineFlags = await Promise.all(
+      candidateIds.map((id) => this.chatsGatewayLogic.checkUserOnlineStatus(id)),
+    );
+
+    client.emit('usersOnline',
+      candidateIds.filter((_, i) => onlineFlags[i]),
+    );
 
     const messages = await this.messagesService.findMessagesByRoom(roomId, {
       take: 30,
@@ -97,10 +89,11 @@ export class ChatsGateway
     });
 
     if (myPublicKey?.pubKey) {
-      client.to(roomId).emit('e2ee:peerPublicKey', {
-        userId,
-        publicKey: myPublicKey.pubKey,
-      });
+      console.log('myPublicKey', myPublicKey),
+        client.to(roomId).emit('e2ee:peerPublicKey', {
+          userId,
+          publicKey: myPublicKey.pubKey,
+        });
     }
 
     const peerPublicKey = await this.usePrisma.user.findUnique({
@@ -119,7 +112,8 @@ export class ChatsGateway
       });
     }
 
-    client.to(roomId).emit('user-joined', { userId });
+    console.log('peerPublicKey', peerPublicKey),
+      client.to(roomId).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('messagesHistory')
@@ -129,9 +123,7 @@ export class ChatsGateway
   ) {
     const roomId = client.data.roomId as string | undefined;
 
-    if (!roomId) {
-      throw new WsException('Room not found');
-    }
+    if (!roomId) throw new WsException('Room not found');
 
     const messages = await this.messagesService.findMessagesByRoom(roomId, {
       take: 30,
@@ -156,9 +148,7 @@ export class ChatsGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: E2EEPublicKeyPayload,
   ) {
-    const publicKey =
-      this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
-
+    const publicKey = this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
 
@@ -174,12 +164,8 @@ export class ChatsGateway
     client.data.e2eePublicKey = publicKey;
 
     const roomId = client.data.roomId as string | undefined;
-
     if (roomId) {
-      client.to(roomId).emit('e2ee:peerPublicKey', {
-        userId,
-        publicKey,
-      });
+      client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
     }
   }
 
@@ -216,12 +202,7 @@ export class ChatsGateway
   @SubscribeMessage('newMessage')
   async createMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody()
-    payload: {
-      text: string;
-      from?: string;
-      clientMessageId?: string;
-    },
+    @MessageBody() payload: { text: string; from?: string; clientMessageId?: string },
   ) {
     const roomId = client.data.roomId as string | undefined;
     const user = client.data.user as JwtPayload | undefined;
@@ -256,6 +237,7 @@ export class ChatsGateway
             pending: false,
           });
         },
+
         'Failed to save message',
       );
     });
@@ -288,6 +270,7 @@ export class ChatsGateway
           content: payload.text,
         });
       },
+
       'Failed to update message',
     );
   }
@@ -318,6 +301,7 @@ export class ChatsGateway
           userId,
         );
       },
+
       'Failed to remove message',
     );
   }

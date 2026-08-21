@@ -14,10 +14,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatsGateway = void 0;
 const crypto_1 = require("crypto");
-const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const socket_io_1 = require("socket.io");
-const messages_service_1 = require("../src.a.messages/messages.service");
 const chats_service_1 = require("./chats.service");
+const messages_service_1 = require("../src.a.messages/messages.service");
+const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const websockets_1 = require("@nestjs/websockets");
 const websockets_2 = require("@nestjs/websockets");
 let ChatsGateway = class ChatsGateway {
@@ -30,23 +30,24 @@ let ChatsGateway = class ChatsGateway {
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
         const peerId = payload.peerId;
+        if (!peerId)
+            throw new websockets_2.WsException('Peer not found');
         const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
         const previousRoom = client.data.roomId;
-        if (previousRoom && previousRoom !== roomId) {
+        if (previousRoom && previousRoom !== roomId)
             client.leave(previousRoom);
-        }
         client.join(roomId);
         client.data.roomId = roomId;
         client.data.peerId = peerId;
-        const peerOnline = await this.chatsGatewayLogic.checkUserOnlineStatus(peerId);
+        await this.chatsGatewayLogic.addWatchedRoom(userId, roomId);
+        await this.chatsGatewayLogic.addWatchedRoom(peerId, roomId);
         client.emit('userStatus', {
             userId: peerId,
-            status: peerOnline ? 'online' : 'offline',
+            status: (await this.chatsGatewayLogic.checkUserOnlineStatus(peerId)) ? 'online' : 'offline',
         });
-        client.to(roomId).emit('userStatus', {
-            userId,
-            status: 'online',
-        });
+        const candidateIds = [userId, peerId].filter((id, index, arr) => arr.indexOf(id) === index);
+        const onlineFlags = await Promise.all(candidateIds.map((id) => this.chatsGatewayLogic.checkUserOnlineStatus(id)));
+        client.emit('usersOnline', candidateIds.filter((_, i) => onlineFlags[i]));
         const messages = await this.messagesService.findMessagesByRoom(roomId, {
             take: 30,
         });
@@ -69,10 +70,11 @@ let ChatsGateway = class ChatsGateway {
             },
         });
         if (myPublicKey?.pubKey) {
-            client.to(roomId).emit('e2ee:peerPublicKey', {
-                userId,
-                publicKey: myPublicKey.pubKey,
-            });
+            console.log('myPublicKey', myPublicKey),
+                client.to(roomId).emit('e2ee:peerPublicKey', {
+                    userId,
+                    publicKey: myPublicKey.pubKey,
+                });
         }
         const peerPublicKey = await this.usePrisma.user.findUnique({
             where: {
@@ -88,13 +90,13 @@ let ChatsGateway = class ChatsGateway {
                 publicKey: peerPublicKey.pubKey,
             });
         }
-        client.to(roomId).emit('user-joined', { userId });
+        console.log('peerPublicKey', peerPublicKey),
+            client.to(roomId).emit('user-joined', { userId });
     }
     async handleMessagesHistory(client, payload) {
         const roomId = client.data.roomId;
-        if (!roomId) {
+        if (!roomId)
             throw new websockets_2.WsException('Room not found');
-        }
         const messages = await this.messagesService.findMessagesByRoom(roomId, {
             take: 30,
             cursor: payload?.cursor ?? undefined,
@@ -125,10 +127,7 @@ let ChatsGateway = class ChatsGateway {
         client.data.e2eePublicKey = publicKey;
         const roomId = client.data.roomId;
         if (roomId) {
-            client.to(roomId).emit('e2ee:peerPublicKey', {
-                userId,
-                publicKey,
-            });
+            client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
         }
     }
     async requestPeerPublicKey(client) {
@@ -292,7 +291,7 @@ __decorate([
 exports.ChatsGateway = ChatsGateway = __decorate([
     (0, websockets_2.WebSocketGateway)({
         cors: {
-            origin: 'https://amessage.site',
+            origin: 'http://localhost:5174',
             credentials: true,
         },
     }),
