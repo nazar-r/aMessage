@@ -7,9 +7,9 @@ export declare class AuthController {
     githubOauth(): void;
     googleRedirect(req: Request, res: Response): Promise<void>;
     githubRedirect(req: Request, res: Response): Promise<void>;
-    checkLogin(req: Request): {
+    checkLogin(req: any): {
         isLoggedIn: boolean;
-        user: Express.User;
+        user: any;
     };
     health(): {
         status: string;

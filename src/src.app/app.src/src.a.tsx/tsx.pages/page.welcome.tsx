@@ -8,7 +8,7 @@ const WelcomePageContent = () => {
   const handleBegin = async () => {
     if (loading) return;
     setLoading(true);
-    
+
     const delay = () => new Promise(resolve => setTimeout(resolve, 300));
     const loginPath = "/login";
     const chatsPath = "/users";

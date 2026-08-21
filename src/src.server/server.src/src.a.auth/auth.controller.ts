@@ -1,5 +1,6 @@
 import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { AuthUser } from '../src.extensions/extensions.types/auth.types';
@@ -37,8 +38,8 @@ export class AuthController {
   }
 
   @Get('check')
-  @UseGuards(AuthGuard('jwt'))
-  checkLogin(@Req() req: Request) {
+  @UseGuards(JwtCheck)
+  checkLogin(@Req() req) {
     return { isLoggedIn: true, user: req.user };
   }
 

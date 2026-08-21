@@ -13,7 +13,6 @@ const UsersListPage = lazy(() => import('./tsx.pages/list.contacts'));
 const ChatsListPage = lazy(() => import('./tsx.pages/list.chats'));
 
 const withSuspense = (component: ReactElement) => <Suspense fallback={null}>{component}</Suspense>;
-
 const PrivateGate = () => {
   const { data, isLoading } = authentication();
 

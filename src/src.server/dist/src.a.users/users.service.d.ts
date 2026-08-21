@@ -8,15 +8,24 @@ export declare class UsersService {
     constructor(usePrisma: PrismaService, useRedis: RedisService);
     findOrCreateUser(profile: AuthUser): Promise<{
         name: string;
-        role: import("@prisma/client").$Enums.Role;
         userId: string;
         email: string | null;
         pubKey: string | null;
+        role: import("@prisma/client").$Enums.Role;
         userName: string;
         refreshToken: string | null;
         createdAt: Date;
     }>;
     findAllUsers(userId: string): Promise<ChosenUser[]>;
+    setUserPubKey(userId: string, userPubKey: string): import("@prisma/client").Prisma.Prisma__UserClient<{
+        userId: string;
+        email: string | null;
+        pubKey: string | null;
+        role: import("@prisma/client").$Enums.Role;
+        userName: string;
+        refreshToken: string | null;
+        createdAt: Date;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     setUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
         createdAt: Date;

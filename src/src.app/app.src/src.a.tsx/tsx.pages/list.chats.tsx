@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Menu } from "../tsx.items/items.menu/menu";
 import { Outlet, useNavigate } from "react-router-dom";
-// import { useChatAdapter } from "../../src.a.socket";
 import { useFetchingUserChats } from "../../src.b.extensions/getApi/use.get.list.of.chats";
 import { useAddUserAsContact } from "../../src.b.extensions/setApi/set.api.POST/use.add.contact";
 import { useRemoveUserContact } from "../../src.b.extensions/setApi/set.api.DELETE/use.remove.contact";
@@ -10,10 +9,8 @@ import { useRemoveUserChat } from "../../src.b.extensions/setApi/set.api.DELETE/
 const ChatsListContent = () => {
     const navigate = useNavigate();
     const { data: chats } = useFetchingUserChats();
-    console.log("chats", chats);
     const { mutate: mutateAddUserContact } = useAddUserAsContact();
     const { mutate: removeAddUserContact } = useRemoveUserContact();
-
     const { mutate: deleteUserChat } = useRemoveUserChat();
     const listRef = useRef<HTMLUListElement | null>(null);
 

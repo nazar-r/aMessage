@@ -1,7 +1,7 @@
-import { Server, Socket } from 'socket.io';
-import { ChatsGatewayLogic } from './chats.service';
-import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
+import { Server, Socket } from 'socket.io';
+import { MessagesService } from '../src.a.messages/messages.service';
+import { ChatsGatewayLogic } from './chats.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import type { E2EEPublicKeyPayload } from '../src.extensions/extensions.types/types';
 export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {

@@ -89,6 +89,33 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     async handleDisconnect(client) {
         await this.disconnectSocket(client);
     }
+    async connectSocket(client) {
+        try {
+            const user = client.data.user;
+            const userId = this.resolveUserId(user);
+            await this.redisAdapter.redisClient.sAdd('online-users', userId);
+            client.join(userId);
+        }
+        catch (error) {
+            this.logger.error(error);
+            client.disconnect(true);
+        }
+    }
+    async disconnectSocket(client) {
+        const user = client.data.user;
+        const userId = this.resolveUserId(user);
+        await this.redisAdapter.redisClient.sRem('online-users', userId);
+        const peerId = client.data.peerId;
+        if (!peerId)
+            return;
+        this.server.to(peerId).emit('userStatus', {
+            userId,
+            status: 'offline',
+        });
+    }
+    async checkUserOnlineStatus(userId) {
+        return this.redisAdapter.redisClient.sIsMember('online-users', userId);
+    }
     async formattingRedisData(action, errorMessage) {
         try {
             await action();
@@ -98,74 +125,50 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             throw new websockets_1.WsException(errorMessage);
         }
     }
-    async connectSocket(client) {
-        const connectUser = async () => {
-            const user = client.data.user;
-            const userId = this.resolveUserId(user);
-            const nextCount = await this.pinOnlineSocket(userId, client.id);
-            client.join(userId);
-            if (nextCount === 1) {
-                await this.pinUserStatusIntoServer(userId, 'online');
-            }
-        };
-        const disconnectUser = (error) => {
-            this.logger.error(error);
-            client.disconnect(true);
-        };
-        try {
-            await connectUser();
-        }
-        catch (error) {
-            disconnectUser(error);
-        }
-    }
-    async disconnectSocket(client) {
-        const userId = client.data.user?.sub;
-        this.logger.debug({
-            userId,
-            socketId: client.id,
-            sockets: await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId),
-        });
-        if (!userId)
-            return;
-        const nextCount = await this.unpinOnlineSocket(userId, client.id);
-        this.logger.debug({
-            userId,
-            nextCount,
-        });
-        if (nextCount === 0) {
-            await this.pinUserStatusIntoServer(userId, 'offline');
-        }
-    }
     async ensureRoomExists(roomId, userId, peerId) {
         const existsKey = `room:exists:${roomId}`;
         const lockKey = `room:lock:${roomId}`;
         const cached = await this.redisAdapter.redisClient.get(existsKey);
-        if (cached)
+        if (cached) {
             return;
+        }
         const lock = await this.redisAdapter.redisClient.set(lockKey, '1', {
             NX: true,
             EX: 5,
         });
-        if (!lock)
+        if (!lock) {
             return;
+        }
         try {
             const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
-            if (cachedAgain)
+            if (cachedAgain) {
                 return;
+            }
             await this.usePrisma.$transaction(async (tx) => {
                 const existingRoom = await tx.room.findUnique({
-                    where: { roomId },
-                    select: { roomId: true },
+                    where: {
+                        roomId,
+                    },
+                    select: {
+                        roomId: true,
+                    },
                 });
                 if (!existingRoom) {
                     await tx.room.create({
-                        data: { roomId },
+                        data: {
+                            roomId,
+                        },
                     });
                     await tx.roomUser.createMany({
                         data: [
-                            { roomId, userId },
-                            { roomId, userId: peerId },
+                            {
+                                roomId,
+                                userId,
+                            },
+                            {
+                                roomId,
+                                userId: peerId,
+                            },
                         ],
                         skipDuplicates: true,
                     });
@@ -177,38 +180,6 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             await this.redisAdapter.redisClient.del(lockKey);
         }
     }
-    async pinOnlineSocket(userId, socketId) {
-        const key = ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId;
-        await this.redisAdapter.redisClient.sAdd(key, socketId);
-        return (await this.redisAdapter.redisClient.sCard(key));
-    }
-    async unpinOnlineSocket(userId, socketId) {
-        const key = ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId;
-        await this.redisAdapter.redisClient.sRem(key, socketId);
-        const count = (await this.redisAdapter.redisClient.sCard(key));
-        count === 0 &&
-            await this.redisAdapter.redisClient.del(key);
-        return count;
-    }
-    async checkUserOnlineStatus(userId) {
-        const count = (await this.redisAdapter.redisClient.sCard(ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX + userId));
-        return count > 0;
-    }
-    async addWatchedRoom(userId, roomId) {
-        await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic_1.WATCHED_ROOMS_PREFIX + userId, roomId);
-    }
-    async getWatchedRooms(userId) {
-        return (await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.WATCHED_ROOMS_PREFIX + userId));
-    }
-    async pinUserStatusIntoServer(userId, status) {
-        const rooms = await this.getWatchedRooms(userId);
-        for (const roomId of rooms) {
-            this.server.to(roomId).emit('userStatus', {
-                userId,
-                status,
-            });
-        }
-    }
     async getPublicKey(userId) {
         return (await this.redisAdapter.redisClient.get(ChatsGatewayLogic_1.PUBLIC_KEY_PREFIX + userId));
     }
@@ -217,8 +188,9 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     }
     normalizePublicKey(publicKey) {
         const normalized = publicKey?.trim();
-        if (!normalized)
+        if (!normalized) {
             throw new websockets_1.WsException('Invalid public key');
+        }
         const decoded = Buffer.from(normalized, 'base64');
         if (decoded.length !== 32) {
             throw new websockets_1.WsException('Invalid public key length');
@@ -227,8 +199,9 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     }
     resolveUserId(payload) {
         const userId = payload?.sub;
-        if (!userId)
+        if (!userId) {
             throw new websockets_1.WsException('User not found');
+        }
         return userId;
     }
     signRoomId(userA, userB) {
@@ -236,7 +209,9 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
     }
     setDataIntoRedis(roomId, task) {
         const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
-        const current = previous.catch(() => undefined).then(task);
+        const current = previous
+            .catch(() => undefined)
+            .then(task);
         const tracked = current.then(() => undefined, () => undefined);
         this.roomMessageSaveChains.set(roomId, tracked);
         void tracked.finally(() => {
@@ -248,8 +223,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
 };
 exports.ChatsGatewayLogic = ChatsGatewayLogic;
 ChatsGatewayLogic.PUBLIC_KEY_PREFIX = 'chat:e2ee:pubkey:';
-ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
-ChatsGatewayLogic.WATCHED_ROOMS_PREFIX = 'chat:watched-rooms:';
+ChatsGatewayLogic.ONLINE_USERS_KEY = 'online-users';
 exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,

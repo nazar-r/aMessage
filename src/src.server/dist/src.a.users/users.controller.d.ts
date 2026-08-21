@@ -3,6 +3,15 @@ export declare class UsersController {
     private usersService;
     constructor(usersService: UsersService);
     loadUsers(req: any): Promise<import("../src.extensions/extensions.types/types").ChosenUser[]>;
+    setKey(req: any): import("@prisma/client").Prisma.Prisma__UserClient<{
+        role: import("@prisma/client").$Enums.Role;
+        userId: string;
+        email: string | null;
+        pubKey: string | null;
+        userName: string;
+        refreshToken: string | null;
+        createdAt: Date;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     setUserContact(req: any, contactId: string): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
         createdAt: Date;

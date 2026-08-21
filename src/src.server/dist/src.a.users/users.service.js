@@ -61,6 +61,14 @@ let UsersService = class UsersService {
         await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 30);
         return chosenUsers;
     }
+    setUserPubKey(userId, userPubKey) {
+        return this.usePrisma.user.update({
+            where: { userId },
+            data: {
+                pubKey: userPubKey,
+            },
+        });
+    }
     setUserContact(userContact) {
         return this.usePrisma.contact.upsert({
             where: {

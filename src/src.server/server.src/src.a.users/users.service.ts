@@ -40,7 +40,7 @@ export class UsersService {
       return JSON.parse(cachedUsers) as ChosenUser[];
     }
 
-const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
+    const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
   SELECT
     u."userId",
     u."userName",
@@ -60,6 +60,14 @@ const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
     return chosenUsers;
   }
 
+  setUserPubKey(userId: string, userPubKey: string) {
+    return this.usePrisma.user.update({
+      where: { userId },
+      data: {
+        pubKey: userPubKey,
+      },
+    });
+  }
   setUserContact(userContact: UserContact) {
     return this.usePrisma.contact.upsert({
       where: {

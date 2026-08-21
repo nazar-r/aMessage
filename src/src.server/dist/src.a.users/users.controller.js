@@ -25,6 +25,11 @@ let UsersController = class UsersController {
         return this.usersService.findAllUsers(userId);
     }
     ;
+    setKey(req) {
+        const userId = req.user.sub;
+        const userPubKey = req.body.publicKey;
+        return this.usersService.setUserPubKey(userId, userPubKey);
+    }
     setUserContact(req, contactId) {
         const userContact = {
             userId: req.user.sub,
@@ -49,6 +54,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "loadUsers", null);
+__decorate([
+    (0, common_1.Patch)('e2ee-pubkey'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "setKey", null);
 __decorate([
     (0, common_1.Patch)('contacts/:id'),
     __param(0, (0, common_1.Req)()),
