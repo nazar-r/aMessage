@@ -38,15 +38,11 @@ let ChatsGateway = class ChatsGateway {
         client.join(roomId);
         client.data.roomId = roomId;
         client.data.peerId = peerId;
-        await this.chatsGatewayLogic.addWatchedRoom(userId, roomId);
-        await this.chatsGatewayLogic.addWatchedRoom(peerId, roomId);
+        const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
         client.emit('userStatus', {
             userId: peerId,
-            status: (await this.chatsGatewayLogic.checkUserOnlineStatus(peerId)) ? 'online' : 'offline',
+            status: onlineUsers.includes(peerId) ? 'online' : 'offline',
         });
-        const candidateIds = [userId, peerId].filter((id, index, arr) => arr.indexOf(id) === index);
-        const onlineFlags = await Promise.all(candidateIds.map((id) => this.chatsGatewayLogic.checkUserOnlineStatus(id)));
-        client.emit('usersOnline', candidateIds.filter((_, i) => onlineFlags[i]));
         const messages = await this.messagesService.findMessagesByRoom(roomId, {
             take: 30,
         });
@@ -92,75 +88,10 @@ let ChatsGateway = class ChatsGateway {
         console.log('peerPublicKey', peerPublicKey),
             client.to(roomId).emit('user-joined', { userId });
     }
-    async handleMessagesHistory(client, payload) {
-        const roomId = client.data.roomId;
-        if (!roomId)
-            throw new websockets_2.WsException('Room not found');
-        const messages = await this.messagesService.findMessagesByRoom(roomId, {
-            take: 30,
-            cursor: payload?.cursor ?? undefined,
-        });
-        const orderedMessages = messages.reverse();
-        client.emit('messagesHistory', {
-            messages: orderedMessages.map((msg) => ({
-                userId: msg.userId,
-                messageId: msg.messageId,
-                text: msg.content,
-                createdAt: msg.createdAt,
-            })),
-            nextCursor: orderedMessages[0]?.messageId ?? null,
-        });
-    }
-    async setPublicKey(client, payload) {
-        const publicKey = this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
-        const user = client.data.user;
-        const userId = this.chatsGatewayLogic.resolveUserId(user);
-        await this.usePrisma.user.update({
-            where: {
-                userId,
-            },
-            data: {
-                pubKey: publicKey,
-            },
-        });
-        client.data.e2eePublicKey = publicKey;
-        const roomId = client.data.roomId;
-        if (roomId) {
-            client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
-        }
-    }
-    async requestPeerPublicKey(client) {
-        const peerId = client.data.peerId;
-        if (!peerId) {
-            throw new websockets_2.WsException('Peer not found');
-        }
-        const peerPublicKey = await this.usePrisma.user.findUnique({
-            where: {
-                userId: peerId,
-            },
-            select: {
-                pubKey: true,
-            },
-        });
-        client.emit('e2ee:peerPublicKey', {
-            userId: peerId,
-            publicKey: peerPublicKey?.pubKey ?? null,
-        });
-        return {
-            ok: true,
-            found: Boolean(peerPublicKey?.pubKey),
-        };
-    }
     async createMessage(client, payload) {
         const roomId = client.data.roomId;
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
-        if (!roomId) {
-            throw new websockets_2.WsException('Room not found');
-        }
-        if (!payload.clientMessageId) {
-            throw new websockets_2.WsException('Message ID not found');
-        }
         const createdAt = new Date();
         this.server.to(roomId).emit('newMessage', {
             userId,
@@ -246,29 +177,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatsGateway.prototype, "handleJoinRoom", null);
 __decorate([
-    (0, websockets_1.SubscribeMessage)('messagesHistory'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "handleMessagesHistory", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('e2ee:publicKey'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "setPublicKey", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('e2ee:requestPeerPublicKey'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "requestPeerPublicKey", null);
-__decorate([
     (0, websockets_1.SubscribeMessage)('newMessage'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
     __param(1, (0, websockets_2.MessageBody)()),
@@ -295,7 +203,6 @@ __decorate([
 exports.ChatsGateway = ChatsGateway = __decorate([
     (0, websockets_2.WebSocketGateway)({
         cors: {
-            origin: 'http://localhost:5174',
             credentials: true,
         },
     }),

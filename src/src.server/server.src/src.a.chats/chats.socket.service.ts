@@ -1,15 +1,13 @@
-import { randomUUID } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import { ChatsGatewayLogic } from './chats.service';
 import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
 import { ConnectedSocket, MessageBody, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
-import type { E2EEPublicKeyPayload, JwtPayload } from '../src.extensions/extensions.types/types';
+import type { JwtPayload } from '../src.extensions/extensions.types/types';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:5174',
     credentials: true,
   },
 })
@@ -44,24 +42,12 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     client.data.roomId = roomId;
     client.data.peerId = peerId;
 
-    await this.chatsGatewayLogic.addWatchedRoom(userId, roomId);
-    await this.chatsGatewayLogic.addWatchedRoom(peerId, roomId);
+    const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
 
     client.emit('userStatus', {
       userId: peerId,
-      status: (await this.chatsGatewayLogic.checkUserOnlineStatus(peerId)) ? 'online' : 'offline',
+      status: onlineUsers.includes(peerId) ? 'online' : 'offline',
     });
-
-    const candidateIds = [userId, peerId].filter(
-      (id, index, arr) => arr.indexOf(id) === index,
-    );
-    const onlineFlags = await Promise.all(
-      candidateIds.map((id) => this.chatsGatewayLogic.checkUserOnlineStatus(id)),
-    );
-
-    client.emit('usersOnline',
-      candidateIds.filter((_, i) => onlineFlags[i]),
-    );
 
     const messages = await this.messagesService.findMessagesByRoom(roomId, {
       take: 30,
@@ -116,140 +102,48 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       client.to(roomId).emit('user-joined', { userId });
   }
 
-  @SubscribeMessage('messagesHistory')
-  async handleMessagesHistory(
+  @SubscribeMessage('newMessage')
+  async createMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { cursor?: string | null },
+    @MessageBody() payload: { text: string; from?: string; clientMessageId: string },
   ) {
     const roomId = client.data.roomId as string | undefined;
-
-    if (!roomId) throw new WsException('Room not found');
-
-    const messages = await this.messagesService.findMessagesByRoom(roomId, {
-      take: 30,
-      cursor: payload?.cursor ?? undefined,
-    });
-
-    const orderedMessages = messages.reverse();
-
-    client.emit('messagesHistory', {
-      messages: orderedMessages.map((msg) => ({
-        userId: msg.userId,
-        messageId: msg.messageId,
-        text: msg.content,
-        createdAt: msg.createdAt,
-      })),
-      nextCursor: orderedMessages[0]?.messageId ?? null,
-    });
-  }
-
-  @SubscribeMessage('e2ee:publicKey')
-  async setPublicKey(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: E2EEPublicKeyPayload,
-  ) {
-    const publicKey = this.chatsGatewayLogic.normalizePublicKey(payload?.publicKey);
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.chatsGatewayLogic.resolveUserId(user);
+    const createdAt = new Date();
 
-    await this.usePrisma.user.update({
-      where: {
-        userId,
-      },
-      data: {
-        pubKey: publicKey,
-      },
+    this.server.to(roomId).emit('newMessage', {
+      userId,
+      messageId: payload.clientMessageId,
+      text: payload.text,
+      time: createdAt,
+      pending: true,
     });
 
-    client.data.e2eePublicKey = publicKey;
-
-    const roomId = client.data.roomId as string | undefined;
-    if (roomId) {
-      client.to(roomId).emit('e2ee:peerPublicKey', { userId, publicKey });
-    }
-  }
-
-  @SubscribeMessage('e2ee:requestPeerPublicKey')
-  async requestPeerPublicKey(
-    @ConnectedSocket() client: Socket,
-  ) {
-    const peerId = client.data.peerId as string | undefined;
-
-    if (!peerId) {
-      throw new WsException('Peer not found');
-    }
-
-    const peerPublicKey = await this.usePrisma.user.findUnique({
-      where: {
-        userId: peerId,
-      },
-      select: {
-        pubKey: true,
-      },
+    const savedMessage = await this.messagesService.createMessage({
+      messageId: payload.clientMessageId,
+      roomId,
+      userId,
+      peerId: client.data.peerId,
+      content: payload.text,
     });
 
-    client.emit('e2ee:peerPublicKey', {
-      userId: peerId,
-      publicKey: peerPublicKey?.pubKey ?? null,
+    this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
+      await this.chatsGatewayLogic.formattingRedisData(
+        async () => {
+          this.server.to(roomId).emit('messageSaved', {
+            messageId: savedMessage.messageId,
+            userId: savedMessage.userId,
+            text: savedMessage.content,
+            time: savedMessage.createdAt,
+            pending: false,
+          });
+        },
+
+        'Failed to save message',
+      );
     });
-
-    return {
-      ok: true,
-      found: Boolean(peerPublicKey?.pubKey),
-    };
   }
-
- @SubscribeMessage('newMessage')
-async createMessage(
-  @ConnectedSocket() client: Socket,
-  @MessageBody() payload: { text: string; from?: string; clientMessageId: string },
-) {
-  const roomId = client.data.roomId as string | undefined;
-  const user = client.data.user as JwtPayload | undefined;
-  const userId = this.chatsGatewayLogic.resolveUserId(user);
-
-  if (!roomId) {
-    throw new WsException('Room not found');
-  }
-
-  if (!payload.clientMessageId) {
-    throw new WsException('Message ID not found');
-  }
-
-  const createdAt = new Date();
-
-  this.server.to(roomId).emit('newMessage', {
-    userId,
-    messageId: payload.clientMessageId,
-    text: payload.text,
-    time: createdAt,
-    pending: true,
-  });
-
-  const savedMessage = await this.messagesService.createMessage({
-    messageId: payload.clientMessageId,
-    roomId,
-    userId,
-    peerId: client.data.peerId,
-    content: payload.text,
-  });
-
-  this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
-    await this.chatsGatewayLogic.formattingRedisData(
-      async () => {
-        this.server.to(roomId).emit('messageSaved', {
-          messageId: savedMessage.messageId,
-          userId: savedMessage.userId,
-          text: savedMessage.content,
-          time: savedMessage.createdAt,
-          pending: false,
-        });
-      },
-
-      'Failed to save message',
-    );
-  });
-}
 
   @SubscribeMessage('messageUpdate')
   async updateUserMessage(

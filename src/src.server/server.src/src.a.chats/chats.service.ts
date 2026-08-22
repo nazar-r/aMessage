@@ -13,9 +13,7 @@ export class ChatsGatewayLogic {
   private readonly logger = new Logger(ChatsGatewayLogic.name);
   private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
 
-  private static readonly PUBLIC_KEY_PREFIX = 'chat:e2ee:pubkey:';
-  private static readonly ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
-  private static readonly WATCHED_ROOMS_PREFIX = 'chat:watched-rooms:';
+  private static readonly ONLINE_USERS_KEY = 'chat:online:users';
 
   private server: Server;
 
@@ -85,13 +83,12 @@ export class ChatsGatewayLogic {
     const connectUser = async () => {
       const user = client.data.user as JwtPayload | undefined;
       const userId = this.resolveUserId(user);
-      const nextCount = await this.pinOnlineSocket(userId, client.id);
 
       client.join(userId);
+      client.data.userId = userId;
 
-      if (nextCount === 1) {
-        await this.pinUserStatusIntoServer(userId, 'online');
-      }
+      await this.addOnlineUser(userId);
+      this.notifyUserOnline(userId);
     };
 
     const disconnectUser = (error: unknown) => {
@@ -107,143 +104,34 @@ export class ChatsGatewayLogic {
   }
 
   async disconnectSocket(client: Socket) {
-    const userId = client.data.user?.sub;
-
-    this.logger.debug({
-      userId,
-      socketId: client.id,
-      sockets: await this.redisAdapter.redisClient.sMembers(
-        ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
-      ),
-    });
+    const userId = client.data.userId as string | undefined;
 
     if (!userId) return;
 
-    const nextCount = await this.unpinOnlineSocket(userId, client.id);
-
-    this.logger.debug({
-      userId,
-      nextCount,
-    });
-
-    if (nextCount === 0) {
-      await this.pinUserStatusIntoServer(userId, 'offline');
-    }
-  }
-  async ensureRoomExists(roomId: string, userId: string, peerId: string) {
-    const existsKey = `room:exists:${roomId}`;
-    const lockKey = `room:lock:${roomId}`;
-
-    const cached = await this.redisAdapter.redisClient.get(existsKey);
-    if (cached) return;
-
-    const lock = await this.redisAdapter.redisClient.set(lockKey, '1', {
-      NX: true,
-      EX: 5,
-    });
-
-    if (!lock) return;
-
-    try {
-      const cachedAgain = await this.redisAdapter.redisClient.get(existsKey);
-      if (cachedAgain) return;
-
-      await this.usePrisma.$transaction(async (tx) => {
-        const existingRoom = await tx.room.findUnique({
-          where: { roomId },
-          select: { roomId: true },
-        });
-
-        if (!existingRoom) {
-          await tx.room.create({
-            data: { roomId },
-          });
-
-          await tx.roomUser.createMany({
-            data: [
-              { roomId, userId },
-              { roomId, userId: peerId },
-            ],
-            skipDuplicates: true,
-          });
-        }
-      });
-
-      await this.redisAdapter.redisClient.set(existsKey, '1');
-    } finally {
-      await this.redisAdapter.redisClient.del(lockKey);
-    }
+    await this.removeOnlineUser(userId);
+    this.notifyUserOffline(userId);
   }
 
-  async pinOnlineSocket(userId: string, socketId: string): Promise<number> {
-    const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
-    await this.redisAdapter.redisClient.sAdd(key, socketId);
-
-    return (await this.redisAdapter.redisClient.sCard(key)) as number;
+  async addOnlineUser(userId: string): Promise<void> {
+    await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic.ONLINE_USERS_KEY, userId);
   }
 
-  async unpinOnlineSocket(userId: string, socketId: string): Promise<number> {
-    const key = ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId;
-    await this.redisAdapter.redisClient.sRem(key, socketId);
-
-    const count = (await this.redisAdapter.redisClient.sCard(key)) as number;
-    count === 0 &&
-      await this.redisAdapter.redisClient.del(key);
-
-    return count;
+  async removeOnlineUser(userId: string): Promise<void> {
+    await this.redisAdapter.redisClient.sRem(ChatsGatewayLogic.ONLINE_USERS_KEY, userId);
   }
 
-  async checkUserOnlineStatus(userId: string): Promise<boolean> {
-    const count = (await this.redisAdapter.redisClient.sCard(
-      ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX + userId,
-    )) as number;
-
-    return count > 0;
-  }
-
-  async addWatchedRoom(userId: string, roomId: string): Promise<void> {
-    await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId, roomId);
-  }
-
-  async getWatchedRooms(userId: string): Promise<string[]> {
+  async getOnlineUsers(): Promise<string[]> {
     return (await this.redisAdapter.redisClient.sMembers(
-      ChatsGatewayLogic.WATCHED_ROOMS_PREFIX + userId,
+      ChatsGatewayLogic.ONLINE_USERS_KEY,
     )) as string[];
   }
 
-  async pinUserStatusIntoServer(userId: string, status: UserStatus): Promise<void> {
-    const rooms = await this.getWatchedRooms(userId);
-
-    for (const roomId of rooms) {
-      this.server.to(roomId).emit('userStatus', {
-        userId,
-        status,
-      });
-    }
+  notifyUserOnline(userId: string): void {
+    this.server.emit('userStatus', { userId, status: 'online' as UserStatus });
   }
 
-  async getPublicKey(userId: string): Promise<string | undefined> {
-    return (await this.redisAdapter.redisClient.get(
-      ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId,
-    )) as string | undefined;
-  }
-
-  async setPublicKeyIntoRedis(userId: string, publicKey: string): Promise<void> {
-    await this.redisAdapter.redisClient.set(ChatsGatewayLogic.PUBLIC_KEY_PREFIX + userId, publicKey);
-  }
-
-  normalizePublicKey(publicKey: string): string {
-    const normalized = publicKey?.trim();
-
-    if (!normalized) throw new WsException('Invalid public key');
-
-    const decoded = Buffer.from(normalized, 'base64');
-
-    if (decoded.length !== 32) {
-      throw new WsException('Invalid public key length');
-    }
-
-    return normalized;
+  notifyUserOffline(userId: string): void {
+    this.server.emit('userStatus', { userId, status: 'offline' as UserStatus });
   }
 
   resolveUserId(payload: JwtPayload | undefined): string {
