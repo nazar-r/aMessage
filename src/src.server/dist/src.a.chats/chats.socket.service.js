@@ -65,11 +65,10 @@ let ChatsGateway = class ChatsGateway {
             },
         });
         if (myPublicKey?.pubKey) {
-            console.log('myPublicKey', myPublicKey),
-                client.to(roomId).emit('e2ee:peerPublicKey', {
-                    userId,
-                    publicKey: myPublicKey.pubKey,
-                });
+            client.to(roomId).emit('e2ee:peerPublicKey', {
+                userId,
+                publicKey: myPublicKey.pubKey,
+            });
         }
         const peerPublicKey = await this.usePrisma.user.findUnique({
             where: {
@@ -85,8 +84,7 @@ let ChatsGateway = class ChatsGateway {
                 publicKey: peerPublicKey.pubKey,
             });
         }
-        console.log('peerPublicKey', peerPublicKey),
-            client.to(roomId).emit('user-joined', { userId });
+        client.to(roomId).emit('user-joined', { userId });
     }
     async createMessage(client, payload) {
         const roomId = client.data.roomId;
