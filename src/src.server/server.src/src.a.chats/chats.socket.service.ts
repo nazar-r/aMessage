@@ -75,7 +75,6 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     });
 
     if (myPublicKey?.pubKey) {
-   
         client.to(roomId).emit('e2ee:peerPublicKey', {
           userId,
           publicKey: myPublicKey.pubKey,

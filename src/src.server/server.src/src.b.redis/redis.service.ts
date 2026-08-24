@@ -14,7 +14,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
         await this.client.connect();
 
-        this.logger.log('Redis connected');
+        await this.client.flushAll();
+
+        this.logger.log('Redis connected and all Redis data cleared');
     }
 
     getClient(): RedisClientType {
@@ -32,7 +34,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     setRedisData(key: string, value: string, ttlSeconds?: number) {
-        if (ttlSeconds !== undefined) return this.client.set(key, value, { EX: ttlSeconds });
+        if (ttlSeconds !== undefined) {
+            return this.client.set(key, value, { EX: ttlSeconds });
+        }
+
         return this.client.set(key, value);
     }
 
