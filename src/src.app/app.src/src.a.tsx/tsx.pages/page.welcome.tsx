@@ -9,7 +9,7 @@ const WelcomePageContent = () => {
     if (loading) return;
     setLoading(true);
 
-    const delay = () => new Promise(resolve => setTimeout(resolve, 300));
+    const delay = () => new Promise(resolve => setTimeout(resolve, 0));
     const loginPath = "/login";
     const chatsPath = "/users";
 
