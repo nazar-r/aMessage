@@ -75,10 +75,10 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     });
 
     if (myPublicKey?.pubKey) {
-      client.to(roomId).emit('e2ee:peerPublicKey', {
-        userId,
-        publicKey: myPublicKey.pubKey,
-      });
+        client.to(roomId).emit('e2ee:peerPublicKey', {
+          userId,
+          publicKey: myPublicKey.pubKey,
+        });
     }
 
     const peerPublicKey = await this.usePrisma.user.findUnique({
@@ -97,16 +97,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       });
     }
 
-    client.to(roomId).emit('user-joined', { userId });
-  }
-
-  @SubscribeMessage('getUsersOnline')
-  async handleGetUsersOnline(
-    @ConnectedSocket() client: Socket,
-  ) {
-    const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
-
-    client.emit('usersOnline', onlineUsers);
+      client.to(roomId).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('newMessage')
