@@ -79,6 +79,8 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             }
         });
         await this.redisAdapter.initialize();
+        await this.redisAdapter.redisClient.flushDb();
+        this.logger.log('Redis database completely cleared on server startup');
         this.server.adapter((0, redis_adapter_1.createAdapter)(this.redisAdapter.pubClient, this.redisAdapter.subClient));
     }
     async handleConnection(client) {

@@ -17,7 +17,7 @@ export class ChatsGatewayLogic {
   constructor(
     private readonly jwtService: JwtService,
     private readonly redisAdapter: ChatRedisAdapter,
-  ) {}
+  ) { }
 
   async afterInit(server: Server) {
     this.server = server;
@@ -46,6 +46,10 @@ export class ChatsGatewayLogic {
     });
 
     await this.redisAdapter.initialize();
+
+    await this.redisAdapter.redisClient.flushDb();
+
+    this.logger.log('Redis database completely cleared on server startup');
 
     this.server.adapter(
       createAdapter(
