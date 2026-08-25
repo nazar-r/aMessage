@@ -79,15 +79,12 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
             }
         });
         await this.redisAdapter.initialize();
-        console.log('[ONLINE_USERS] afterInit', await this.getOnlineUsers());
         this.server.adapter((0, redis_adapter_1.createAdapter)(this.redisAdapter.pubClient, this.redisAdapter.subClient));
     }
     async handleConnection(client) {
-        console.log('[ONLINE_USERS] handleConnection', client.id);
         await this.connectSocket(client);
     }
     async handleDisconnect(client) {
-        console.log('[ONLINE_USERS] handleDisconnect', client.id, client.data.userId);
         await this.disconnectSocket(client);
     }
     async formattingRedisData(action, errorMessage) {
@@ -103,13 +100,10 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         const connectUser = async () => {
             const user = client.data.user;
             const userId = this.resolveUserId(user);
-            console.log('[ONLINE_USERS] connect BEFORE', userId, await this.getOnlineUsers());
             client.join(userId);
             client.data.userId = userId;
-            await this.addOnlineUser(userId);
-            console.log('[ONLINE_USERS] connect AFTER', userId, await this.getOnlineUsers());
+            await this.addOnlineUser(userId, client.id);
             const onlineUsers = await this.getOnlineUsers();
-            console.log('[ONLINE_USERS] emit', onlineUsers);
             this.server.emit('usersOnline', onlineUsers);
         };
         const disconnectUser = (error) => {
@@ -127,27 +121,47 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         const userId = client.data.userId;
         if (!userId)
             return;
-        console.log('[ONLINE_USERS] disconnect BEFORE', userId, await this.getOnlineUsers());
-        await this.removeOnlineUser(userId);
-        console.log('[ONLINE_USERS] disconnect AFTER', userId, await this.getOnlineUsers());
+        await this.removeOnlineUser(userId, client.id);
         const onlineUsers = await this.getOnlineUsers();
-        console.log('[ONLINE_USERS] emit', onlineUsers);
         this.server.emit('usersOnline', onlineUsers);
     }
-    async addOnlineUser(userId) {
-        console.log('[ONLINE_USERS] SADD BEFORE', userId);
-        const result = await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId);
-        console.log('[ONLINE_USERS] SADD AFTER', userId, result);
+    getOnlineSocketsKey(userId) {
+        return `${ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX}${userId}`;
     }
-    async removeOnlineUser(userId) {
-        console.log('[ONLINE_USERS] SREM BEFORE', userId);
-        const result = await this.redisAdapter.redisClient.sRem(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId);
-        console.log('[ONLINE_USERS] SREM AFTER', userId, result);
+    async addOnlineUser(userId, socketId) {
+        const socketsKey = this.getOnlineSocketsKey(userId);
+        await this.redisAdapter.redisClient
+            .multi()
+            .sAdd(socketsKey, socketId)
+            .sAdd(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId)
+            .exec();
+    }
+    async removeOnlineUser(userId, socketId) {
+        const socketsKey = this.getOnlineSocketsKey(userId);
+        await this.redisAdapter.redisClient.eval(`
+        redis.call('SREM', KEYS[1], ARGV[1])
+
+        local socketsCount = redis.call('SCARD', KEYS[1])
+
+        if socketsCount == 0 then
+          redis.call('SREM', KEYS[2], ARGV[2])
+          redis.call('DEL', KEYS[1])
+        end
+
+        return socketsCount
+      `, {
+            keys: [
+                socketsKey,
+                ChatsGatewayLogic_1.ONLINE_USERS_KEY,
+            ],
+            arguments: [
+                socketId,
+                userId,
+            ],
+        });
     }
     async getOnlineUsers() {
-        const users = (await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_USERS_KEY));
-        console.log('[ONLINE_USERS] SMEMBERS', users);
-        return users;
+        return (await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_USERS_KEY));
     }
     resolveUserId(payload) {
         const userId = payload?.sub;
@@ -170,6 +184,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
 };
 exports.ChatsGatewayLogic = ChatsGatewayLogic;
 ChatsGatewayLogic.ONLINE_USERS_KEY = 'chat:online:users';
+ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
 exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,

@@ -11,7 +11,10 @@ import * as cookie from 'cookie';
 export class ChatsGatewayLogic {
   private readonly logger = new Logger(ChatsGatewayLogic.name);
   private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
+
   private static readonly ONLINE_USERS_KEY = 'chat:online:users';
+  private static readonly ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
+
   private server: Server;
 
   constructor(
@@ -47,8 +50,6 @@ export class ChatsGatewayLogic {
 
     await this.redisAdapter.initialize();
 
-    console.log('[ONLINE_USERS] afterInit', await this.getOnlineUsers());
-
     this.server.adapter(
       createAdapter(
         this.redisAdapter.pubClient,
@@ -58,18 +59,10 @@ export class ChatsGatewayLogic {
   }
 
   async handleConnection(client: Socket) {
-    console.log('[ONLINE_USERS] handleConnection', client.id);
-
     await this.connectSocket(client);
   }
 
   async handleDisconnect(client: Socket) {
-    console.log(
-      '[ONLINE_USERS] handleDisconnect',
-      client.id,
-      client.data.userId,
-    );
-
     await this.disconnectSocket(client);
   }
 
@@ -90,26 +83,12 @@ export class ChatsGatewayLogic {
       const user = client.data.user as JwtPayload | undefined;
       const userId = this.resolveUserId(user);
 
-      console.log(
-        '[ONLINE_USERS] connect BEFORE',
-        userId,
-        await this.getOnlineUsers(),
-      );
-
       client.join(userId);
       client.data.userId = userId;
 
-      await this.addOnlineUser(userId);
-
-      console.log(
-        '[ONLINE_USERS] connect AFTER',
-        userId,
-        await this.getOnlineUsers(),
-      );
+      await this.addOnlineUser(userId, client.id);
 
       const onlineUsers = await this.getOnlineUsers();
-
-      console.log('[ONLINE_USERS] emit', onlineUsers);
 
       this.server.emit('usersOnline', onlineUsers);
     };
@@ -131,57 +110,63 @@ export class ChatsGatewayLogic {
 
     if (!userId) return;
 
-    console.log(
-      '[ONLINE_USERS] disconnect BEFORE',
-      userId,
-      await this.getOnlineUsers(),
-    );
-
-    await this.removeOnlineUser(userId);
-
-    console.log(
-      '[ONLINE_USERS] disconnect AFTER',
-      userId,
-      await this.getOnlineUsers(),
-    );
+    await this.removeOnlineUser(userId, client.id);
 
     const onlineUsers = await this.getOnlineUsers();
-
-    console.log('[ONLINE_USERS] emit', onlineUsers);
 
     this.server.emit('usersOnline', onlineUsers);
   }
 
-  async addOnlineUser(userId: string): Promise<void> {
-    console.log('[ONLINE_USERS] SADD BEFORE', userId);
-
-    const result = await this.redisAdapter.redisClient.sAdd(
-      ChatsGatewayLogic.ONLINE_USERS_KEY,
-      userId,
-    );
-
-    console.log('[ONLINE_USERS] SADD AFTER', userId, result);
+  private getOnlineSocketsKey(userId: string): string {
+    return `${ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX}${userId}`;
   }
 
-  async removeOnlineUser(userId: string): Promise<void> {
-    console.log('[ONLINE_USERS] SREM BEFORE', userId);
+  async addOnlineUser(userId: string, socketId: string): Promise<void> {
+    const socketsKey = this.getOnlineSocketsKey(userId);
 
-    const result = await this.redisAdapter.redisClient.sRem(
-      ChatsGatewayLogic.ONLINE_USERS_KEY,
-      userId,
+    await this.redisAdapter.redisClient
+      .multi()
+      .sAdd(socketsKey, socketId)
+      .sAdd(ChatsGatewayLogic.ONLINE_USERS_KEY, userId)
+      .exec();
+  }
+
+  async removeOnlineUser(
+    userId: string,
+    socketId: string,
+  ): Promise<void> {
+    const socketsKey = this.getOnlineSocketsKey(userId);
+
+    await this.redisAdapter.redisClient.eval(
+      `
+        redis.call('SREM', KEYS[1], ARGV[1])
+
+        local socketsCount = redis.call('SCARD', KEYS[1])
+
+        if socketsCount == 0 then
+          redis.call('SREM', KEYS[2], ARGV[2])
+          redis.call('DEL', KEYS[1])
+        end
+
+        return socketsCount
+      `,
+      {
+        keys: [
+          socketsKey,
+          ChatsGatewayLogic.ONLINE_USERS_KEY,
+        ],
+        arguments: [
+          socketId,
+          userId,
+        ],
+      },
     );
-
-    console.log('[ONLINE_USERS] SREM AFTER', userId, result);
   }
 
   async getOnlineUsers(): Promise<string[]> {
-    const users = (await this.redisAdapter.redisClient.sMembers(
+    return (await this.redisAdapter.redisClient.sMembers(
       ChatsGatewayLogic.ONLINE_USERS_KEY,
     )) as string[];
-
-    console.log('[ONLINE_USERS] SMEMBERS', users);
-
-    return users;
   }
 
   resolveUserId(payload: JwtPayload | undefined): string {

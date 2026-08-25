@@ -8,6 +8,7 @@ export declare class ChatsGatewayLogic {
     private readonly logger;
     private readonly roomMessageSaveChains;
     private static readonly ONLINE_USERS_KEY;
+    private static readonly ONLINE_SOCKETS_PREFIX;
     private server;
     constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter);
     afterInit(server: Server): Promise<void>;
@@ -16,8 +17,9 @@ export declare class ChatsGatewayLogic {
     formattingRedisData(action: () => Promise<void>, errorMessage: string): Promise<void>;
     connectSocket(client: Socket): Promise<void>;
     disconnectSocket(client: Socket): Promise<void>;
-    addOnlineUser(userId: string): Promise<void>;
-    removeOnlineUser(userId: string): Promise<void>;
+    private getOnlineSocketsKey;
+    addOnlineUser(userId: string, socketId: string): Promise<void>;
+    removeOnlineUser(userId: string, socketId: string): Promise<void>;
     getOnlineUsers(): Promise<string[]>;
     resolveUserId(payload: JwtPayload | undefined): string;
     signRoomId(userA: string, userB: string): string;
