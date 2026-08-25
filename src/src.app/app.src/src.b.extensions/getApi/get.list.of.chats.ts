@@ -14,6 +14,6 @@ export const fetchingUserChats = async () => {
     
     
     const data = await response.json();
-    console.log("FETCHING USER CHATS RESPONSE:", JSON.stringify(data, null, 2));
+    // console.log("FETCHING USER CHATS RESPONSE:", JSON.stringify(data, null, 2));
     return data;
 };  

@@ -100,7 +100,7 @@ export class ChatEncryptionService {
 
   decryptRoomText(wireText: string): string {
     if (!wireText.startsWith(ChatEncryptionService.E2EE_PREFIX)) return wireText;
-    if (!this.sharedKey) return "[No shared key]";
+    if (!this.sharedKey) return "[Encrypted message]";
 
     try {
       const payload = JSON.parse(

@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchingLoggedInUser } from "./get.logged.in.user.api";
-import type { MessagesData, ErrorResponse } from "../types";
+import type { ErrorResponse } from "../types";
 
 export const useFetchingLoggedInUser = () => {
-    return useQuery<MessagesData[], ErrorResponse>({
+    return useQuery<any[], ErrorResponse>({
         queryKey: ["userImage"],
         queryFn: fetchingLoggedInUser,
         staleTime: 1000 * 1,

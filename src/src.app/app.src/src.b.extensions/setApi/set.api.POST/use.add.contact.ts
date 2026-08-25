@@ -17,6 +17,14 @@ export const useAddUserAsContact = () => {
             : user
         )
       );
+
+      queryClient.setQueryData(["chats"], (prevChats: any[] = []) =>
+        prevChats.map((chat) =>
+          chat.userId === userContactId
+            ? { ...chat, isContact: true }
+            : chat
+        )
+      );
     },
 
     onError: (error) => {

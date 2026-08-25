@@ -1,29 +1,30 @@
-import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
-import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { ChatsGatewayLogic } from './chats.b.gateway';
+import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
-import { JwtPayload } from '../src.extensions/extensions.types/types';
-export declare class ChatsGatewayLogic {
-    private readonly jwtService;
-    private readonly redisAdapter;
+import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    private readonly messagesService;
+    private readonly chatsGatewayLogic;
     private readonly usePrisma;
-    private readonly logger;
-    private readonly roomMessageSaveChains;
-    private static readonly ONLINE_USERS_KEY;
-    private server;
-    constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter, usePrisma: PrismaService);
-    afterInit(server: Server): Promise<void>;
+    constructor(messagesService: MessagesService, chatsGatewayLogic: ChatsGatewayLogic, usePrisma: PrismaService);
+    server: Server;
+    handleJoinRoom(client: Socket, payload: {
+        peerId: string;
+    }): Promise<void>;
+    createMessage(client: Socket, payload: {
+        text: string;
+        from?: string;
+        clientMessageId: string;
+    }): Promise<void>;
+    updateUserMessage(client: Socket, payload: {
+        messageId: string;
+        text: string;
+    }): Promise<void>;
+    removeUserMessage(client: Socket, payload: {
+        messageId: string;
+    }): Promise<void>;
+    afterInit(): Promise<void>;
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): Promise<void>;
-    formattingRedisData(action: () => Promise<void>, errorMessage: string): Promise<void>;
-    connectSocket(client: Socket): Promise<void>;
-    disconnectSocket(client: Socket): Promise<void>;
-    addOnlineUser(userId: string): Promise<void>;
-    removeOnlineUser(userId: string): Promise<void>;
-    getOnlineUsers(): Promise<string[]>;
-    notifyUserOnline(userId: string): void;
-    notifyUserOffline(userId: string): void;
-    resolveUserId(payload: JwtPayload | undefined): string;
-    signRoomId(userA: string, userB: string): string;
-    setDataIntoRedis(roomId: string, task: () => Promise<void>): void;
 }

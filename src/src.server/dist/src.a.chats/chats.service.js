@@ -1,172 +1,211 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var ChatsGatewayLogic_1;
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatsGatewayLogic = void 0;
-const common_1 = require("@nestjs/common");
-const jwt_1 = require("@nestjs/jwt");
-const redis_adapter_1 = require("@socket.io/redis-adapter");
-const redis_adapter_2 = require("../src.b.redis/redis.adapter");
+exports.ChatsGateway = void 0;
+const socket_io_1 = require("socket.io");
+const chats_b_gateway_1 = require("./chats.b.gateway");
+const messages_service_1 = require("../src.a.messages/messages.service");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const websockets_1 = require("@nestjs/websockets");
-const cookie = __importStar(require("cookie"));
-let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
-    constructor(jwtService, redisAdapter, usePrisma) {
-        this.jwtService = jwtService;
-        this.redisAdapter = redisAdapter;
+const websockets_2 = require("@nestjs/websockets");
+let ChatsGateway = class ChatsGateway {
+    constructor(messagesService, chatsGatewayLogic, usePrisma) {
+        this.messagesService = messagesService;
+        this.chatsGatewayLogic = chatsGatewayLogic;
         this.usePrisma = usePrisma;
-        this.logger = new common_1.Logger(ChatsGatewayLogic_1.name);
-        this.roomMessageSaveChains = new Map();
     }
-    async afterInit(server) {
-        this.server = server;
-        this.server.use((client, next) => {
-            try {
-                const rawCookie = client.handshake.headers.cookie ?? '';
-                const cookies = cookie.parse(rawCookie);
-                const token = cookies['access_token'];
-                if (!token) {
-                    return next(new Error('Unauthorized'));
-                }
-                const payload = this.jwtService.verify(token, {
-                    secret: process.env.JWT_SECRET,
-                });
-                client.data.user = payload;
-                next();
-            }
-            catch (error) {
-                this.logger.error(error);
-                next(new Error('Unauthorized'));
-            }
+    async handleJoinRoom(client, payload) {
+        const user = client.data.user;
+        const userId = this.chatsGatewayLogic.resolveUserId(user);
+        const peerId = payload.peerId;
+        if (!peerId)
+            throw new websockets_2.WsException('Peer not found');
+        const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
+        const previousRoom = client.data.roomId;
+        if (previousRoom && previousRoom !== roomId)
+            client.leave(previousRoom);
+        client.join(roomId);
+        client.data.roomId = roomId;
+        client.data.peerId = peerId;
+        const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
+        client.emit('userStatus', {
+            userId: peerId,
+            status: onlineUsers.includes(peerId) ? 'online' : 'offline',
         });
-        await this.redisAdapter.initialize();
-        this.server.adapter((0, redis_adapter_1.createAdapter)(this.redisAdapter.pubClient, this.redisAdapter.subClient));
+        const messages = await this.messagesService.findMessagesByRoom(roomId, {
+            take: 30,
+        });
+        const orderedMessages = messages.reverse();
+        client.emit('messagesHistory', {
+            messages: orderedMessages.map((msg) => ({
+                userId: msg.userId,
+                messageId: msg.messageId,
+                text: msg.content,
+                createdAt: msg.createdAt,
+            })),
+            nextCursor: orderedMessages[0]?.messageId ?? null,
+        });
+        const myPublicKey = await this.usePrisma.user.findUnique({
+            where: {
+                userId,
+            },
+            select: {
+                pubKey: true,
+            },
+        });
+        if (myPublicKey?.pubKey) {
+            client.to(roomId).emit('e2ee:peerPublicKey', {
+                userId,
+                publicKey: myPublicKey.pubKey,
+            });
+        }
+        const peerPublicKey = await this.usePrisma.user.findUnique({
+            where: {
+                userId: peerId,
+            },
+            select: {
+                pubKey: true,
+            },
+        });
+        if (peerPublicKey?.pubKey) {
+            client.emit('e2ee:peerPublicKey', {
+                userId: peerId,
+                publicKey: peerPublicKey.pubKey,
+            });
+        }
+        client.to(roomId).emit('user-joined', { userId });
+    }
+    async createMessage(client, payload) {
+        const roomId = client.data.roomId;
+        const user = client.data.user;
+        const userId = this.chatsGatewayLogic.resolveUserId(user);
+        const createdAt = new Date();
+        this.server.to(roomId).emit('newMessage', {
+            userId,
+            messageId: payload.clientMessageId,
+            text: payload.text,
+            time: createdAt,
+            pending: true,
+        });
+        const savedMessage = await this.messagesService.createMessage({
+            messageId: payload.clientMessageId,
+            roomId,
+            userId,
+            peerId: client.data.peerId,
+            content: payload.text,
+        });
+        this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
+            await this.chatsGatewayLogic.formattingRedisData(async () => {
+                this.server.to(roomId).emit('messageSaved', {
+                    messageId: savedMessage.messageId,
+                    userId: savedMessage.userId,
+                    text: savedMessage.content,
+                    time: savedMessage.createdAt,
+                    pending: false,
+                });
+            }, 'Failed to save message');
+        });
+    }
+    async updateUserMessage(client, payload) {
+        const roomId = client.data.roomId;
+        if (!roomId) {
+            throw new websockets_2.WsException('Room not found');
+        }
+        const user = client.data.user;
+        const userId = this.chatsGatewayLogic.resolveUserId(user);
+        await this.chatsGatewayLogic.formattingRedisData(async () => {
+            this.server.to(roomId).emit('messageUpdate', {
+                messageId: payload.messageId,
+                userId,
+                text: payload.text,
+            });
+            await this.messagesService.updateMessage({
+                messageId: payload.messageId,
+                content: payload.text,
+            });
+        }, 'Failed to update message');
+    }
+    async removeUserMessage(client, payload) {
+        const roomId = client.data.roomId;
+        if (!roomId) {
+            throw new websockets_2.WsException('Room not found');
+        }
+        const user = client.data.user;
+        const userId = this.chatsGatewayLogic.resolveUserId(user);
+        await this.chatsGatewayLogic.formattingRedisData(async () => {
+            this.server.to(roomId).emit('messageRemove', {
+                messageId: payload.messageId,
+                userId,
+            });
+            await this.messagesService.removeMessage(payload.messageId, userId);
+        }, 'Failed to remove message');
+    }
+    async afterInit() {
+        await this.chatsGatewayLogic.afterInit(this.server);
     }
     async handleConnection(client) {
-        await this.connectSocket(client);
+        await this.chatsGatewayLogic.handleConnection(client);
     }
     async handleDisconnect(client) {
-        await this.disconnectSocket(client);
-    }
-    async formattingRedisData(action, errorMessage) {
-        try {
-            await action();
-        }
-        catch (error) {
-            this.logger.error(error);
-            throw new websockets_1.WsException(errorMessage);
-        }
-    }
-    async connectSocket(client) {
-        const connectUser = async () => {
-            const user = client.data.user;
-            const userId = this.resolveUserId(user);
-            client.join(userId);
-            client.data.userId = userId;
-            await this.addOnlineUser(userId);
-            this.notifyUserOnline(userId);
-        };
-        const disconnectUser = (error) => {
-            this.logger.error(error);
-            client.disconnect(true);
-        };
-        try {
-            await connectUser();
-        }
-        catch (error) {
-            disconnectUser(error);
-        }
-    }
-    async disconnectSocket(client) {
-        const userId = client.data.userId;
-        if (!userId)
-            return;
-        await this.removeOnlineUser(userId);
-        this.notifyUserOffline(userId);
-    }
-    async addOnlineUser(userId) {
-        await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId);
-    }
-    async removeOnlineUser(userId) {
-        await this.redisAdapter.redisClient.sRem(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId);
-    }
-    async getOnlineUsers() {
-        return (await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_USERS_KEY));
-    }
-    notifyUserOnline(userId) {
-        this.server.emit('userStatus', { userId, status: 'online' });
-    }
-    notifyUserOffline(userId) {
-        this.server.emit('userStatus', { userId, status: 'offline' });
-    }
-    resolveUserId(payload) {
-        const userId = payload?.sub;
-        if (!userId)
-            throw new websockets_1.WsException('User not found');
-        return userId;
-    }
-    signRoomId(userA, userB) {
-        return JSON.stringify([userA, userB].sort());
-    }
-    setDataIntoRedis(roomId, task) {
-        const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
-        const current = previous.catch(() => undefined).then(task);
-        const tracked = current.then(() => undefined, () => undefined);
-        this.roomMessageSaveChains.set(roomId, tracked);
-        void tracked.finally(() => {
-            if (this.roomMessageSaveChains.get(roomId) === tracked) {
-                this.roomMessageSaveChains.delete(roomId);
-            }
-        });
+        await this.chatsGatewayLogic.handleDisconnect(client);
     }
 };
-exports.ChatsGatewayLogic = ChatsGatewayLogic;
-ChatsGatewayLogic.ONLINE_USERS_KEY = 'chat:online:users';
-exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [jwt_1.JwtService,
-        redis_adapter_2.ChatRedisAdapter,
+exports.ChatsGateway = ChatsGateway;
+__decorate([
+    (0, websockets_2.WebSocketServer)(),
+    __metadata("design:type", socket_io_1.Server)
+], ChatsGateway.prototype, "server", void 0);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('joinRoom'),
+    __param(0, (0, websockets_2.ConnectedSocket)()),
+    __param(1, (0, websockets_2.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], ChatsGateway.prototype, "handleJoinRoom", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('newMessage'),
+    __param(0, (0, websockets_2.ConnectedSocket)()),
+    __param(1, (0, websockets_2.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], ChatsGateway.prototype, "createMessage", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('messageUpdate'),
+    __param(0, (0, websockets_2.ConnectedSocket)()),
+    __param(1, (0, websockets_2.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], ChatsGateway.prototype, "updateUserMessage", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('messageRemove'),
+    __param(0, (0, websockets_2.ConnectedSocket)()),
+    __param(1, (0, websockets_2.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], ChatsGateway.prototype, "removeUserMessage", null);
+exports.ChatsGateway = ChatsGateway = __decorate([
+    (0, websockets_2.WebSocketGateway)({
+        cors: {
+            credentials: true,
+        },
+    }),
+    __metadata("design:paramtypes", [messages_service_1.MessagesService,
+        chats_b_gateway_1.ChatsGatewayLogic,
         prisma_service_1.PrismaService])
-], ChatsGatewayLogic);
+], ChatsGateway);
 //# sourceMappingURL=chats.service.js.map

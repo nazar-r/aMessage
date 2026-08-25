@@ -14,7 +14,7 @@ const redis_module_1 = require("./src.b.redis/redis.module");
 const users_module_1 = require("./src.a.users/users.module");
 const messages_module_1 = require("./src.a.messages/messages.module");
 const prisma_module_1 = require("./src.b.prisma/prisma.module");
-const chats_module_1 = require("./src.a.chats/chats.module");
+const socket_a_module_1 = require("./src.a.socket/socket.a.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -25,7 +25,7 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
-            chats_module_1.ChatModule,
+            socket_a_module_1.ChatModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,

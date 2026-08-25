@@ -3,6 +3,11 @@
     height: 100%;
 }
 
+.online-none {
+    animation: fadeOut 0.2s;
+    /* display: nonev; */
+}
+
 .contact-none {
     display: none;
 }
@@ -23,9 +28,10 @@
 }
 
 .online {
-    margin: 0 -7px -4px 0;
-    width: 17px;
-    height: 17px;
+    animation: smallfadeUp 0.2s;
+    margin: 0 -8px -5px 0;
+    width: 18px;
+    height: 18px;
     background: #80f34b;
 }
 

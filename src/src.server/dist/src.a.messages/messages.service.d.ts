@@ -9,44 +9,44 @@ export declare class MessagesService {
         peerId: string;
         content: string;
     }): Promise<{
+        userId: string;
+        createdAt: Date;
         roomId: string;
         messageId: string;
-        userId: string;
         content: string;
-        createdAt: Date;
     }>;
     updateMessage(message: {
         messageId: string;
         content: string;
     }): import("@prisma/client").Prisma.Prisma__MessageClient<{
+        userId: string;
+        createdAt: Date;
         roomId: string;
         messageId: string;
-        userId: string;
         content: string;
-        createdAt: Date;
         updatedAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     findMessagesByRoom(roomId: string, options?: {
         take?: number;
         cursor?: string;
     }): import("@prisma/client").Prisma.PrismaPromise<{
-        messageId: string;
         userId: string;
-        content: string;
         createdAt: Date;
+        messageId: string;
+        content: string;
     }[]>;
     removeMessage(messageId: string, userId: string): import("@prisma/client").Prisma.PrismaPromise<import("@prisma/client").Prisma.BatchPayload>;
     findMessages(userId: string): import("@prisma/client").Prisma.PrismaPromise<{
+        userId: string;
+        createdAt: Date;
         roomId: string;
         messageId: string;
-        userId: string;
         content: string;
-        createdAt: Date;
         updatedAt: Date;
     }[]>;
     findUserChats(userId: string): Promise<unknown>;
     deleteUserChat(userId: string, roomId: string): Promise<{
-        roomId: string;
         createdAt: Date;
+        roomId: string;
     }>;
 }

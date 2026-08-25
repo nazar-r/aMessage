@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ChatsGateway } from './chats.socket.service';
-import { ChatsGatewayLogic } from './chats.service';
+import { ChatsGateway } from './socket.b.gateway';
+import { ChatsGatewayLogic } from './socket.b.service';
 import { MessagesModule } from '../src.a.messages/messages.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';

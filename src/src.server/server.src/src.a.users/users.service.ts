@@ -56,7 +56,7 @@ export class UsersService {
   LIMIT 25;
 `;
 
-    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 30);
+    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 10);
     return chosenUsers;
   }
 

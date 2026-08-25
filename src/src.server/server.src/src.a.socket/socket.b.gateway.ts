@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { ChatsGatewayLogic } from './chats.service';
+import { ChatsGatewayLogic } from './socket.b.service';
 import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
@@ -44,10 +44,10 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
 
     const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
 
-    client.emit('userStatus', {
-      userId: peerId,
-      status: onlineUsers.includes(peerId) ? 'online' : 'offline',
-    });
+    // client.emit('userStatus', {
+    //   userId: peerId,
+    //   status: onlineUsers.includes(peerId) ? 'online' : 'offline',
+    // });
 
     const messages = await this.messagesService.findMessagesByRoom(roomId, {
       take: 30,

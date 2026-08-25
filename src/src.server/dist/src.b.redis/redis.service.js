@@ -20,7 +20,8 @@ let RedisService = RedisService_1 = class RedisService {
     async onModuleInit() {
         this.logger.log('Connecting to Redis...');
         await this.client.connect();
-        this.logger.log('Redis connected');
+        await this.client.flushAll();
+        this.logger.log('Redis connected and all Redis data cleared');
     }
     getClient() {
         return this.client;
@@ -32,8 +33,9 @@ let RedisService = RedisService_1 = class RedisService {
         return duplicated;
     }
     setRedisData(key, value, ttlSeconds) {
-        if (ttlSeconds !== undefined)
+        if (ttlSeconds !== undefined) {
             return this.client.set(key, value, { EX: ttlSeconds });
+        }
         return this.client.set(key, value);
     }
     getRedisData(key) {

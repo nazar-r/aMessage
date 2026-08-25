@@ -9,20 +9,20 @@ export declare class UsersService {
     findOrCreateUser(profile: AuthUser): Promise<{
         name: string;
         userId: string;
-        email: string | null;
-        pubKey: string | null;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
+        email: string | null;
+        pubKey: string | null;
         refreshToken: string | null;
         createdAt: Date;
     }>;
     findAllUsers(userId: string): Promise<ChosenUser[]>;
     setUserPubKey(userId: string, userPubKey: string): import("@prisma/client").Prisma.Prisma__UserClient<{
         userId: string;
-        email: string | null;
-        pubKey: string | null;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
+        email: string | null;
+        pubKey: string | null;
         refreshToken: string | null;
         createdAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;

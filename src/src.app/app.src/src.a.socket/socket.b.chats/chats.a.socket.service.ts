@@ -5,7 +5,6 @@ export class ChatSocketService {
 
   onChatConnect(ws: any) {
     this.socket.on("connect", ws.onConnect);
-    // this.socket.on("disconnect", ws.onDisconnect);
     this.socket.on("userStatus", ws.onUserStatus);
     this.socket.on("usersOnline", ws.onUsersOnline);
     this.socket.on("e2ee:peerPublicKey", ws.onPeerPublicKey);
@@ -17,7 +16,6 @@ export class ChatSocketService {
 
   onChatDisconnect(ws: any) {
     this.socket.off("connect", ws.onConnect);
-    // this.socket.off("disconnect", ws.onDisconnect);
     this.socket.off("userStatus", ws.onUserStatus);
     this.socket.off("usersOnline", ws.onUsersOnline);
     this.socket.off("messageRemove", ws.onMessageRemoved);

@@ -8,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatModule = void 0;
 const common_1 = require("@nestjs/common");
-const chats_socket_service_1 = require("./chats.socket.service");
 const chats_service_1 = require("./chats.service");
+const chats_b_gateway_1 = require("./chats.b.gateway");
 const messages_module_1 = require("../src.a.messages/messages.module");
 const jwt_1 = require("@nestjs/jwt");
 const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
@@ -27,7 +27,7 @@ exports.ChatModule = ChatModule = __decorate([
             messages_module_1.MessagesModule,
             redis_module_1.RedisModule,
         ],
-        providers: [chats_service_1.ChatsGatewayLogic, chats_socket_service_1.ChatsGateway, jwt_extractor_1.JwtCheck],
+        providers: [chats_b_gateway_1.ChatsGatewayLogic, chats_service_1.ChatsGateway, jwt_extractor_1.JwtCheck],
     })
 ], ChatModule);
 //# sourceMappingURL=chats.module.js.map

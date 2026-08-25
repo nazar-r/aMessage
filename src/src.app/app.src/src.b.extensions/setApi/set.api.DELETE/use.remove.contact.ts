@@ -17,6 +17,14 @@ export const useRemoveUserContact = () => {
             : user
         )
       );
+
+      queryClient.setQueryData(["chats"], (prevChats: any[] = []) =>
+        prevChats.map((chat) =>
+          chat.userId === userContactId
+            ? { ...chat, isContact: false }
+            : chat
+        )
+      );
     },
 
     onError: (error) => {

@@ -8,7 +8,7 @@ export const useFetchingUserChats = () => {
         queryFn: async () => {
             const data = await fetchingUserChats();
 
-            console.log("[fetchingUserChats response]", data);
+            // console.log("[fetchingUserChats response]", data);
 
             return data;
         },

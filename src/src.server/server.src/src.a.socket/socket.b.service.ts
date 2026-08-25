@@ -3,8 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server, Socket } from 'socket.io';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
-import { PrismaService } from '../src.b.prisma/prisma.service';
-import { JwtPayload, UserStatus } from '../src.extensions/extensions.types/types';
+import { JwtPayload } from '../src.extensions/extensions.types/types';
 import { WsException } from '@nestjs/websockets';
 import * as cookie from 'cookie';
 
@@ -12,16 +11,13 @@ import * as cookie from 'cookie';
 export class ChatsGatewayLogic {
   private readonly logger = new Logger(ChatsGatewayLogic.name);
   private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
-
   private static readonly ONLINE_USERS_KEY = 'chat:online:users';
-
   private server: Server;
 
   constructor(
     private readonly jwtService: JwtService,
     private readonly redisAdapter: ChatRedisAdapter,
-    private readonly usePrisma: PrismaService,
-  ) { }
+  ) {}
 
   async afterInit(server: Server) {
     this.server = server;
@@ -88,7 +84,10 @@ export class ChatsGatewayLogic {
       client.data.userId = userId;
 
       await this.addOnlineUser(userId);
-      this.notifyUserOnline(userId);
+
+      const onlineUsers = await this.getOnlineUsers();
+
+      this.server.emit('usersOnline', onlineUsers);
     };
 
     const disconnectUser = (error: unknown) => {
@@ -109,15 +108,24 @@ export class ChatsGatewayLogic {
     if (!userId) return;
 
     await this.removeOnlineUser(userId);
-    this.notifyUserOffline(userId);
+
+    const onlineUsers = await this.getOnlineUsers();
+
+    this.server.emit('usersOnline', onlineUsers);
   }
 
   async addOnlineUser(userId: string): Promise<void> {
-    await this.redisAdapter.redisClient.sAdd(ChatsGatewayLogic.ONLINE_USERS_KEY, userId);
+    await this.redisAdapter.redisClient.sAdd(
+      ChatsGatewayLogic.ONLINE_USERS_KEY,
+      userId,
+    );
   }
 
   async removeOnlineUser(userId: string): Promise<void> {
-    await this.redisAdapter.redisClient.sRem(ChatsGatewayLogic.ONLINE_USERS_KEY, userId);
+    await this.redisAdapter.redisClient.sRem(
+      ChatsGatewayLogic.ONLINE_USERS_KEY,
+      userId,
+    );
   }
 
   async getOnlineUsers(): Promise<string[]> {
@@ -126,18 +134,9 @@ export class ChatsGatewayLogic {
     )) as string[];
   }
 
-  notifyUserOnline(userId: string): void {
-    this.server.emit('userStatus', { userId, status: 'online' as UserStatus });
-  }
-
-  notifyUserOffline(userId: string): void {
-    this.server.emit('userStatus', { userId, status: 'offline' as UserStatus });
-  }
-
   resolveUserId(payload: JwtPayload | undefined): string {
     const userId = payload?.sub;
 
-    if (!userId) throw new WsException('User not found');
     return userId;
   }
 
@@ -146,7 +145,9 @@ export class ChatsGatewayLogic {
   }
 
   setDataIntoRedis(roomId: string, task: () => Promise<void>) {
-    const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
+    const previous =
+      this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
+
     const current = previous.catch(() => undefined).then(task);
 
     const tracked = current.then(

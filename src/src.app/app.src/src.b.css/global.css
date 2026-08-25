@@ -114,6 +114,17 @@ input:-webkit-autofill {
         transform: none;
     }
 }
+@keyframes smallfadeUp {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
 
 @keyframes fadeIn {
     from {

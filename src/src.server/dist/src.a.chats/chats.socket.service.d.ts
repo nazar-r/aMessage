@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { ChatsGatewayLogic } from './chats.service';
+import { ChatsGatewayLogic } from './chats.gateway';
 import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';

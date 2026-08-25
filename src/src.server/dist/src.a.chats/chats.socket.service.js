@@ -14,7 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatsGateway = void 0;
 const socket_io_1 = require("socket.io");
-const chats_service_1 = require("./chats.service");
+const chats_gateway_1 = require("./chats.gateway");
 const messages_service_1 = require("../src.a.messages/messages.service");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const websockets_1 = require("@nestjs/websockets");
@@ -205,7 +205,7 @@ exports.ChatsGateway = ChatsGateway = __decorate([
         },
     }),
     __metadata("design:paramtypes", [messages_service_1.MessagesService,
-        chats_service_1.ChatsGatewayLogic,
+        chats_gateway_1.ChatsGatewayLogic,
         prisma_service_1.PrismaService])
 ], ChatsGateway);
 //# sourceMappingURL=chats.socket.service.js.map

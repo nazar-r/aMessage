@@ -18,7 +18,7 @@ model User {
   userId       String   @id
   userName     String
   email        String? 
-  pubKey       String?  @unique
+  pubKey       String? 
   refreshToken String?
   createdAt    DateTime @default(now())
 
