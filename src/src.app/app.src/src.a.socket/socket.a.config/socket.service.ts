@@ -13,7 +13,9 @@ export class SocketService {
       autoConnect: false,
     });
 
-    this.socket.on("connect", () => {});
+    this.socket.on("connect", () => {
+      this.socket.emit("getUsersOnline");
+    });
 
     this.socket.on("disconnect", () => {});
   }
@@ -40,6 +42,10 @@ export class SocketService {
 
   onUsersOnline(listener: OnlineUsersListener) {
     this.socket.on("usersOnline", listener);
+
+    if (this.socket.connected) {
+      this.socket.emit("getUsersOnline");
+    }
   }
 
   offUsersOnline(listener: OnlineUsersListener) {

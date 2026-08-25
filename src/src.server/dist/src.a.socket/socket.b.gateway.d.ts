@@ -12,6 +12,7 @@ export declare class ChatsGateway implements OnGatewayInit, OnGatewayConnection,
     handleJoinRoom(client: Socket, payload: {
         peerId: string;
     }): Promise<void>;
+    handleGetUsersOnline(client: Socket): Promise<void>;
     createMessage(client: Socket, payload: {
         text: string;
         from?: string;
