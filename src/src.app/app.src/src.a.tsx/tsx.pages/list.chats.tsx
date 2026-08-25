@@ -47,8 +47,8 @@ const ChatsListContent = () => {
                         return (
                             <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
                                 <div className="list-page__list-item--image">
-                                    {chat.isContact === true && <div className="contact">C</div>}
                                     {isOnline ? <div className="online"></div> :<div className="online-none"></div> }
+                                    {chat.isContact === true && <div className="contact">C</div>}
                                 </div>
 
                                 <div className="list-page__list-item--content">
