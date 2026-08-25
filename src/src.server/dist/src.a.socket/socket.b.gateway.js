@@ -82,10 +82,6 @@ let ChatsGateway = class ChatsGateway {
         }
         client.to(roomId).emit('user-joined', { userId });
     }
-    async handleGetUsersOnline(client) {
-        const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
-        client.emit('usersOnline', onlineUsers);
-    }
     async createMessage(client, payload) {
         const roomId = client.data.roomId;
         const user = client.data.user;
@@ -174,13 +170,6 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
 ], ChatsGateway.prototype, "handleJoinRoom", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('getUsersOnline'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "handleGetUsersOnline", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('newMessage'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
