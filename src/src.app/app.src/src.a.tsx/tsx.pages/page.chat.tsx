@@ -134,7 +134,7 @@ const LobbyPageContent = () => {
                     </svg>
                 </div>
 
-                <div onClick={setMessage} className="chat-page__add-message--icon">
+                <div onClick={setMessage} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); setMessage(); } }} tabIndex={0} className="chat-page__add-message--icon">
                     <svg width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g opacity="1">
                             <path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" />

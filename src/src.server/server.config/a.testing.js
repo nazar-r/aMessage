@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnZ2xfMTE3NDA2MDA1MTk1MzgzMTAwNjgwIiwiaWF0IjoxNzg2ODg4MzAzLCJleHAiOjE3ODcwMTc5MDN9.K8V_CbnegS2WpV2zia2qzAR-GHMBhCibpCl3VAq23Ik';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnZ2xfMTE3NDA2MDA1MTk1MzgzMTAwNjgwIiwiaWF0IjoxNzg3NjgzMDI5LCJleHAiOjE3ODc4MTI2Mjl9.wBI2u2VCey3I9PS3X9uWKyQ7_LllBIroIrZ_eC6HbwA';
 export const options = {
   scenarios: {
     constant_rps: {
