@@ -19,12 +19,19 @@ const LobbyPageContent = () => {
     const isOnline = peerWsId ? onlineUsers.includes(peerWsId) : false;
 
     const setMessage = () => {
-        setText("");
         const messageText = text.trim();
 
         if (!messageText) return;
 
         sendMessage({ messageStatus: "mine", messageId: "", content: messageText });
+        setText("");
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            setMessage();
+        }
     };
 
     const editMessage = (e: MouseEvent<any>, message: MessageInterface) => {
@@ -54,7 +61,7 @@ const LobbyPageContent = () => {
     };
 
     return (
-        <div className="chat-page">
+        <div className="chat-page" onKeyDown={handleKeyDown}>
             <div className="chat-page__header">
                 <svg onClick={() => navigate("/users")} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="chat-page__button--icon">
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -134,7 +141,9 @@ const LobbyPageContent = () => {
                     </svg>
                 </div>
 
-                <div onClick={setMessage} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); setMessage(); } }} tabIndex={0} className="chat-page__add-message--icon">
+                <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
+
+                <div onClick={setMessage} className="chat-page__add-message--icon">
                     <svg width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g opacity="1">
                             <path d="M7.34091 0H9.65909V17H7.34091V0Z" fill="white" />
@@ -142,8 +151,6 @@ const LobbyPageContent = () => {
                         </g>
                     </svg>
                 </div>
-
-                <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
             </div>
         </div>
     );
