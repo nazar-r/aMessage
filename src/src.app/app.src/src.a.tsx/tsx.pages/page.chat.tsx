@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
 import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.config/use.socket.service.query";
 import type { MessageInterface } from "../../src.b.extensions/chats.types";
-import type { MouseEvent } from "react";
+import type { MouseEvent, KeyboardEvent } from "react";
 
 const LobbyPageContent = () => {
     const { username: userName = "" } = useParams<{ username: string }>();
@@ -27,7 +27,7 @@ const LobbyPageContent = () => {
         setText("");
     };
 
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             setMessage();
@@ -110,7 +110,7 @@ const LobbyPageContent = () => {
                                             </svg>
                                         ) : (
                                             <svg className="chat-message__hidden--item__icon" width="14" height="14" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path opacity="0.85" d="M12.8054 3.35851L15.4766 6.03033M10.4444 17.9996H18M1 18L1.04481 17.6863C1.2034 16.576 1.28269 16.0208 2.11356 14.2013C2.41989 13.746 2.81635 13.3494 3.60925 12.5564L14.6101 1.55335C15.3478 0.815555 16.5438 0.815546 17.2815 1.55335C18.0191 2.29115 18.0191 3.48736 17.2815 4.22516L6.07869 15.43C5.35936 16.1496 4.99969 16.5093 4.59002 16.7954C4.22639 17.0493 3.83421 17.2597 3.42154 17.4222C2.95662 17.6051 2.45799 17.7057 1.46082 17.907L1 18Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                <path opacity="0.85" d="M12.8054 3.35851L15.4766 6.03033M10.4444 17.9996H18M1 18L1.04481 17.6863C1.2034 16.576 1.28269 16.0208 2.11356 14.2013C2.41989 13.746 2.81635 13.3494 3.60925 12.5564L14.6101 1.55335C15.3478 0.815555 16.5438 0.815546 17.2815 1.55335C18.0191 2.29115 18.0191 3.48736 17.2815 4.22516L6.07869 15.43C5.35936 16.1496 4.99969 16.5093 4.59002 16.7954C4.22639 17.0493 3.83421 17.2597 3.42154 17.4222C2.95662 17.6057 2.45799 17.7057 1.46082 17.907L1 18Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                         )}
 
@@ -141,8 +141,6 @@ const LobbyPageContent = () => {
                     </svg>
                 </div>
 
-                <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
-
                 <div onClick={setMessage} className="chat-page__add-message--icon">
                     <svg width="14" height="14" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g opacity="1">
@@ -151,6 +149,8 @@ const LobbyPageContent = () => {
                         </g>
                     </svg>
                 </div>
+
+                <textarea className="chat-page__add-message--field" placeholder="Send Message" value={text} onChange={(e) => setText(e.target.value)} />
             </div>
         </div>
     );
