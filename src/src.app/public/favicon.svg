@@ -1,9 +1,7 @@
 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_4091_3)">
 <rect width="100" height="100" rx="21" fill="url(#paint0_linear_4091_3)"/>
 <g filter="url(#filter0_d_4091_3)">
 <path d="M27.505 69L44.665 30.5H53.465L70.68 69H61.33L47.25 35.01H50.77L36.635 69H27.505ZM36.085 60.75L38.45 53.985H58.25L60.67 60.75H36.085Z" fill="white"/>
-</g>
 </g>
 <defs>
 <filter id="filter0_d_4091_3" x="18.7059" y="25.7" width="60.7738" height="56.1" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
@@ -21,8 +19,5 @@
 <stop offset="0.5" stop-color="#70A7C8"/>
 <stop offset="1" stop-color="#0D72C5"/>
 </linearGradient>
-<clipPath id="clip0_4091_3">
-<rect width="100" height="100" rx="21" fill="white"/>
-</clipPath>
 </defs>
 </svg>
