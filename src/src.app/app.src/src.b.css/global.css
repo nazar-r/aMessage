@@ -114,6 +114,7 @@ input:-webkit-autofill {
         transform: none;
     }
 }
+
 @keyframes smallfadeUp {
     from {
         opacity: 0;
@@ -153,6 +154,10 @@ input:-webkit-autofill {
     height: 100dvh;
     position: relative;
 }
+
+/* .main-container:has(.error-page) {
+    background: linear-gradient(to right, #F67676 -60%, #C87070 50%, #C50D0D 130%);
+} */
 
 @media(min-width: 650px) {
     .main-container {

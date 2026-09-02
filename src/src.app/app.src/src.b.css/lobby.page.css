@@ -231,6 +231,11 @@
         font-size: 30px;
     }
 
+    .appear {
+        animation: fadeRight 0.2s;
+    }
+
+
     .list-page {
         /* border: 2px solid red; */
         height: calc(90dvh + 35px);

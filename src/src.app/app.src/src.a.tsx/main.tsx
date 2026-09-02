@@ -9,6 +9,8 @@ const Layout = lazy(() => import('./tsx.items/layout'));
 const LoginPage = lazy(() => import('./tsx.pages/page.login'));
 const WelcomePage = lazy(() => import('./tsx.pages/page.welcome'));
 const ChatPage = lazy(() => import('./tsx.pages/page.chat'));
+const SearchPage = lazy(() => import('./tsx.pages/page.search'));
+const ErrorPage = lazy(() => import('./tsx.pages/page.error'));
 const UsersListPage = lazy(() => import('./tsx.pages/list.contacts'));
 const ChatsListPage = lazy(() => import('./tsx.pages/list.chats'));
 
@@ -66,8 +68,10 @@ const routes: RouteObject[] = [
               { path: ':username/:chatId', element: withSuspense(<ChatPage />) },
             ],
           },
+          { path: 'search', element: withSuspense(<SearchPage />) },
         ],
       },
+      { path: '*', element: withSuspense(<ErrorPage />) },
     ],
   },
 ];
