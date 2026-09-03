@@ -25,7 +25,7 @@ let AuthService = class AuthService {
     }
     ;
     signToken(userProfile) {
-        return this.jwtService.sign({ sub: userProfile.userId }, { expiresIn: '36h' });
+        return this.jwtService.sign({ sub: userProfile.userId }, { expiresIn: '48h' });
     }
     ;
     setCookies() {
@@ -33,7 +33,7 @@ let AuthService = class AuthService {
             httpOnly: true,
             secure: process.env.COOKIE_SECURE === 'true',
             sameSite: 'lax',
-            maxAge: 1000 * 60 * 60 * 24,
+            maxAge: 1000 * 60 * 60 * 24 * 2,
             path: '/',
         };
     }

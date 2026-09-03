@@ -20,7 +20,7 @@ export class AuthService {
     signToken(userProfile: AuthUser): string {
         return this.jwtService.sign(
             { sub: userProfile.userId },
-            { expiresIn: '36h' },
+            { expiresIn: '48h' },
         );
     };
 
@@ -29,7 +29,7 @@ export class AuthService {
             httpOnly: true,
             secure: process.env.COOKIE_SECURE === 'true',
             sameSite: 'lax' as const,
-            maxAge: 1000 * 60 * 60 * 24,
+            maxAge: 1000 * 60 * 60 * 24 * 2,
             path: '/',
         };
     };
