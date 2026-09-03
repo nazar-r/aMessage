@@ -155,9 +155,9 @@ input:-webkit-autofill {
     position: relative;
 }
 
-/* .main-container:has(.error-page) {
-    background: linear-gradient(to right, #F67676 -60%, #C87070 50%, #C50D0D 130%);
-} */
+.lobby-page:has(.chat-page) .appear {
+    display: none;
+}
 
 @media(min-width: 650px) {
     .main-container {
@@ -176,6 +176,10 @@ input:-webkit-autofill {
     .main-container {
         padding: 0 5dvw 0 5dvw;
         background: linear-gradient(to right, #76CFF6 -30%, #70A7C8 56%, #0D72C5 120%);
+    }
+
+    .lobby-page:has(.chat-page) .appear {
+        display: flex;
     }
 
     ::-webkit-scrollbar {

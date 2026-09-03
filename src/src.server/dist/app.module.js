@@ -12,6 +12,7 @@ const config_1 = require("@nestjs/config");
 const auth_module_1 = require("./src.a.auth/auth.module");
 const redis_module_1 = require("./src.b.redis/redis.module");
 const users_module_1 = require("./src.a.users/users.module");
+const search_module_1 = require("./src.a.search/search.module");
 const messages_module_1 = require("./src.a.messages/messages.module");
 const prisma_module_1 = require("./src.b.prisma/prisma.module");
 const socket_a_module_1 = require("./src.a.socket/socket.a.module");
@@ -26,6 +27,7 @@ exports.AppModule = AppModule = __decorate([
                 envFilePath: '.env',
             }),
             socket_a_module_1.ChatModule,
+            search_module_1.SearchModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,

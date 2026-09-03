@@ -8,6 +8,12 @@ export interface MessageInterface {
   createdAt?: string;
 }
 
+export interface SearchMessage {
+  messageId: string;
+  content: string;
+  messageStatus: "mine" | "got";
+}
+
 export interface MessagesHistory {
   messages: NewMessagePayload[];
   nextCursor: string | null;
