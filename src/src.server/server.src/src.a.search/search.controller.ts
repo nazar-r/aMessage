@@ -7,12 +7,12 @@ import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 export class SearchController {
   constructor(private readonly searchService: SearchService) { }
 
-  @Get()
-  async getAiChatHistory(@Req() req) {
-    const userId = req.user.sub;
+  // @Get()
+  // async getAiChatHistory(@Req() req) {
+  //   const userId = req.user.sub;
 
-    return this.searchService.getAiChatHistory(userId);
-  }
+  //   return this.searchService.getAiChatHistory(userId);
+  // }
 
   @Post()
   async handleSearch(@Body() body, @Req() req) {
