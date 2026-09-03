@@ -3,13 +3,11 @@ import { PrismaService } from '../src.b.prisma/prisma.service';
 
 const dbSchema = `
 enum Role { USER ADMIN }
-model User { role Role @default(USER) userId String @id userName String email String? pubKey String? refreshToken String? createdAt DateTime @default(now()) messages Message[] contacts Contact[] @relation("userContacts") rooms RoomUser[] aiChat AIChat? }
+model User { role Role @default(USER) userId String @id userName String email String? pubKey String? refreshToken String? createdAt DateTime @default(now()) messages Message[] contacts Contact[] @relation("userContacts") rooms RoomUser[] }
 model Room { roomId String @id createdAt DateTime @default(now()) messages Message[] participants RoomUser[] }
 model Contact { userId String contactId String createdAt DateTime @default(now()) user User @relation("userContacts", fields: [userId], references: [userId], onDelete: Cascade) @@id([userId, contactId]) }
 model RoomUser { roomId String userId String room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade) user User @relation(fields: [userId], references: [userId], onDelete: Cascade) @@id([roomId, userId]) }
 model Message { roomId String messageId String @id @default(uuid()) userId String content String createdAt DateTime @default(now()) updatedAt DateTime @updatedAt user User @relation(fields: [userId], references: [userId], onDelete: Cascade) room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade) }
-model AIChat { chatId String @id @default(uuid()) userId String @unique createdAt DateTime @default(now()) messages AIMessage[] user User @relation(fields: [userId], references: [userId], onDelete: Cascade) }
-model AIMessage { messageId String @id @default(uuid()) chatId String prompt String response String createdAt DateTime @default(now()) chat AIChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade) @@index([chatId, createdAt]) }
 `;
 
 const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent`;
@@ -50,7 +48,7 @@ export class SearchService {
   };
 
   buildAnswerPrompt = (prompt, queryResult) => {
-    return `Запит користувача: ${prompt}\n\nРезультат SQL запиту: ${stringifyResult(queryResult)}\n\nОстаточно сформуй зрозумілу відповідь користувачу. Допустимі символи, окрім букв - кома, крапка, двокрапка, знак оклику та знак привітання, решта не допускається. Якщо подано результат виконання до БД - українською мовою на основі цих даних.`;
+    return `Запит користувача: ${prompt}\n\nРезультат SQL запиту: ${stringifyResult(queryResult)}\n\nОстаточно сформуй зрозумілу відповідь користувачу. ВИКОРИСТОВУЙ СМАЙЛИКИ. Не використовуй інакші символи, окрім літер, крапки, коми, знаків оклику та знаків запитання.Якщо подано результат виконання до БД - українською мовою на основі цих даних.`;
   };
 
   generateSqlQuery = async (prompt, userId) => {
@@ -67,59 +65,16 @@ export class SearchService {
     return finalAnswer;
   };
 
-  saveAIMessage = async (userId, prompt, response) => {
-    const chat = await this.usePrisma.assistantChat.upsert({
-      where: { userId },
-      update: {},
-      create: { userId },
-    });
-
-    return this.usePrisma.assistantChatMessage.create({
-      data: {
-        chatId: chat.chatId,
-        prompt,
-        response,
-      },
-    });
-  };
-
-  async getAiChatHistory(userId) {
-    const chat = await this.usePrisma.assistantChat.findUnique({
-      where: { userId },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'asc' },
-        },
-      },
-    });
-
-    if (!chat) {
-      return [];
-    }
-
-    return chat.messages.map((message) => ({
-      messageId: message.messageId,
-      prompt: message.prompt,
-      response: message.response,
-      createdAt: message.createdAt,
-    }));
-  }
-
   processSearch = async (prompt, userId) => {
     const modelResponse = await this.generateSqlQuery(prompt, userId);
 
     if (modelResponse.startsWith(SLOP_PREFIX)) {
       const directAnswer = modelResponse.slice(SLOP_PREFIX.length).trim();
-
-      await this.saveAIMessage(userId, prompt, directAnswer);
-
       return { answer: directAnswer };
     }
 
     const queryResult = await this.usePrisma.$queryRawUnsafe(modelResponse);
     const finalAnswer = await this.generateFinalAnswer(prompt, queryResult);
-
-    await this.saveAIMessage(userId, prompt, finalAnswer);
 
     return { answer: finalAnswer };
   };
