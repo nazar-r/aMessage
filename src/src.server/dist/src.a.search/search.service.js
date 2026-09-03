@@ -20,7 +20,7 @@ model Contact { userId String contactId String createdAt DateTime @default(now()
 model RoomUser { roomId String userId String room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade) user User @relation(fields: [userId], references: [userId], onDelete: Cascade) @@id([roomId, userId]) }
 model Message { roomId String messageId String @id @default(uuid()) userId String content String createdAt DateTime @default(now()) updatedAt DateTime @updatedAt user User @relation(fields: [userId], references: [userId], onDelete: Cascade) room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade) }
 `;
-const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=AQ.Ab8RN6IzSdkIytL7hXVdQAt0FnURfRLMGNEul6JaMi5TjGTsrw`;
+const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent`;
 const SLOP_PREFIX = 'SLOP:';
 const stringifyResult = (data) => JSON.stringify(data, (key, value) => (typeof value === 'bigint' ? value.toString() : value));
 const callGemini = async (promptText) => {
