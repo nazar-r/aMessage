@@ -24,6 +24,7 @@ const callGemini = async (promptText) => {
       'Content-Type': 'application/json',
       'x-goog-api-key': process.env.GEMINI_API_KEY,
     },
+    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }),
   });
 
   console.log(process.env.GEMINI_API_KEY)
@@ -40,7 +41,7 @@ const callGemini = async (promptText) => {
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly usePrisma: PrismaService) {}
+  constructor(private readonly usePrisma: PrismaService) { }
 
   buildSqlPrompt = (prompt, userId) => {
     return `Схема бази даних:\n${dbSchema}\n\nId користувача: ${userId}\n\nЗапит користувача: ${prompt}\n\nНадай відповідь згідно prompt, якщо відповідь беззмістовна, ігноруй наступну інструкцію. Якщо запит користувача НЕ стосується читання, аналізу, створення, оновлення чи видалення даних у наведеній схемі (наприклад, це привітання, загальне питання, прохання щось пояснити тощо) — не формуй SQL, а одразу дай користувачу коротку відповідь українською мовою, обов'язково розпочавши її рівно з префікса "${SLOP_PREFIX}" (без пробілу після двокрапки не обов'язково, просто на початку рядка). Якщо ж користувач запросить операцію з даними, їх аналіз або створення, оновлення чи видалення, сформуй один SQL запит (PostgreSQL) для виконання цього запиту, використовуючи наведену схему. Обов'язково фільтруй дані по userId, де це доцільно. У цьому випадку у відповідь віднеси лише сам SQL запит, без пояснень, без markdown форматування, без крапки з комою в кінці, і без префікса "${SLOP_PREFIX}".`;

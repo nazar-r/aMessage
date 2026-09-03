@@ -30,6 +30,7 @@ const callGemini = async (promptText) => {
             'Content-Type': 'application/json',
             'x-goog-api-key': process.env.GEMINI_API_KEY,
         },
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }),
     });
     console.log(process.env.GEMINI_API_KEY);
     const data = await response.json();
