@@ -28,9 +28,8 @@ const callGemini = async (promptText) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': "",
+            'x-goog-api-key': process.env.GEMINI_API_KEY,
         },
-        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }),
     });
     const data = await response.json();
     if (!response.ok || !data.candidates) {
