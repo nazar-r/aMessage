@@ -1,11 +1,18 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 
 @Controller('search')
 @UseGuards(JwtCheck)
 export class SearchController {
-  constructor(private readonly searchService: SearchService) {}
+  constructor(private readonly searchService: SearchService) { }
+
+  @Get()
+  async getAiChatHistory(@Req() req) {
+    const userId = req.user.sub;
+
+    return this.searchService.getAiChatHistory(userId);
+  }
 
   @Post()
   async handleSearch(@Body() body, @Req() req) {

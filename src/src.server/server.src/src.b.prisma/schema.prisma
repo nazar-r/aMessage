@@ -25,6 +25,7 @@ model User {
   messages Message[]
   contacts Contact[]  @relation("userContacts")
   rooms    RoomUser[]
+  aiChat   AssistantChat?
 }
 
 model Room {
@@ -65,4 +66,25 @@ model Message {
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+}
+
+model AssistantChat {
+  chatId    String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+
+  user     User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  messages AssistantChatMessage[]
+}
+
+model AssistantChatMessage {
+  messageId String   @id @default(uuid())
+  chatId    String
+  prompt    String
+  response  String
+  createdAt DateTime @default(now())
+
+  chat AssistantChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
 }

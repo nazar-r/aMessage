@@ -5,6 +5,7 @@ import { useSendSearchMessage } from '../../src.b.extensions/setApi/set.api.POST
 
 const SearchPageContent = () => {
     const [text, setText] = useState('');
+    const isMobile = window.innerWidth <= 1250;
     const { data: messages = [] } = useQuery<any[]>({ queryKey: ['searchMessages'], queryFn: () => [], staleTime: Infinity, gcTime: Infinity });
     const navigate = useNavigate();
     const sendSearchMessage = useSendSearchMessage();
@@ -28,7 +29,7 @@ const SearchPageContent = () => {
     return (
         <div className="lobby-page">
             <div className="chat-page__header appear">
-                <div className="list-page__title">ai search</div>
+                <div className="list-page__title">{}ai search</div>
             </div>
 
             <div className="chat-page" onKeyDown={handleKeyDown}>
@@ -39,7 +40,7 @@ const SearchPageContent = () => {
                     </svg>
 
                     <div className="chat-page__title">
-                        <div className="chat-page__title--name">Search</div>
+                        <div className="chat-page__title--name">{isMobile ? 'Gemini AI' : 'Search'}</div>
                     </div>
                 </div>
 

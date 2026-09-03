@@ -11,8 +11,8 @@ export declare class MessagesService {
     }): Promise<{
         userId: string;
         createdAt: Date;
-        roomId: string;
         messageId: string;
+        roomId: string;
         content: string;
     }>;
     updateMessage(message: {
@@ -21,8 +21,8 @@ export declare class MessagesService {
     }): import("@prisma/client").Prisma.Prisma__MessageClient<{
         userId: string;
         createdAt: Date;
-        roomId: string;
         messageId: string;
+        roomId: string;
         content: string;
         updatedAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
@@ -39,8 +39,8 @@ export declare class MessagesService {
     findMessages(userId: string): import("@prisma/client").Prisma.PrismaPromise<{
         userId: string;
         createdAt: Date;
-        roomId: string;
         messageId: string;
+        roomId: string;
         content: string;
         updatedAt: Date;
     }[]>;
