@@ -31,6 +31,7 @@ const callGemini = async (promptText) => {
             'x-goog-api-key': process.env.GEMINI_API_KEY,
         },
     });
+    console.log(process.env.GEMINI_API_KEY);
     const data = await response.json();
     if (!response.ok || !data.candidates) {
         console.error('Gemini status:', response.status);

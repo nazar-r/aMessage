@@ -26,6 +26,7 @@ const callGemini = async (promptText) => {
     },
   });
 
+  console.log(process.env.GEMINI_API_KEY)
   const data = await response.json();
 
   if (!response.ok || !data.candidates) {
