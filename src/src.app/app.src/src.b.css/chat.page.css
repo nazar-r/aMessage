@@ -4,6 +4,12 @@
     animation: fadeRight 0.2s ease forwards;
 }
 
+.search-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
 .chat-page::-webkit-scrollbar {
     display: none;
 }
