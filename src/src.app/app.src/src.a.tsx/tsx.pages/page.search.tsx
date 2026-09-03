@@ -55,7 +55,7 @@ const SearchPageContent = () => {
                     {sendSearchMessage.isPending && (
                         <li className="chat-message__got">
                             <div className="search-container">
-                                <div className="chat-message--text">Loading</div>
+                                <div className="chat-message--text">Зачекайте</div>
                                 <div className="loader-chat"></div>
                             </div>
                             <div className="chat-message__time--got">00:00</div>
