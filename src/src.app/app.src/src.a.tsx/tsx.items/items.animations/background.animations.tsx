@@ -91,11 +91,11 @@ const GlassBackground = (): any => {
       return mesh;
     });
 
-    // Легкий parallax під курсор
+    // Parallax під курсор — максимальна чутливість
     const mouse = { x: 0, y: 0 };
     const handleMouseMove = (e: any) => {
-      mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+      mouse.x = (e.clientX / window.innerWidth - 0.5) * 6;
+      mouse.y = (e.clientY / window.innerHeight - 0.5) * 6;
     };
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -128,13 +128,13 @@ const GlassBackground = (): any => {
       const elapsed = clock.getElapsedTime();
 
       meshes.forEach((mesh, i) => {
-        mesh.rotation.x += 0.0025 + i * 0.0004;
-        mesh.rotation.y += 0.0035 + i * 0.0003;
-        mesh.position.y += Math.sin(elapsed * 0.6 + i) * 0.0025;
+        mesh.rotation.x += 0.0025 + i * 0.0004 + mouse.y * 0.012;
+        mesh.rotation.y += 0.0035 + i * 0.0003 + mouse.x * 0.012;
+        mesh.position.y += Math.sin(elapsed * 0.6 + i) * 0.0045;
       });
 
-      camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.03;
-      camera.position.y += (-mouse.y * 1.2 - camera.position.y) * 0.03;
+      camera.position.x += (mouse.x * 7 - camera.position.x) * 0.15;
+      camera.position.y += (-mouse.y * 7 - camera.position.y) * 0.15;
       camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
