@@ -1,9 +1,15 @@
 import { Outlet } from 'react-router-dom';
+import GlassBackground from './items.animations/background.animations';
 
-const Layout = () => {
-    return (<div className="main-container">
+const Layout = (): any => {
+  return (
+    <div className="main-container">
+      <GlassBackground />
+      <div className="content">
         <Outlet />
-    </div>)
+      </div>
+    </div>
+  );
 };
 
 export default Layout;
