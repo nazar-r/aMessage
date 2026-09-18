@@ -12,8 +12,8 @@ export declare class MessagesService {
         userId: string;
         createdAt: Date;
         messageId: string;
-        roomId: string;
         content: string;
+        roomId: string;
     }>;
     updateMessage(message: {
         messageId: string;
@@ -22,8 +22,8 @@ export declare class MessagesService {
         userId: string;
         createdAt: Date;
         messageId: string;
-        roomId: string;
         content: string;
+        roomId: string;
         updatedAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     findMessagesByRoom(roomId: string, options?: {
@@ -40,8 +40,8 @@ export declare class MessagesService {
         userId: string;
         createdAt: Date;
         messageId: string;
-        roomId: string;
         content: string;
+        roomId: string;
         updatedAt: Date;
     }[]>;
     findUserChats(userId: string): Promise<unknown>;

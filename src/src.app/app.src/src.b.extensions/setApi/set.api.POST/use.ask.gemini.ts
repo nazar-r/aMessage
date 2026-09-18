@@ -1,41 +1,65 @@
+
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { sendSearchMessage } from "./ask.gemini";
 import type { SearchMessage } from '../../types';
 
 export const useSendSearchMessage = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (prompt: string) => sendSearchMessage(prompt),
+    return useMutation({
+        mutationFn: (prompt: string) => sendSearchMessage(prompt),
 
-    onMutate: (prompt: string) => {
-      const newMessage: SearchMessage = {
-        messageId: crypto.randomUUID(),
-        content: prompt,
-        messageStatus: "mine",
-      };
+        onMutate: async (prompt: string) => {
+            await queryClient.cancelQueries({ queryKey: ["geminiMessages"] });
 
-      queryClient.setQueryData(["searchMessages"], (prevMessages: SearchMessage[] = []) => [
-        ...prevMessages,
-        newMessage,
-      ]);
-    },
+            const previousMessages = queryClient.getQueryData(["geminiMessages"]);
 
-    onSuccess: (data) => {
-      const answerMessage: SearchMessage = {
-        messageId: crypto.randomUUID(),
-        content: data.answer,
-        messageStatus: "got",
-      };
+            const newMessage: SearchMessage = {
+                messageId: crypto.randomUUID(),
+                content: prompt,
+                messageStatus: "mine",
+            };
 
-      queryClient.setQueryData(["searchMessages"], (prevMessages: SearchMessage[] = []) => [
-        ...prevMessages,
-        answerMessage,
-      ]);
-    },
+            queryClient.setQueryData(["geminiMessages"], (prev: any) => ({
+                ...prev,
+                chatHistory: [
+                    ...(prev?.chatHistory ?? []),
+                    {
+                        messageId: newMessage.messageId,
+                        content: newMessage.content,
+                        type: "prompt",
+                        createdAt: new Date().toISOString(),
+                    },
+                ],
+            }));
 
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+            return { previousMessages };
+        },
+
+        onSuccess: (data) => {
+            queryClient.setQueryData(["geminiMessages"], (prev: any) => ({
+                ...prev,
+                chatHistory: [
+                    ...(prev?.chatHistory ?? []),
+                    {
+                        messageId: crypto.randomUUID(),
+                        content: data.answer,
+                        type: "response",
+                        createdAt: new Date().toISOString(),
+                    },
+                ],
+            }));
+        },
+
+        onError: (error, _, context) => {
+            console.error(error);
+
+            queryClient.setQueryData(["geminiMessages"], context?.previousMessages);
+        },
+
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["geminiMessages"] });
+        },
+    });
 };
+

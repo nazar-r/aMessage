@@ -55,7 +55,6 @@ input:-webkit-autofill {
     }
 }
 
-
 @keyframes fadeRight {
     from {
         transform: translateX(200px);

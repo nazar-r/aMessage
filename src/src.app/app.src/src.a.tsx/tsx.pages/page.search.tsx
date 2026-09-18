@@ -1,18 +1,20 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useGeminiMessages } from '../../src.b.extensions/getApi/use.get.gemini.history';
 import { useSendSearchMessage } from '../../src.b.extensions/setApi/set.api.POST/use.ask.gemini';
 
 const SearchPageContent = () => {
     const [text, setText] = useState('');
+    const { data } = useGeminiMessages();
     const isMobile = window.innerWidth <= 1250;
-    const { data: messages = [] } = useQuery<any[]>({ queryKey: ['searchMessages'], queryFn: () => [], staleTime: Infinity, gcTime: Infinity });
-    const navigate = useNavigate();
     const sendSearchMessage = useSendSearchMessage();
+    const navigate = useNavigate();
+
+    const messages = data?.chatHistory ?? [];
 
     const setMessage = () => {
         const messageText = text.trim();
-
         if (!messageText) return;
 
         setText('');
@@ -26,10 +28,18 @@ const SearchPageContent = () => {
         }
     };
 
+    const formatTime = (createdAt: string) => {
+        return new Date(createdAt).toLocaleTimeString('uk-UA', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    };
+
     return (
         <div className="lobby-page">
             <div className="chat-page__header appear">
-                <div className="list-page__title">{}ai search</div>
+                <div className="list-page__title">ai search</div>
             </div>
 
             <div className="chat-page" onKeyDown={handleKeyDown}>
@@ -45,13 +55,19 @@ const SearchPageContent = () => {
                 </div>
 
                 <ul className="chat-page__container">
-                    {messages.map((message) => (
-                        <li id={message.messageId} key={message.messageId} className={message.messageStatus === 'mine' ? 'chat-message__mine' : 'chat-message__got'}>
-                            <div className="chat-message--text">{message.content}</div>
+                    {messages.map((message: any, index: any) => {
+                        const isMine = message.type === 'prompt';
 
-                            <div className={message.messageStatus === 'mine' ? 'chat-message__time--mine' : 'chat-message__time--got'}>00:00</div>
-                        </li>
-                    ))}
+                        return (
+                            <li key={`${message.createdAt}-${index}`} className={isMine ? 'chat-message__mine' : 'chat-message__got'}>
+                                <div className="chat-message--text">{message.content}</div>
+
+                                <div className={isMine ? 'chat-message__time--mine' : 'chat-message__time--got'}>
+                                    {formatTime(message.createdAt)}
+                                </div>
+                            </li>
+                        );
+                    })}
 
                     {sendSearchMessage.isPending && (
                         <li className="chat-message__got">
@@ -88,3 +104,4 @@ const SearchPageContent = () => {
 };
 
 export default SearchPageContent;
+

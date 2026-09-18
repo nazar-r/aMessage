@@ -20,13 +20,24 @@ let SearchController = class SearchController {
     constructor(searchService) {
         this.searchService = searchService;
     }
+    async getAiChatHistory(req) {
+        const userId = req.user.sub;
+        return this.searchService.getChatHistory(userId);
+    }
     async handleSearch(body, req) {
         const userId = req.user.sub;
         const prompt = body.prompt;
-        return this.searchService.processSearch(prompt, userId);
+        return this.searchService.useGemini(prompt, userId);
     }
 };
 exports.SearchController = SearchController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], SearchController.prototype, "getAiChatHistory", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

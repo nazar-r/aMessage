@@ -17,15 +17,15 @@ model User {
   role         Role     @default(USER)
   userId       String   @id
   userName     String
-  email        String? 
-  pubKey       String? 
+  email        String?
+  pubKey       String?
   refreshToken String?
   createdAt    DateTime @default(now())
 
   messages Message[]
-  contacts Contact[]  @relation("userContacts")
+  contacts Contact[] @relation("userContacts")
   rooms    RoomUser[]
-  aiChat   AssistantChat?
+  aiChat   AIChat? @relation("UserAIChat")
 }
 
 model Room {
@@ -68,23 +68,23 @@ model Message {
   room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
 }
 
-model AssistantChat {
-  chatId    String   @id @default(uuid())
+model AIChat {
+  chatId    String   @unique
   userId    String   @unique
   createdAt DateTime @default(now())
 
-  user     User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  messages AssistantChatMessage[]
+  user     User        @relation("UserAIChat", fields: [userId], references: [userId], onDelete: Cascade)
+  messages AIMessage[]
 }
 
-model AssistantChatMessage {
+model AIMessage {
   messageId String   @id @default(uuid())
   chatId    String
-  prompt    String
-  response  String
+  type      String
+  content   String
   createdAt DateTime @default(now())
 
-  chat AssistantChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
+  chat AIChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
 
   @@index([chatId, createdAt])
 }

@@ -7,18 +7,18 @@ import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 export class SearchController {
   constructor(private readonly searchService: SearchService) { }
 
-  // @Get()
-  // async getAiChatHistory(@Req() req) {
-  //   const userId = req.user.sub;
+  @Get()
+  async getAiChatHistory(@Req() req) {
+    const userId = req.user.sub;
 
-  //   return this.searchService.getAiChatHistory(userId);
-  // }
+    return this.searchService.getChatHistory(userId);
+  }
 
   @Post()
   async handleSearch(@Body() body, @Req() req) {
     const userId = req.user.sub;
     const prompt = body.prompt;
 
-    return this.searchService.processSearch(prompt, userId);
+    return this.searchService.useGemini(prompt, userId);
   }
 }
