@@ -4,7 +4,7 @@ export declare class MessagesController {
     constructor(messagesService: MessagesService);
     findUserChats(req: any): Promise<unknown>;
     deleteUserChat(req: any): Promise<{
-        createdAt: Date;
         roomId: string;
+        createdAt: Date;
     }>;
 }

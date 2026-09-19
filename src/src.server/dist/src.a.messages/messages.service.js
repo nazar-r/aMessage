@@ -116,27 +116,53 @@ let MessagesService = class MessagesService {
         const result = await this.usePrisma.$queryRaw `
     SELECT
       r."roomId",
+
       u."userId",
       u."userName",
+
       EXISTS (
         SELECT 1
         FROM "Contact" c
         WHERE c."userId" = ${userId}
           AND c."contactId" = u."userId"
-      ) AS "isContact"
+      ) AS "isContact",
+
+      m."messageId",
+      m."userId" AS "messageUserId",
+      m."content" AS "lastMessage",
+      m."createdAt" AS "lastMessageCreatedAt"
+
     FROM "Room" r
+
     JOIN "RoomUser" ru
       ON ru."roomId" = r."roomId"
+      AND ru."userId" <> ${userId}
+
     JOIN "User" u
       ON u."userId" = ru."userId"
-    WHERE r."roomId" IN (
-      SELECT ru2."roomId"
+
+    JOIN LATERAL (
+      SELECT
+        msg."messageId",
+        msg."userId",
+        msg."content",
+        msg."createdAt"
+      FROM "Message" msg
+      WHERE msg."roomId" = r."roomId"
+      ORDER BY msg."createdAt" DESC
+      LIMIT 1
+    ) m ON true
+
+    WHERE EXISTS (
+      SELECT 1
       FROM "RoomUser" ru2
-      WHERE ru2."userId" = ${userId}
+      WHERE ru2."roomId" = r."roomId"
+        AND ru2."userId" = ${userId}
     )
-    AND u."userId" <> ${userId};
+
+    ORDER BY m."createdAt" DESC;
   `;
-        console.log('[findUserChats]', result);
+        console.log(result);
         return result;
     }
     async deleteUserChat(userId, roomId) {
@@ -144,11 +170,6 @@ let MessagesService = class MessagesService {
             where: {
                 roomId,
             },
-        });
-        console.log('[deleteUserChat]', {
-            userId,
-            roomId,
-            result,
         });
         return result;
     }

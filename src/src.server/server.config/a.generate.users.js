@@ -3,61 +3,25 @@ import { check } from 'k6';
 
 export const options = {
     scenarios: {
-        create_80_users: {
-            executor: 'shared-iterations',
-            vus: 25,
-            iterations: 45,
-            maxDuration: '1m',
+        frontend_page_load: {
+            executor: 'constant-arrival-rate',
+            rate: 7000,
+            timeUnit: '1s',
+            duration: '10m',
+            preAllocatedVUs: 100,
+            maxVUs: 5000,
         },
     },
 };
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'https://otryadkovpaka.org';
 
 export default function () {
-    const uid = `${Date.now()}-${__VU}-${__ITER}-${Math.random().toString(36).slice(2, 8)}`;
-
-    const payload = JSON.stringify({
-        userId: `test-${uid}`,
-        userEmail: `test-${uid}@example.com`,
-        userName: `Mykola Parasuk ${uid}`,
-    });
-
-    const res = http.post(`${BASE_URL}/auth/test/register`, payload, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
+    const res = http.get(`${BASE_URL}/`, {
+        responseType: 'none',
     });
 
     check(res, {
-        'status is 200/201': (r) => r.status === 200 || r.status === 201,
-        'access token returned': (r) => !!r.json('access_token'),
+        'status is 200': (r) => r.status === 200,
     });
 }
-
-// import { Body, Controller, Post } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { AuthUser } from '../src.extensions/extensions.types/auth.types';
-
-// @Controller('auth')
-// export class AuthController {
-//   constructor(private readonly authService: AuthService) { }
-
-//   @Post('test/register')
-//   async testRegister(
-//     @Body()
-//     body: {
-//       userId: string;
-//       userEmail: string;
-//       userName: string;
-//     },
-//   ) {
-//     const profile = {
-//       userId: body.userId,
-//       userEmail: body.userEmail,
-//       userName: body. userName ?? 'Test User',
-//     } as AuthUser;
-
-//     return this.authService.signUser(profile);
-//   }
-// }

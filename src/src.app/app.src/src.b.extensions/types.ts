@@ -54,6 +54,8 @@ export interface UsersData {
 export interface RoomData {
   roomId: string;
   // participants: UsersData[];
+  lastMessage?: string;
+  lastMessageCreatedAt?: string;
   userId: string;
   userName: string;
   isContact?: boolean;
