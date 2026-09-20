@@ -7,9 +7,6 @@ export const useFetchingUserChats = () => {
         queryKey: ["chats"],
         queryFn: async () => {
             const data = await fetchingUserChats();
-
-            // console.log("[fetchingUserChats response]", data);
-
             return data;
         },
         staleTime: 1000 * 60 * 60 * 6,
