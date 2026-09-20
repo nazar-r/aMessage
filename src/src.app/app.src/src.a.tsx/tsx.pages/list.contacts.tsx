@@ -54,7 +54,7 @@ const UsersListContent = () => {
     return (
         <div className="lobby-page">
             <div className="list-page">
-                <div className="list-page__title">Your Contacts</div>
+                <div className="list-page__title">Our Users</div>
                 <ul ref={listRef} className="list-page__list">
                     {users?.map((user) => {
                         const isOnline = onlineUsers.includes(user.userId);
@@ -63,7 +63,12 @@ const UsersListContent = () => {
                             <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { peerWsId: user.userId, userName: user.userName } })}>
                                 <div className="list-page__list-item--image">
                                     {isOnline && <div className="online"></div>}
-                                    {user.isContact === true && <div className="contact">C</div>}
+                                    {user.isContact === true && (
+                                        <div className="contact">
+                                            C
+                                            <div className="contact-popup">this user is your contact</div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="list-page__list-item--content">
