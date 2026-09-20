@@ -11,7 +11,7 @@ const WelcomePageContent = () => {
 
     const delay = () => new Promise(resolve => setTimeout(resolve, 0));
     const loginPath = "/login";
-    const chatsPath = "/users";
+    const chatsPath = "/chats";
 
     try {
       const res = await fetch(import.meta.env.VITE_AUTH_CHECK_URL, {
