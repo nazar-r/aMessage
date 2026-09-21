@@ -22,6 +22,7 @@ const LobbyPageContent = () => {
         const messageText = text.trim();
 
         if (!messageText) return;
+        console.log("Sending message:", messageText);
 
         sendMessage({ messageStatus: "mine", messageId: "", content: messageText });
         setText("");

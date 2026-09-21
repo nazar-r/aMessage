@@ -162,7 +162,6 @@ let MessagesService = class MessagesService {
 
     ORDER BY m."createdAt" DESC;
   `;
-        console.log(result);
         return result;
     }
     async deleteUserChat(userId, roomId) {

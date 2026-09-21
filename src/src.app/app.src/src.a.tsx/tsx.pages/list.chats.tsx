@@ -85,7 +85,12 @@ const ChatsListContent = () => {
                                 <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
                                     <div className="list-page__list-item--image">
                                         {isOnline ? <div className="online"></div> : <div className="online-none"></div>}
-                                        {chat.isContact === true && <div className="contact">C</div>}
+                                        {chat.isContact === true && (
+                                            <div className="contact">
+                                                C
+                                                <div className="contact-popup">this user is your contact</div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="list-page__list-item--content">
@@ -121,7 +126,6 @@ const ChatsListContent = () => {
 
                 <Menu scrollRef={listRef} />
             </div>
-
             <Outlet />
         </div>
     );

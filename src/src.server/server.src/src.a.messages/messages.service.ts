@@ -166,7 +166,6 @@ export class MessagesService {
 
     ORDER BY m."createdAt" DESC;
   `;
-    console.log(result)
     return result;
   }
   async deleteUserChat(userId: string, roomId: string) {
