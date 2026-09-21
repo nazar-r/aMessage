@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server, Socket } from 'socket.io';
+import { PrismaService } from '../src.b.prisma/prisma.service';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
 import { JwtPayload } from '../src.extensions/extensions.types/types';
 import { WsException } from '@nestjs/websockets';
@@ -18,9 +19,10 @@ export class ChatsGatewayLogic {
   private server: Server;
 
   constructor(
+    private readonly usePrisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly redisAdapter: ChatRedisAdapter,
-  ) {}
+  ) { }
 
   async afterInit(server: Server) {
     this.server = server;
@@ -111,9 +113,12 @@ export class ChatsGatewayLogic {
     if (!userId) return;
 
     await this.removeOnlineUser(userId, client.id);
+    await this.usePrisma.user.update({
+      where: { userId },
+      data: { lastSeen: new Date() },
+    });
 
     const onlineUsers = await this.getOnlineUsers();
-
     this.server.emit('usersOnline', onlineUsers);
   }
 

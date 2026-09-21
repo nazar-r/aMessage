@@ -1,8 +1,10 @@
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { PrismaService } from '../src.b.prisma/prisma.service';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
 import { JwtPayload } from '../src.extensions/extensions.types/types';
 export declare class ChatsGatewayLogic {
+    private readonly usePrisma;
     private readonly jwtService;
     private readonly redisAdapter;
     private readonly logger;
@@ -10,7 +12,7 @@ export declare class ChatsGatewayLogic {
     private static readonly ONLINE_USERS_KEY;
     private static readonly ONLINE_SOCKETS_PREFIX;
     private server;
-    constructor(jwtService: JwtService, redisAdapter: ChatRedisAdapter);
+    constructor(usePrisma: PrismaService, jwtService: JwtService, redisAdapter: ChatRedisAdapter);
     afterInit(server: Server): Promise<void>;
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): Promise<void>;

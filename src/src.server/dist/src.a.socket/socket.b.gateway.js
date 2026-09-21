@@ -38,7 +38,6 @@ let ChatsGateway = class ChatsGateway {
         client.join(roomId);
         client.data.roomId = roomId;
         client.data.peerId = peerId;
-        const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
         const messages = await this.messagesService.findMessagesByRoom(roomId, {
             take: 30,
         });

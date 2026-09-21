@@ -47,6 +47,7 @@ let UsersService = class UsersService {
   SELECT
     u."userId",
     u."userName",
+    u."lastSeen",
     EXISTS (
       SELECT 1
       FROM "Contact" c

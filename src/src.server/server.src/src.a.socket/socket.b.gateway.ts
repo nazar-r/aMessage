@@ -42,13 +42,6 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     client.data.roomId = roomId;
     client.data.peerId = peerId;
 
-    const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
-
-    // client.emit('userStatus', {
-    //   userId: peerId,
-    //   status: onlineUsers.includes(peerId) ? 'online' : 'offline',
-    // });
-
     const messages = await this.messagesService.findMessagesByRoom(roomId, {
       take: 30,
     });

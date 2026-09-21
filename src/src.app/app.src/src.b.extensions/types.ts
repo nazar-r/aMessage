@@ -45,6 +45,7 @@ export type UseOneOnOneRoomQueryArgs = RoomConfig & {
 export interface UsersData {
   user?: any;
   userId: string;
+   lastSeen?: any;
   userName: string;
   userStatus: string;
   isContact?: boolean;
@@ -55,6 +56,7 @@ export interface RoomData {
   roomId: string;
   // participants: UsersData[];
   lastMessage?: string;
+  lastSeen?: any;
   lastMessageCreatedAt?: string;
   userId: string;
   userName: string;

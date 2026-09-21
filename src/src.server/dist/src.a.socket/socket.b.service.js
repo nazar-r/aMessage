@@ -47,11 +47,13 @@ exports.ChatsGatewayLogic = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
+const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const redis_adapter_2 = require("../src.b.redis/redis.adapter");
 const websockets_1 = require("@nestjs/websockets");
 const cookie = __importStar(require("cookie"));
 let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
-    constructor(jwtService, redisAdapter) {
+    constructor(usePrisma, jwtService, redisAdapter) {
+        this.usePrisma = usePrisma;
         this.jwtService = jwtService;
         this.redisAdapter = redisAdapter;
         this.logger = new common_1.Logger(ChatsGatewayLogic_1.name);
@@ -122,6 +124,10 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         if (!userId)
             return;
         await this.removeOnlineUser(userId, client.id);
+        await this.usePrisma.user.update({
+            where: { userId },
+            data: { lastSeen: new Date() },
+        });
         const onlineUsers = await this.getOnlineUsers();
         this.server.emit('usersOnline', onlineUsers);
     }
@@ -187,7 +193,8 @@ ChatsGatewayLogic.ONLINE_USERS_KEY = 'chat:online:users';
 ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
 exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [jwt_1.JwtService,
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        jwt_1.JwtService,
         redis_adapter_2.ChatRedisAdapter])
 ], ChatsGatewayLogic);
 //# sourceMappingURL=socket.b.service.js.map

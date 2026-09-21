@@ -13,6 +13,7 @@ export declare class UsersService {
         userName: string;
         email: string | null;
         pubKey: string | null;
+        lastSeen: Date | null;
         refreshToken: string | null;
         createdAt: Date;
     }>;
@@ -23,6 +24,7 @@ export declare class UsersService {
         userName: string;
         email: string | null;
         pubKey: string | null;
+        lastSeen: Date | null;
         refreshToken: string | null;
         createdAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;

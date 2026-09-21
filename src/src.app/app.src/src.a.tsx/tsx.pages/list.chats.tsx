@@ -21,6 +21,29 @@ const ChatsListContent = () => {
     const listRef = useRef<HTMLUListElement | null>(null);
 
     useEffect(() => {
+        const sendPublicKey = async () => {
+            const encryptionService = new ChatEncryptionService("");
+            await encryptionService.init();
+            const publicKey = encryptionService.getPublicKey();
+
+            if (!publicKey) return;
+
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/e2ee-pubkey`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    publicKey,
+                }),
+            });
+        };
+
+        sendPublicKey();
+    }, []);
+
+    useEffect(() => {
         if (!chats) return;
 
         const decryptLastMessage = async () => {
@@ -82,7 +105,7 @@ const ChatsListContent = () => {
                             const isOnline = onlineUsers.includes(chat.userId);
 
                             return (
-                                <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, userName: chat.userName } })}>
+                                <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, lastSeen: chat.lastSeen, userName: chat.userName } })}>
                                     <div className="list-page__list-item--image">
                                         {isOnline ? <div className="online"></div> : <div className="online-none"></div>}
                                         {chat.isContact === true && (
