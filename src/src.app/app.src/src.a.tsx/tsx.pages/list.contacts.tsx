@@ -60,7 +60,7 @@ const UsersListContent = () => {
                         const isOnline = onlineUsers.includes(user.userId);
 
                         return (
-                            <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { peerWsId: user.userId, userName: user.userName } })}>
+                            <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { lastSeen: user.lastSeen, userName: user.userName } })}>
                                 <div className="list-page__list-item--image">
                                     {isOnline && <div className="online"></div>}
                                     {user.isContact === true && (

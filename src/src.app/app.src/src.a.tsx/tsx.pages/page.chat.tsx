@@ -1,22 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
+import { formatLastSeen } from "../../src.a.tsx/tsx.items/format.last.seen";
 import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.config/use.socket.service.query";
 import type { MessageInterface } from "../../src.b.extensions/chats.types";
 import type { MouseEvent, KeyboardEvent } from "react";
 
 const LobbyPageContent = () => {
-    const { username: userName = "" } = useParams<{ username: string }>();
-    const location = useLocation();
+    const { username: userName = "", chatId: peerWsId } = useParams<{ username: string; chatId: string }>();
     const { messages, sendMessage, deleteMessage, updateMessage } = useChatAdapter();
     const { data: onlineUsers = [] } = useOnlineUsersQuery();
     const [text, setText] = useState("");
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editText, setEditText] = useState("");
+    const [localLastSeen, setLocalLastSeen] = useState<Date | null>(null);
+    const location = useLocation();
     const navigate = useNavigate();
 
-    const peerWsId = location.state?.peerWsId as string | undefined;
+    const stateLastSeen = location.state?.lastSeen as string | number | undefined;
     const isOnline = peerWsId ? onlineUsers.includes(peerWsId) : false;
+    const wasOnlineRef = useRef(isOnline);
+
+    useEffect(() => {
+        if (isOnline) {
+            setLocalLastSeen(null);
+        } else if (wasOnlineRef.current) {
+            setLocalLastSeen(new Date());
+        }
+
+        wasOnlineRef.current = isOnline;
+    }, [isOnline]);
+
+    const statusTitle = isOnline ? "Online" : formatLastSeen(localLastSeen ?? stateLastSeen);
 
     const setMessage = () => {
         const messageText = text.trim();
@@ -72,17 +87,8 @@ const LobbyPageContent = () => {
                     <div className="chat-page__title--name">{userName}</div>
 
                     <div className="chat-page__status">
-                        {isOnline ? (
-                            <>
-                                <div className="chat-page__status--icon"></div>
-                                <div className="chat-page__status--title">Online</div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="chat-page__status--icon-1"></div>
-                                <div className="chat-page__status--title">Offline</div>
-                            </>
-                        )}
+                        <div className={isOnline ? "chat-page__status--icon" : "chat-page__status--icon-1"}></div>
+                        <div className="chat-page__status--title">{statusTitle}</div>
                     </div>
                 </div>
             </div>
