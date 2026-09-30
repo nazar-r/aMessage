@@ -1,6 +1,7 @@
 export const formatLastSeen = (value?: string | number | Date | null) => {
     if (!value) return "Offline";
 
+    console.log(value)
     const date = new Date(value);
 
     if (isNaN(date.getTime())) return "Offline";
@@ -20,7 +21,7 @@ export const formatLastSeen = (value?: string | number | Date | null) => {
     const diffDays = Math.floor(
         (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() -
             new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) /
-            86400000
+        86400000
     );
 
     if (diffDays <= 7) {
