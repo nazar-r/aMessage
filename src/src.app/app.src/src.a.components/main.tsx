@@ -5,6 +5,7 @@ import { createBrowserRouter, Navigate, Outlet, RouterProvider, type RouteObject
 import '../src.b.styles/index.css';
 
 const Layout = lazy(() => import('./components.items/layout'));
+
 const LoginPage = lazy(() => import('./components.pages/page.a.login'));
 const WelcomePage = lazy(() => import('./components.pages/page.a.welcome'));
 const ChatPage = lazy(() => import('./components.pages/page.c.chat'));
