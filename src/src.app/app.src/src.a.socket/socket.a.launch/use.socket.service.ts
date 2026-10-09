@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { SocketService } from "./socket.service";
 import { useOnlineUsersCache } from "./use.socket.service.query";
-// fuckoff
+
 export const useSocketService = () => {
   const socketService = useMemo(
     () => SocketService.getInstance(),
