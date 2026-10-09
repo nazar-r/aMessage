@@ -1,0 +1,16 @@
+import type { ErrorResponse } from '../../src.c.extensions/extentions.types/types';
+
+export const fetchingLoggedInUser = async () => {
+    const response = await fetch(import.meta.env.VITE_AUTH_CHECK_URL, {
+        method: 'GET',
+        credentials: 'include',
+    });
+
+    if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        throw errorData;
+    }
+
+    const data = await response.json();
+    return data;
+};  

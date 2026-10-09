@@ -1,7 +1,7 @@
 import { ChatSocketService } from "./chats.a.socket.service";
-import { ChatEncryptionService } from "./chats.a.crypto.service";
-import type { E2EEPeerPublicKeyPayload } from "../../src.b.extensions/types";
-import type { MessageInterface } from "../../src.b.extensions/chats.types";
+import { ChatEncryptionService } from "../../src.c.encryption/encryption.service";
+import type { E2EEPeerPublicKeyPayload } from "../../src.c.extensions/extentions.types/types";
+import type { MessageInterface } from "../../src.c.extensions/extentions.types/chats.types";
 
 export class ChatAdapter {
   private readonly useEncryption: ChatEncryptionService;

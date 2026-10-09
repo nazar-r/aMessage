@@ -1,0 +1,99 @@
+import { useFetchingUsers } from "../../src.b.queries/queries.hooks/use.get.users.api";
+import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
+import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
+import { ChatEncryptionService } from "../../src.c.encryption/encryption.service";
+import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
+import { useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import { Menu } from "../components.items/items.menu/menu";
+
+const UsersListContent = () => {
+    const navigate = useNavigate();
+    const { data: users } = useFetchingUsers();
+    const { data: onlineUsers = [] } = useOnlineUsersQuery();
+    const { mutate: mutateAddUserContact } = useAddUserAsContact();
+    const { mutate: removeAddUserContact } = useRemoveUserContact();
+    const listRef = useRef<HTMLUListElement | null>(null);
+
+    useEffect(() => {
+        const sendPublicKey = async () => {
+            const encryptionService = new ChatEncryptionService("");
+            await encryptionService.init();
+            const publicKey = encryptionService.getPublicKey();
+
+            if (!publicKey) return;
+
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/e2ee-pubkey`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    publicKey,
+                }),
+            });
+        };
+
+        sendPublicKey();
+    }, []);
+
+    const addUserContact = (userId: string) => {
+        mutateAddUserContact({
+            userContactId: userId,
+        });
+    };
+
+    const removeUserContact = (userId: string) => {
+        removeAddUserContact({
+            userContactId: userId,
+        });
+    };
+
+    return (
+        <div className="lobby-page">
+            <div className="list-page">
+                <div className="list-page__title">Our Users</div>
+                <ul ref={listRef} className="list-page__list">
+                    {users?.map((user) => {
+                        const isOnline = onlineUsers.includes(user.userId);
+
+                        return (
+                            <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { lastSeen: user.lastSeen, userName: user.userName } })}>
+                                <div className="list-page__list-item--image">
+                                    {isOnline && <div className="online"></div>}
+                                    {user.isContact === true && (
+                                        <div className="contact">
+                                            C
+                                            <div className="contact-popup">this user is your contact</div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="list-page__list-item--content">
+                                    <div className="list-page__list-item--content__container">
+                                        <div className="list-page__list-item--title">
+                                            <div className="list-item--title__name">{user.userName}</div>
+                                            <div className="list-item--title__time">00:00</div>
+                                        </div>
+
+                                        <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
+                                    </div>
+
+                                    <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), user.isContact === true ? removeUserContact(user.userId) : addUserContact(user.userId))}>
+                                        {user.isContact === true ? "✕ Delete contact" : "✓ Add Contact"}
+                                    </div>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+                <Menu scrollRef={listRef} />
+            </div>
+            <Outlet />
+        </div>
+    );
+};
+
+export default UsersListContent;

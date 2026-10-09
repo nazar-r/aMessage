@@ -1,4 +1,4 @@
-import { SocketService } from "../socket.a.config/socket.service";
+import { SocketService } from "../socket.a.launch/socket.service";
 
 export class ChatSocketService {
   private readonly socket = SocketService.getInstance();

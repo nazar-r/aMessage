@@ -1,0 +1,39 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMenuScrollFade } from "../items.animations/items.menu.animation";
+import type { MenuProps } from "../../../../src.c.extensions/extentions.types/types";
+
+export const Menu = ({ scrollRef }: MenuProps) => {
+    const [defMenu, setMenu] = useState(false);
+    const isFaded = useMenuScrollFade(scrollRef ?? undefined);
+    const isMobile = window.innerWidth <= 1250;
+    const menuButtonClass = `menu-button ${isFaded ? "fade" : ""}`;
+
+    const navigate = useNavigate();
+    const launchMenu = () => setMenu((prev) => !prev);
+
+    const menuButton = () => {
+        return (
+            <div className={menuButtonClass} onClick={launchMenu}>Menu</div>
+        );
+    }
+
+    const menuItems = (
+        <>
+            {!isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
+            <div className="menu-container__item" onClick={() => navigate("/chats")}>Chats</div>
+            <div className="menu-container__item" onClick={() => navigate("/users")}>Users</div>
+            <div className="menu-container__item" onClick={() => navigate("/search")}>AI Search</div>
+            {isMobile ? <div className="menu-container__item" onClick={launchMenu}>Menu</div> : null}
+        </>
+    );
+
+    const menuContainer = defMenu
+        ? <div className="menu-container">{menuItems}</div>
+        : null;
+
+    return <>
+        {menuButton()}
+        {menuContainer}
+    </>;
+};
