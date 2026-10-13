@@ -12,18 +12,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatsGateway = void 0;
-const socket_io_1 = require("socket.io");
-const socket_b_service_1 = require("./socket.b.service");
-const messages_service_1 = require("../src.a.messages/messages.service");
+exports.SocketGateway = void 0;
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
+const socket_io_1 = require("socket.io");
+const messages_service_1 = require("../src.a.messages/messages.service");
+const socket_b_service_1 = require("./socket.b.service");
 const websockets_1 = require("@nestjs/websockets");
 const websockets_2 = require("@nestjs/websockets");
-let ChatsGateway = class ChatsGateway {
-    constructor(messagesService, chatsGatewayLogic, usePrisma) {
+let SocketGateway = class SocketGateway {
+    constructor(usePrisma, messagesService, chatsGatewayLogic) {
+        this.usePrisma = usePrisma;
         this.messagesService = messagesService;
         this.chatsGatewayLogic = chatsGatewayLogic;
-        this.usePrisma = usePrisma;
     }
     async handleJoinRoom(client, payload) {
         const user = client.data.user;
@@ -38,7 +38,7 @@ let ChatsGateway = class ChatsGateway {
         client.join(roomId);
         client.data.roomId = roomId;
         client.data.peerId = peerId;
-        const messages = await this.messagesService.findMessagesByRoom(roomId, {
+        const messages = await this.messagesService.getMessagesByRoom(roomId, {
             take: 30,
         });
         const orderedMessages = messages.reverse();
@@ -156,11 +156,11 @@ let ChatsGateway = class ChatsGateway {
         await this.chatsGatewayLogic.handleDisconnect(client);
     }
 };
-exports.ChatsGateway = ChatsGateway;
+exports.SocketGateway = SocketGateway;
 __decorate([
     (0, websockets_2.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
-], ChatsGateway.prototype, "server", void 0);
+], SocketGateway.prototype, "server", void 0);
 __decorate([
     (0, websockets_1.SubscribeMessage)('joinRoom'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
@@ -168,7 +168,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "handleJoinRoom", null);
+], SocketGateway.prototype, "handleJoinRoom", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('newMessage'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
@@ -176,7 +176,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "createMessage", null);
+], SocketGateway.prototype, "createMessage", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('messageUpdate'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
@@ -184,7 +184,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "updateUserMessage", null);
+], SocketGateway.prototype, "updateUserMessage", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('messageRemove'),
     __param(0, (0, websockets_2.ConnectedSocket)()),
@@ -192,15 +192,15 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "removeUserMessage", null);
-exports.ChatsGateway = ChatsGateway = __decorate([
+], SocketGateway.prototype, "removeUserMessage", null);
+exports.SocketGateway = SocketGateway = __decorate([
     (0, websockets_2.WebSocketGateway)({
         cors: {
             credentials: true,
         },
     }),
-    __metadata("design:paramtypes", [messages_service_1.MessagesService,
-        socket_b_service_1.ChatsGatewayLogic,
-        prisma_service_1.PrismaService])
-], ChatsGateway);
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        messages_service_1.MessagesService,
+        socket_b_service_1.SocketService])
+], SocketGateway);
 //# sourceMappingURL=socket.b.gateway.js.map

@@ -4,9 +4,9 @@ import { AuthModule } from './src.a.auth/auth.module';
 import { RedisModule } from './src.b.redis/redis.module';
 import { UsersModule } from './src.a.users/users.module';
 import { SearchModule } from './src.a.search/search.module';
-import { MessagesModule } from './src.a.messages/messages.module';
+import { ChatsModule } from './src.a.chats/chats.module';
 import { PrismaModule } from './src.b.prisma/prisma.module';
-import { ChatModule } from './src.a.socket/socket.a.module';
+import { SocketModule } from './src.a.socket/socket.a.module';
 
 @Module({
   imports: [
@@ -14,13 +14,13 @@ import { ChatModule } from './src.a.socket/socket.a.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    ChatModule,
+    SocketModule,
     SearchModule,
     PrismaModule,
     UsersModule,
     AuthModule,
     RedisModule,
-    MessagesModule,
+    ChatsModule,
   ],
 
 })

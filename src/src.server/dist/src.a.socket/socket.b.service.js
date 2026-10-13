@@ -41,9 +41,9 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var ChatsGatewayLogic_1;
+var SocketService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatsGatewayLogic = void 0;
+exports.SocketService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
@@ -51,12 +51,12 @@ const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const redis_adapter_2 = require("../src.b.redis/redis.adapter");
 const websockets_1 = require("@nestjs/websockets");
 const cookie = __importStar(require("cookie"));
-let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
+let SocketService = SocketService_1 = class SocketService {
     constructor(usePrisma, jwtService, redisAdapter) {
         this.usePrisma = usePrisma;
         this.jwtService = jwtService;
         this.redisAdapter = redisAdapter;
-        this.logger = new common_1.Logger(ChatsGatewayLogic_1.name);
+        this.logger = new common_1.Logger(SocketService_1.name);
         this.roomMessageSaveChains = new Map();
     }
     async afterInit(server) {
@@ -132,14 +132,14 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         this.server.emit('usersOnline', onlineUsers);
     }
     getOnlineSocketsKey(userId) {
-        return `${ChatsGatewayLogic_1.ONLINE_SOCKETS_PREFIX}${userId}`;
+        return `${SocketService_1.ONLINE_SOCKETS_PREFIX}${userId}`;
     }
     async addOnlineUser(userId, socketId) {
         const socketsKey = this.getOnlineSocketsKey(userId);
         await this.redisAdapter.redisClient
             .multi()
             .sAdd(socketsKey, socketId)
-            .sAdd(ChatsGatewayLogic_1.ONLINE_USERS_KEY, userId)
+            .sAdd(SocketService_1.ONLINE_USERS_KEY, userId)
             .exec();
     }
     async removeOnlineUser(userId, socketId) {
@@ -158,7 +158,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
       `, {
             keys: [
                 socketsKey,
-                ChatsGatewayLogic_1.ONLINE_USERS_KEY,
+                SocketService_1.ONLINE_USERS_KEY,
             ],
             arguments: [
                 socketId,
@@ -167,7 +167,7 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         });
     }
     async getOnlineUsers() {
-        return (await this.redisAdapter.redisClient.sMembers(ChatsGatewayLogic_1.ONLINE_USERS_KEY));
+        return (await this.redisAdapter.redisClient.sMembers(SocketService_1.ONLINE_USERS_KEY));
     }
     resolveUserId(payload) {
         const userId = payload?.sub;
@@ -188,13 +188,13 @@ let ChatsGatewayLogic = ChatsGatewayLogic_1 = class ChatsGatewayLogic {
         });
     }
 };
-exports.ChatsGatewayLogic = ChatsGatewayLogic;
-ChatsGatewayLogic.ONLINE_USERS_KEY = 'chat:online:users';
-ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
-exports.ChatsGatewayLogic = ChatsGatewayLogic = ChatsGatewayLogic_1 = __decorate([
+exports.SocketService = SocketService;
+SocketService.ONLINE_USERS_KEY = 'chat:online:users';
+SocketService.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
+exports.SocketService = SocketService = SocketService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService,
         redis_adapter_2.ChatRedisAdapter])
-], ChatsGatewayLogic);
+], SocketService);
 //# sourceMappingURL=socket.b.service.js.map

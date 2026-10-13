@@ -1,8 +1,8 @@
+import 'reflect-metadata';
+import cookieParser from 'cookie-parser';
+import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser';
-import 'reflect-metadata';
 
 const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

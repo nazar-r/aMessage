@@ -1,7 +1,7 @@
 import { Controller, Param, Get, Delete, Patch, Post, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
-import type { UserContact } from "../src.extensions/extensions.types/types"
+import type { UserContact } from "../src.c.extensions/extensions.types/types.chats"
 
 @Controller('users')
 @UseGuards(JwtCheck)

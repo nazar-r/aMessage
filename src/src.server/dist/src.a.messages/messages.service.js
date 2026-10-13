@@ -19,13 +19,9 @@ let MessagesService = class MessagesService {
     async createMessage(message) {
         return this.usePrisma.$transaction(async (tx) => {
             await tx.room.upsert({
-                where: {
-                    roomId: message.roomId,
-                },
+                where: { roomId: message.roomId },
                 update: {},
-                create: {
-                    roomId: message.roomId,
-                },
+                create: { roomId: message.roomId },
             });
             await Promise.all([
                 tx.roomUser.upsert({
@@ -74,15 +70,21 @@ let MessagesService = class MessagesService {
     }
     updateMessage(message) {
         return this.usePrisma.message.update({
-            where: {
-                messageId: message.messageId,
-            },
-            data: {
-                content: message.content,
-            },
+            where: { messageId: message.messageId },
+            data: { content: message.content },
         });
     }
-    findMessagesByRoom(roomId, options) {
+    removeMessage(messageId, userId) {
+        return this.usePrisma.message.deleteMany({
+            where: { userId, messageId },
+        });
+    }
+    getMessages(userId) {
+        return this.usePrisma.message.findMany({
+            where: { userId },
+        });
+    }
+    getMessagesByRoom(roomId, options) {
         return this.usePrisma.message.findMany({
             where: { roomId },
             orderBy: { createdAt: 'desc' },
@@ -98,79 +100,6 @@ let MessagesService = class MessagesService {
                 createdAt: true,
             },
         });
-    }
-    removeMessage(messageId, userId) {
-        return this.usePrisma.message.deleteMany({
-            where: {
-                userId,
-                messageId,
-            },
-        });
-    }
-    findMessages(userId) {
-        return this.usePrisma.message.findMany({
-            where: { userId },
-        });
-    }
-    async findUserChats(userId) {
-        const result = await this.usePrisma.$queryRaw `
-    SELECT
-      r."roomId",
-
-      u."userId",
-      u."userName",
-
-      EXISTS (
-        SELECT 1
-        FROM "Contact" c
-        WHERE c."userId" = ${userId}
-          AND c."contactId" = u."userId"
-      ) AS "isContact",
-
-      m."messageId",
-      m."userId" AS "messageUserId",
-      m."content" AS "lastMessage",
-      m."createdAt" AS "lastMessageCreatedAt"
-
-    FROM "Room" r
-
-    JOIN "RoomUser" ru
-      ON ru."roomId" = r."roomId"
-      AND ru."userId" <> ${userId}
-
-    JOIN "User" u
-      ON u."userId" = ru."userId"
-
-    JOIN LATERAL (
-      SELECT
-        msg."messageId",
-        msg."userId",
-        msg."content",
-        msg."createdAt"
-      FROM "Message" msg
-      WHERE msg."roomId" = r."roomId"
-      ORDER BY msg."createdAt" DESC
-      LIMIT 1
-    ) m ON true
-
-    WHERE EXISTS (
-      SELECT 1
-      FROM "RoomUser" ru2
-      WHERE ru2."roomId" = r."roomId"
-        AND ru2."userId" = ${userId}
-    )
-
-    ORDER BY m."createdAt" DESC;
-  `;
-        return result;
-    }
-    async deleteUserChat(userId, roomId) {
-        const result = await this.usePrisma.room.delete({
-            where: {
-                roomId,
-            },
-        });
-        return result;
     }
 };
 exports.MessagesService = MessagesService;

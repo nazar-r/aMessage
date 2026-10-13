@@ -13,7 +13,7 @@ const auth_module_1 = require("./src.a.auth/auth.module");
 const redis_module_1 = require("./src.b.redis/redis.module");
 const users_module_1 = require("./src.a.users/users.module");
 const search_module_1 = require("./src.a.search/search.module");
-const messages_module_1 = require("./src.a.messages/messages.module");
+const chats_module_1 = require("./src.a.chats/chats.module");
 const prisma_module_1 = require("./src.b.prisma/prisma.module");
 const socket_a_module_1 = require("./src.a.socket/socket.a.module");
 let AppModule = class AppModule {
@@ -26,13 +26,13 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
-            socket_a_module_1.ChatModule,
+            socket_a_module_1.SocketModule,
             search_module_1.SearchModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             redis_module_1.RedisModule,
-            messages_module_1.MessagesModule,
+            chats_module_1.ChatsModule,
         ],
     })
 ], AppModule);

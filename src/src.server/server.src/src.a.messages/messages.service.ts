@@ -1,28 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../src.b.prisma/prisma.service';
-import { MessageDTO } from './messages.image/messages.create.dto';
+import type { CreatedMessage, UpdatedMessage, MessageSearch } from '../src.c.extensions/extensions.types/types.chats';
 
 @Injectable()
 export class MessagesService {
-  constructor(
-    private readonly usePrisma: PrismaService,
-  ) { }
-  async createMessage(message: {
-    messageId: string;
-    roomId: string;
-    userId: string;
-    peerId: string;
-    content: string;
-  }) {
+  constructor(private readonly usePrisma: PrismaService) { }
+
+  async createMessage(message: CreatedMessage) {
     return this.usePrisma.$transaction(async (tx) => {
       await tx.room.upsert({
-        where: {
-          roomId: message.roomId,
-        },
+        where: { roomId: message.roomId },
         update: {},
-        create: {
-          roomId: message.roomId,
-        },
+        create: { roomId: message.roomId },
       });
 
       await Promise.all([
@@ -39,7 +28,6 @@ export class MessagesService {
             userId: message.userId,
           },
         }),
-
         tx.roomUser.upsert({
           where: {
             roomId_userId: {
@@ -72,18 +60,27 @@ export class MessagesService {
       });
     });
   }
-  updateMessage(message: { messageId: string; content: string }) {
+
+  updateMessage(message: UpdatedMessage) {
     return this.usePrisma.message.update({
-      where: {
-        messageId: message.messageId,
-      },
-      data: {
-        content: message.content,
-      },
+      where: { messageId: message.messageId },
+      data: { content: message.content },
     });
   }
 
-  findMessagesByRoom(roomId: string, options?: { take?: number; cursor?: string }) {
+  removeMessage(messageId: string, userId: string) {
+    return this.usePrisma.message.deleteMany({
+      where: { userId, messageId },
+    });
+  }
+
+  getMessages(userId: string) {
+    return this.usePrisma.message.findMany({
+      where: { userId },
+    });
+  }
+
+  getMessagesByRoom(roomId: string, options?: MessageSearch) {
     return this.usePrisma.message.findMany({
       where: { roomId },
       orderBy: { createdAt: 'desc' },
@@ -99,82 +96,5 @@ export class MessagesService {
         createdAt: true,
       },
     });
-  }
-
-  removeMessage(messageId: string, userId: string) {
-    return this.usePrisma.message.deleteMany({
-      where: {
-        userId,
-        messageId,
-      },
-    });
-  }
-
-  findMessages(userId: string) {
-    return this.usePrisma.message.findMany({
-      where: { userId },
-    });
-  }
-
-  async findUserChats(userId: string) {
-    const result = await this.usePrisma.$queryRaw`
-    SELECT
-      r."roomId",
-
-      u."userId",
-      u."userName",
-
-      EXISTS (
-        SELECT 1
-        FROM "Contact" c
-        WHERE c."userId" = ${userId}
-          AND c."contactId" = u."userId"
-      ) AS "isContact",
-
-      m."messageId",
-      m."userId" AS "messageUserId",
-      m."content" AS "lastMessage",
-      m."createdAt" AS "lastMessageCreatedAt"
-
-    FROM "Room" r
-
-    JOIN "RoomUser" ru
-      ON ru."roomId" = r."roomId"
-      AND ru."userId" <> ${userId}
-
-    JOIN "User" u
-      ON u."userId" = ru."userId"
-
-    JOIN LATERAL (
-      SELECT
-        msg."messageId",
-        msg."userId",
-        msg."content",
-        msg."createdAt"
-      FROM "Message" msg
-      WHERE msg."roomId" = r."roomId"
-      ORDER BY msg."createdAt" DESC
-      LIMIT 1
-    ) m ON true
-
-    WHERE EXISTS (
-      SELECT 1
-      FROM "RoomUser" ru2
-      WHERE ru2."roomId" = r."roomId"
-        AND ru2."userId" = ${userId}
-    )
-
-    ORDER BY m."createdAt" DESC;
-  `;
-    return result;
-  }
-  async deleteUserChat(userId: string, roomId: string) {
-    const result = await this.usePrisma.room.delete({
-      where: {
-        roomId,
-      },
-    });
-
-    return result;
   }
 }

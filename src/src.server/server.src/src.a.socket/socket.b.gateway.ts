@@ -1,10 +1,10 @@
-import { Server, Socket } from 'socket.io';
-import { ChatsGatewayLogic } from './socket.b.service';
-import { MessagesService } from '../src.a.messages/messages.service';
 import { PrismaService } from '../src.b.prisma/prisma.service';
+import { Server, Socket } from 'socket.io';
+import { MessagesService } from '../src.a.messages/messages.service';
+import { SocketService } from './socket.b.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
 import { ConnectedSocket, MessageBody, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
-import type { JwtPayload } from '../src.extensions/extensions.types/types';
+import type { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
 
 @WebSocketGateway({
   cors: {
@@ -12,12 +12,11 @@ import type { JwtPayload } from '../src.extensions/extensions.types/types';
   },
 })
 
-export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
-    private readonly messagesService: MessagesService,
-    private readonly chatsGatewayLogic: ChatsGatewayLogic,
-
     private readonly usePrisma: PrismaService,
+    private readonly messagesService: MessagesService,
+    private readonly chatsGatewayLogic: SocketService,
   ) { }
 
   @WebSocketServer() server: Server;
@@ -42,7 +41,7 @@ export class ChatsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     client.data.roomId = roomId;
     client.data.peerId = peerId;
 
-    const messages = await this.messagesService.findMessagesByRoom(roomId, {
+    const messages = await this.messagesService.getMessagesByRoom(roomId, {
       take: 30,
     });
 

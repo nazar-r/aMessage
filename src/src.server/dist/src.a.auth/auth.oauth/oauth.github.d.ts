@@ -1,5 +1,5 @@
 import { UsersService } from '../../src.a.users/users.service';
-import type { AuthUser } from '../../src.extensions/extensions.types/auth.types';
+import type { AuthUser } from '../../src.c.extensions/extensions.types/types.auth';
 declare const GithubStrategy_base: new (...args: any) => any;
 export declare class GithubStrategy extends GithubStrategy_base {
     private readonly usersService;

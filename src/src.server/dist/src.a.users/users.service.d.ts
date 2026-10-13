@@ -1,7 +1,7 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { RedisService } from '../src.b.redis/redis.service';
-import type { UserContact, ChosenUser } from '../src.extensions/extensions.types/types';
-import type { AuthUser } from '../src.extensions/extensions.types/auth.types';
+import type { UserContact, ChosenUser } from '../src.c.extensions/extensions.types/types.chats';
+import type { AuthUser } from '../src.c.extensions/extensions.types/types.auth';
 export declare class UsersService {
     private readonly usePrisma;
     private readonly useRedis;
@@ -9,24 +9,24 @@ export declare class UsersService {
     findOrCreateUser(profile: AuthUser): Promise<{
         name: string;
         userId: string;
+        createdAt: Date;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
         email: string | null;
         pubKey: string | null;
         lastSeen: Date | null;
         refreshToken: string | null;
-        createdAt: Date;
     }>;
     findAllUsers(userId: string): Promise<ChosenUser[]>;
     setUserPubKey(userId: string, userPubKey: string): import("@prisma/client").Prisma.Prisma__UserClient<{
         userId: string;
+        createdAt: Date;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
         email: string | null;
         pubKey: string | null;
         lastSeen: Date | null;
         refreshToken: string | null;
-        createdAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     setUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;

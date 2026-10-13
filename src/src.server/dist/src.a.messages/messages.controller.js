@@ -22,12 +22,11 @@ let MessagesController = class MessagesController {
     }
     findUserChats(req) {
         const userId = req.user.sub;
-        return this.messagesService.findUserChats(userId);
+        return this.messagesService.getUserChats(userId);
     }
     deleteUserChat(req) {
         const userId = req.user.sub;
-        const roomId = req.params.chatId;
-        return this.messagesService.deleteUserChat(userId, roomId);
+        return this.messagesService.removeUserChat(userId);
     }
 };
 exports.MessagesController = MessagesController;

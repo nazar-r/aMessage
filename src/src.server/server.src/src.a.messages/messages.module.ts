@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MessagesService } from './messages.service';
-import { MessagesController } from './messages.controller';
 import { AuthModule } from '../src.a.auth/auth.module';
+import { MessagesService } from './messages.service';
 
 @Module({
   imports: [AuthModule],
-  controllers: [MessagesController],
   providers: [MessagesService],
   exports: [MessagesService]
 })

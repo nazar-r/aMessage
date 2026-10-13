@@ -4,13 +4,13 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
-import { JwtPayload } from '../src.extensions/extensions.types/types';
+import { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
 import { WsException } from '@nestjs/websockets';
 import * as cookie from 'cookie';
 
 @Injectable()
-export class ChatsGatewayLogic {
-  private readonly logger = new Logger(ChatsGatewayLogic.name);
+export class SocketService {
+  private readonly logger = new Logger(SocketService.name);
   private readonly roomMessageSaveChains = new Map<string, Promise<void>>();
 
   private static readonly ONLINE_USERS_KEY = 'chat:online:users';
@@ -123,7 +123,7 @@ export class ChatsGatewayLogic {
   }
 
   private getOnlineSocketsKey(userId: string): string {
-    return `${ChatsGatewayLogic.ONLINE_SOCKETS_PREFIX}${userId}`;
+    return `${SocketService.ONLINE_SOCKETS_PREFIX}${userId}`;
   }
 
   async addOnlineUser(userId: string, socketId: string): Promise<void> {
@@ -132,7 +132,7 @@ export class ChatsGatewayLogic {
     await this.redisAdapter.redisClient
       .multi()
       .sAdd(socketsKey, socketId)
-      .sAdd(ChatsGatewayLogic.ONLINE_USERS_KEY, userId)
+      .sAdd(SocketService.ONLINE_USERS_KEY, userId)
       .exec();
   }
 
@@ -158,7 +158,7 @@ export class ChatsGatewayLogic {
       {
         keys: [
           socketsKey,
-          ChatsGatewayLogic.ONLINE_USERS_KEY,
+          SocketService.ONLINE_USERS_KEY,
         ],
         arguments: [
           socketId,
@@ -170,7 +170,7 @@ export class ChatsGatewayLogic {
 
   async getOnlineUsers(): Promise<string[]> {
     return (await this.redisAdapter.redisClient.sMembers(
-      ChatsGatewayLogic.ONLINE_USERS_KEY,
+      SocketService.ONLINE_USERS_KEY,
     )) as string[];
   }
 

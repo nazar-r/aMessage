@@ -8,204 +8,66 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatsGateway = void 0;
-const socket_io_1 = require("socket.io");
-const chats_b_gateway_1 = require("./chats.b.gateway");
-const messages_service_1 = require("../src.a.messages/messages.service");
+exports.ChatsService = void 0;
+const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
-const websockets_1 = require("@nestjs/websockets");
-const websockets_2 = require("@nestjs/websockets");
-let ChatsGateway = class ChatsGateway {
-    constructor(messagesService, chatsGatewayLogic, usePrisma) {
-        this.messagesService = messagesService;
-        this.chatsGatewayLogic = chatsGatewayLogic;
+let ChatsService = class ChatsService {
+    constructor(usePrisma) {
         this.usePrisma = usePrisma;
     }
-    async handleJoinRoom(client, payload) {
-        const user = client.data.user;
-        const userId = this.chatsGatewayLogic.resolveUserId(user);
-        const peerId = payload.peerId;
-        if (!peerId)
-            throw new websockets_2.WsException('Peer not found');
-        const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
-        const previousRoom = client.data.roomId;
-        if (previousRoom && previousRoom !== roomId)
-            client.leave(previousRoom);
-        client.join(roomId);
-        client.data.roomId = roomId;
-        client.data.peerId = peerId;
-        const onlineUsers = await this.chatsGatewayLogic.getOnlineUsers();
-        client.emit('userStatus', {
-            userId: peerId,
-            status: onlineUsers.includes(peerId) ? 'online' : 'offline',
-        });
-        const messages = await this.messagesService.findMessagesByRoom(roomId, {
-            take: 30,
-        });
-        const orderedMessages = messages.reverse();
-        client.emit('messagesHistory', {
-            messages: orderedMessages.map((msg) => ({
-                userId: msg.userId,
-                messageId: msg.messageId,
-                text: msg.content,
-                createdAt: msg.createdAt,
-            })),
-            nextCursor: orderedMessages[0]?.messageId ?? null,
-        });
-        const myPublicKey = await this.usePrisma.user.findUnique({
-            where: {
-                userId,
-            },
-            select: {
-                pubKey: true,
-            },
-        });
-        if (myPublicKey?.pubKey) {
-            client.to(roomId).emit('e2ee:peerPublicKey', {
-                userId,
-                publicKey: myPublicKey.pubKey,
-            });
-        }
-        const peerPublicKey = await this.usePrisma.user.findUnique({
-            where: {
-                userId: peerId,
-            },
-            select: {
-                pubKey: true,
-            },
-        });
-        if (peerPublicKey?.pubKey) {
-            client.emit('e2ee:peerPublicKey', {
-                userId: peerId,
-                publicKey: peerPublicKey.pubKey,
-            });
-        }
-        client.to(roomId).emit('user-joined', { userId });
+    getUserChats(userId) {
+        return this.usePrisma.$queryRaw `
+    SELECT
+      r."roomId",
+      u."userId",
+      u."userName",
+      EXISTS (
+        SELECT 1
+        FROM "Contact" c
+        WHERE c."userId" = ${userId}
+          AND c."contactId" = u."userId"
+      ) AS "isContact",
+      m."messageId",
+      m."userId" AS "messageUserId",
+      m."content" AS "lastMessage",
+      m."createdAt" AS "lastMessageCreatedAt"
+    FROM "Room" r
+    JOIN "RoomUser" ru
+      ON ru."roomId" = r."roomId"
+      AND ru."userId" <> ${userId}
+    JOIN "User" u
+      ON u."userId" = ru."userId"
+    JOIN LATERAL (
+      SELECT
+        msg."messageId",
+        msg."userId",
+        msg."content",
+        msg."createdAt"
+      FROM "Message" msg
+      WHERE msg."roomId" = r."roomId"
+      ORDER BY msg."createdAt" DESC
+      LIMIT 1
+    ) m ON true
+    WHERE EXISTS (
+      SELECT 1
+      FROM "RoomUser" ru2
+      WHERE ru2."roomId" = r."roomId"
+        AND ru2."userId" = ${userId}
+    )
+    ORDER BY m."createdAt" DESC;
+  `;
     }
-    async createMessage(client, payload) {
-        const roomId = client.data.roomId;
-        const user = client.data.user;
-        const userId = this.chatsGatewayLogic.resolveUserId(user);
-        const createdAt = new Date();
-        this.server.to(roomId).emit('newMessage', {
-            userId,
-            messageId: payload.clientMessageId,
-            text: payload.text,
-            time: createdAt,
-            pending: true,
+    async removeUserChat(roomId) {
+        const result = await this.usePrisma.room.delete({
+            where: { roomId },
         });
-        const savedMessage = await this.messagesService.createMessage({
-            messageId: payload.clientMessageId,
-            roomId,
-            userId,
-            peerId: client.data.peerId,
-            content: payload.text,
-        });
-        this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
-            await this.chatsGatewayLogic.formattingRedisData(async () => {
-                this.server.to(roomId).emit('messageSaved', {
-                    messageId: savedMessage.messageId,
-                    userId: savedMessage.userId,
-                    text: savedMessage.content,
-                    time: savedMessage.createdAt,
-                    pending: false,
-                });
-            }, 'Failed to save message');
-        });
-    }
-    async updateUserMessage(client, payload) {
-        const roomId = client.data.roomId;
-        if (!roomId) {
-            throw new websockets_2.WsException('Room not found');
-        }
-        const user = client.data.user;
-        const userId = this.chatsGatewayLogic.resolveUserId(user);
-        await this.chatsGatewayLogic.formattingRedisData(async () => {
-            this.server.to(roomId).emit('messageUpdate', {
-                messageId: payload.messageId,
-                userId,
-                text: payload.text,
-            });
-            await this.messagesService.updateMessage({
-                messageId: payload.messageId,
-                content: payload.text,
-            });
-        }, 'Failed to update message');
-    }
-    async removeUserMessage(client, payload) {
-        const roomId = client.data.roomId;
-        if (!roomId) {
-            throw new websockets_2.WsException('Room not found');
-        }
-        const user = client.data.user;
-        const userId = this.chatsGatewayLogic.resolveUserId(user);
-        await this.chatsGatewayLogic.formattingRedisData(async () => {
-            this.server.to(roomId).emit('messageRemove', {
-                messageId: payload.messageId,
-                userId,
-            });
-            await this.messagesService.removeMessage(payload.messageId, userId);
-        }, 'Failed to remove message');
-    }
-    async afterInit() {
-        await this.chatsGatewayLogic.afterInit(this.server);
-    }
-    async handleConnection(client) {
-        await this.chatsGatewayLogic.handleConnection(client);
-    }
-    async handleDisconnect(client) {
-        await this.chatsGatewayLogic.handleDisconnect(client);
+        return result;
     }
 };
-exports.ChatsGateway = ChatsGateway;
-__decorate([
-    (0, websockets_2.WebSocketServer)(),
-    __metadata("design:type", socket_io_1.Server)
-], ChatsGateway.prototype, "server", void 0);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('joinRoom'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "handleJoinRoom", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('newMessage'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "createMessage", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('messageUpdate'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "updateUserMessage", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('messageRemove'),
-    __param(0, (0, websockets_2.ConnectedSocket)()),
-    __param(1, (0, websockets_2.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", Promise)
-], ChatsGateway.prototype, "removeUserMessage", null);
-exports.ChatsGateway = ChatsGateway = __decorate([
-    (0, websockets_2.WebSocketGateway)({
-        cors: {
-            credentials: true,
-        },
-    }),
-    __metadata("design:paramtypes", [messages_service_1.MessagesService,
-        chats_b_gateway_1.ChatsGatewayLogic,
-        prisma_service_1.PrismaService])
-], ChatsGateway);
+exports.ChatsService = ChatsService;
+exports.ChatsService = ChatsService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+], ChatsService);
 //# sourceMappingURL=chats.service.js.map

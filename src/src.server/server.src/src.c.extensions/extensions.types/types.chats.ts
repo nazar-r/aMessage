@@ -59,3 +59,21 @@ export interface ContactImage {
 export class SetUserContactDTO {
   contactId: string;
 }
+
+export type CreatedMessage = {
+  messageId: string;
+  roomId: string;
+  userId: string;
+  peerId: string;
+  content: string;
+};
+
+export type UpdatedMessage = {
+  messageId: string;
+  content: string;
+};
+
+export type MessageSearch = {
+  take?: number;
+  cursor?: string;
+};

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { type JwtPayload, type CachedUser } from '../src.extensions/extensions.types/types';
+import { type JwtPayload, type CachedUser } from '../src.c.extensions/extensions.types/types.chats';
 
 class JwtLruCache {
   private readonly map = new Map<string, CachedUser>();

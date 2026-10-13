@@ -6,28 +6,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatModule = void 0;
+exports.ChatsModule = void 0;
 const common_1 = require("@nestjs/common");
+const auth_module_1 = require("../src.a.auth/auth.module");
 const chats_service_1 = require("./chats.service");
-const chats_b_gateway_1 = require("./chats.b.gateway");
-const messages_module_1 = require("../src.a.messages/messages.module");
-const jwt_1 = require("@nestjs/jwt");
-const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
-const redis_module_1 = require("../src.b.redis/redis.module");
-let ChatModule = class ChatModule {
+const chats_controller_1 = require("./chats.controller");
+let ChatsModule = class ChatsModule {
 };
-exports.ChatModule = ChatModule;
-exports.ChatModule = ChatModule = __decorate([
+exports.ChatsModule = ChatsModule;
+exports.ChatsModule = ChatsModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET,
-                signOptions: { expiresIn: '1d' },
-            }),
-            messages_module_1.MessagesModule,
-            redis_module_1.RedisModule,
-        ],
-        providers: [chats_b_gateway_1.ChatsGatewayLogic, chats_service_1.ChatsGateway, jwt_extractor_1.JwtCheck],
+        imports: [auth_module_1.AuthModule],
+        exports: [chats_service_1.ChatsService],
+        providers: [chats_service_1.ChatsService],
+        controllers: [chats_controller_1.ChatsController]
     })
-], ChatModule);
+], ChatsModule);
 //# sourceMappingURL=chats.module.js.map

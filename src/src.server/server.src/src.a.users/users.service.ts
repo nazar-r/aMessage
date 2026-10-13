@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { RedisService } from '../src.b.redis/redis.service';
-import type { UserContact, ChosenUser, ContactImage } from '../src.extensions/extensions.types/types';
-import type { AuthUser } from '../src.extensions/extensions.types/auth.types';
+import type { UserContact, ChosenUser, ContactImage } from '../src.c.extensions/extensions.types/types.chats';
+import type { AuthUser } from '../src.c.extensions/extensions.types/types.auth';
 
 @Injectable()
 export class UsersService {

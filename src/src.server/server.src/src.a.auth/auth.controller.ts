@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
-import { AuthUser } from '../src.extensions/extensions.types/auth.types';
+import { AuthUser } from '../src.c.extensions/extensions.types/types.auth';
 
 @Controller('auth')
 export class AuthController {

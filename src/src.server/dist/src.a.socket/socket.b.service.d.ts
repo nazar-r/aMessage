@@ -2,8 +2,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
-import { JwtPayload } from '../src.extensions/extensions.types/types';
-export declare class ChatsGatewayLogic {
+import { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
+export declare class SocketService {
     private readonly usePrisma;
     private readonly jwtService;
     private readonly redisAdapter;
