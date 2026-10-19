@@ -15,7 +15,7 @@ const users_module_1 = require("./src.a.users/users.module");
 const search_module_1 = require("./src.a.search/search.module");
 const chats_module_1 = require("./src.a.chats/chats.module");
 const prisma_module_1 = require("./src.b.prisma/prisma.module");
-const socket_a_module_1 = require("./src.a.socket/socket.a.module");
+const socket_module_1 = require("./src.a.socket/socket.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,7 +26,7 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
-            socket_a_module_1.SocketModule,
+            socket_module_1.SocketModule,
             search_module_1.SearchModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,

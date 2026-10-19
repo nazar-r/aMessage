@@ -1,7 +1,7 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
+import { SocketService } from './socket.b.service';
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from '../src.a.messages/messages.service';
-import { SocketService } from './socket.b.service';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 export declare class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly usePrisma;

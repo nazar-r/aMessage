@@ -1,0 +1,29 @@
+import { JwtService } from '@nestjs/jwt';
+import { Server, Socket } from 'socket.io';
+import { PrismaService } from '../src.b.prisma/prisma.service';
+import { ChatRedisAdapter } from '../src.b.redis/redis.adapter';
+import { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
+export declare class SocketService {
+    private readonly usePrisma;
+    private readonly jwtService;
+    private readonly redisAdapter;
+    private readonly logger;
+    private readonly roomMessageSaveChains;
+    private static readonly ONLINE_USERS_KEY;
+    private static readonly ONLINE_SOCKETS_PREFIX;
+    private server;
+    constructor(usePrisma: PrismaService, jwtService: JwtService, redisAdapter: ChatRedisAdapter);
+    afterInit(server: Server): Promise<void>;
+    handleConnection(client: Socket): Promise<void>;
+    handleDisconnect(client: Socket): Promise<void>;
+    formattingRedisData(action: () => Promise<void>, errorMessage: string): Promise<void>;
+    connectSocket(client: Socket): Promise<void>;
+    disconnectSocket(client: Socket): Promise<void>;
+    private getOnlineSocketsKey;
+    addOnlineUser(userId: string, socketId: string): Promise<void>;
+    removeOnlineUser(userId: string, socketId: string): Promise<void>;
+    getOnlineUsers(): Promise<string[]>;
+    resolveUserId(payload: JwtPayload | undefined): string;
+    signRoomId(userA: string, userB: string): string;
+    setDataIntoRedis(roomId: string, task: () => Promise<void>): void;
+}

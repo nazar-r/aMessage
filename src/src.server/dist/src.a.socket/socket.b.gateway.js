@@ -14,9 +14,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketGateway = void 0;
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
+const socket_b_service_1 = require("./socket.b.service");
 const socket_io_1 = require("socket.io");
 const messages_service_1 = require("../src.a.messages/messages.service");
-const socket_b_service_1 = require("./socket.b.service");
 const websockets_1 = require("@nestjs/websockets");
 const websockets_2 = require("@nestjs/websockets");
 let SocketGateway = class SocketGateway {
@@ -29,8 +29,6 @@ let SocketGateway = class SocketGateway {
         const user = client.data.user;
         const userId = this.chatsGatewayLogic.resolveUserId(user);
         const peerId = payload.peerId;
-        if (!peerId)
-            throw new websockets_2.WsException('Peer not found');
         const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
         const previousRoom = client.data.roomId;
         if (previousRoom && previousRoom !== roomId)

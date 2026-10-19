@@ -44,130 +44,90 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var SocketService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketService = void 0;
-const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const websockets_1 = require("@nestjs/websockets");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
 const prisma_service_1 = require("../src.b.prisma/prisma.service");
 const redis_adapter_2 = require("../src.b.redis/redis.adapter");
-const websockets_1 = require("@nestjs/websockets");
+const common_1 = require("@nestjs/common");
 const cookie = __importStar(require("cookie"));
 let SocketService = SocketService_1 = class SocketService {
-    constructor(usePrisma, jwtService, redisAdapter) {
+    constructor(usePrisma, useJwtService, useRedisAdapter) {
         this.usePrisma = usePrisma;
-        this.jwtService = jwtService;
-        this.redisAdapter = redisAdapter;
-        this.logger = new common_1.Logger(SocketService_1.name);
-        this.roomMessageSaveChains = new Map();
+        this.useJwtService = useJwtService;
+        this.useRedisAdapter = useRedisAdapter;
+        this.useRedis = new Map();
+        this.useLogger = new common_1.Logger(SocketService_1.name);
     }
-    async afterInit(server) {
-        this.server = server;
-        this.server.use((client, next) => {
-            try {
-                const rawCookie = client.handshake.headers.cookie ?? '';
-                const cookies = cookie.parse(rawCookie);
-                const token = cookies['access_token'];
-                if (!token) {
-                    return next(new Error('Unauthorized'));
-                }
-                const payload = this.jwtService.verify(token, {
-                    secret: process.env.JWT_SECRET,
-                });
-                client.data.user = payload;
-                next();
-            }
-            catch (error) {
-                this.logger.error(error);
-                next(new Error('Unauthorized'));
-            }
-        });
-        await this.redisAdapter.initialize();
-        this.server.adapter((0, redis_adapter_1.createAdapter)(this.redisAdapter.pubClient, this.redisAdapter.subClient));
-    }
-    async handleConnection(client) {
-        await this.connectSocket(client);
-    }
-    async handleDisconnect(client) {
-        await this.disconnectSocket(client);
-    }
-    async formattingRedisData(action, errorMessage) {
+    async formatAction(action, errorMessage) {
         try {
             await action();
         }
         catch (error) {
-            this.logger.error(error);
+            this.useLogger.error(error);
             throw new websockets_1.WsException(errorMessage);
         }
     }
-    async connectSocket(client) {
+    async afterInit(server) {
+        server.use((client, next) => {
+            const tryAction = () => {
+                const rawCookie = client.handshake.headers.cookie ?? '';
+                const cookies = cookie.parse(rawCookie);
+                const token = cookies['access_token'];
+                const payload = this.useJwtService.verify(token, {
+                    secret: process.env.JWT_SECRET,
+                });
+                client.data.user = payload;
+                next();
+            };
+            const catchError = (error) => {
+                this.useLogger.error(error);
+            };
+            try {
+                tryAction();
+            }
+            catch (error) {
+                catchError(error);
+            }
+        });
+        await this.useRedisAdapter.initialize();
+        server.adapter((0, redis_adapter_1.createAdapter)(this.useRedisAdapter.pubClient, this.useRedisAdapter.subClient));
+    }
+    async handleConnection(client) {
         const connectUser = async () => {
             const user = client.data.user;
             const userId = this.resolveUserId(user);
-            client.join(userId);
             client.data.userId = userId;
-            await this.addOnlineUser(userId, client.id);
-            const onlineUsers = await this.getOnlineUsers();
-            this.server.emit('usersOnline', onlineUsers);
+            client.join(userId);
+            return await this.getOnlineUsers(client);
         };
         const disconnectUser = (error) => {
-            this.logger.error(error);
+            this.useLogger.error(error);
             client.disconnect(true);
         };
         try {
-            await connectUser();
+            return await connectUser();
         }
         catch (error) {
             disconnectUser(error);
         }
     }
-    async disconnectSocket(client) {
+    async handleDisconnect(client) {
         const userId = client.data.userId;
         if (!userId)
             return;
-        await this.removeOnlineUser(userId, client.id);
         await this.usePrisma.user.update({
             where: { userId },
             data: { lastSeen: new Date() },
         });
-        const onlineUsers = await this.getOnlineUsers();
-        this.server.emit('usersOnline', onlineUsers);
+        return await this.getOnlineUsers(client);
     }
-    getOnlineSocketsKey(userId) {
-        return `${SocketService_1.ONLINE_SOCKETS_PREFIX}${userId}`;
-    }
-    async addOnlineUser(userId, socketId) {
-        const socketsKey = this.getOnlineSocketsKey(userId);
-        await this.redisAdapter.redisClient
-            .multi()
-            .sAdd(socketsKey, socketId)
-            .sAdd(SocketService_1.ONLINE_USERS_KEY, userId)
-            .exec();
-    }
-    async removeOnlineUser(userId, socketId) {
-        const socketsKey = this.getOnlineSocketsKey(userId);
-        await this.redisAdapter.redisClient.eval(`
-        redis.call('SREM', KEYS[1], ARGV[1])
-
-        local socketsCount = redis.call('SCARD', KEYS[1])
-
-        if socketsCount == 0 then
-          redis.call('SREM', KEYS[2], ARGV[2])
-          redis.call('DEL', KEYS[1])
-        end
-
-        return socketsCount
-      `, {
-            keys: [
-                socketsKey,
-                SocketService_1.ONLINE_USERS_KEY,
-            ],
-            arguments: [
-                socketId,
-                userId,
-            ],
-        });
-    }
-    async getOnlineUsers() {
-        return (await this.redisAdapter.redisClient.sMembers(SocketService_1.ONLINE_USERS_KEY));
+    async getOnlineUsers(client) {
+        const sockets = await client.nsp.fetchSockets();
+        const userIds = sockets
+            .map((socket) => socket.data.userId)
+            .filter((userId) => Boolean(userId));
+        return [...new Set(userIds)];
     }
     resolveUserId(payload) {
         const userId = payload?.sub;
@@ -176,21 +136,8 @@ let SocketService = SocketService_1 = class SocketService {
     signRoomId(userA, userB) {
         return JSON.stringify([userA, userB].sort());
     }
-    setDataIntoRedis(roomId, task) {
-        const previous = this.roomMessageSaveChains.get(roomId) ?? Promise.resolve();
-        const current = previous.catch(() => undefined).then(task);
-        const tracked = current.then(() => undefined, () => undefined);
-        this.roomMessageSaveChains.set(roomId, tracked);
-        void tracked.finally(() => {
-            if (this.roomMessageSaveChains.get(roomId) === tracked) {
-                this.roomMessageSaveChains.delete(roomId);
-            }
-        });
-    }
 };
 exports.SocketService = SocketService;
-SocketService.ONLINE_USERS_KEY = 'chat:online:users';
-SocketService.ONLINE_SOCKETS_PREFIX = 'chat:online:sockets:';
 exports.SocketService = SocketService = SocketService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,

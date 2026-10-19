@@ -6,7 +6,7 @@ import { UsersModule } from './src.a.users/users.module';
 import { SearchModule } from './src.a.search/search.module';
 import { ChatsModule } from './src.a.chats/chats.module';
 import { PrismaModule } from './src.b.prisma/prisma.module';
-import { SocketModule } from './src.a.socket/socket.a.module';
+import { SocketModule } from './src.a.socket/socket.module';
 
 @Module({
   imports: [

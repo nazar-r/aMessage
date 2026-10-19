@@ -1,9 +1,8 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
+import { SocketService } from './socket.b.service';
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from '../src.a.messages/messages.service';
-import { SocketService } from './socket.b.service';
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
-import { ConnectedSocket, MessageBody, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import type { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
 
 @WebSocketGateway({
@@ -12,11 +11,11 @@ import type { JwtPayload } from '../src.c.extensions/extensions.types/types.chat
   },
 })
 
-export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class SocketChatsGateway {
   constructor(
     private readonly usePrisma: PrismaService,
-    private readonly messagesService: MessagesService,
-    private readonly chatsGatewayLogic: SocketService,
+    private readonly useSocketService: SocketService,
+    private readonly useMessagesService: MessagesService,
   ) { }
 
   @WebSocketServer() server: Server;
@@ -27,12 +26,9 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     @MessageBody() payload: { peerId: string },
   ) {
     const user = client.data.user as JwtPayload | undefined;
-    const userId = this.chatsGatewayLogic.resolveUserId(user);
     const peerId = payload.peerId;
-
-    if (!peerId) throw new WsException('Peer not found');
-
-    const roomId = this.chatsGatewayLogic.signRoomId(userId, peerId);
+    const userId = this.useSocketService.resolveUserId(user);
+    const roomId = this.useSocketService.signRoomId(userId, peerId);
     const previousRoom = client.data.roomId as string | undefined;
 
     if (previousRoom && previousRoom !== roomId) client.leave(previousRoom);
@@ -41,7 +37,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     client.data.roomId = roomId;
     client.data.peerId = peerId;
 
-    const messages = await this.messagesService.getMessagesByRoom(roomId, {
+    const messages = await this.useMessagesService.getMessagesByRoom(roomId, {
       take: 30,
     });
 
@@ -67,10 +63,10 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     });
 
     if (myPublicKey?.pubKey) {
-        client.to(roomId).emit('e2ee:peerPublicKey', {
-          userId,
-          publicKey: myPublicKey.pubKey,
-        });
+      client.to(roomId).emit('e2ee:peerPublicKey', {
+        userId,
+        publicKey: myPublicKey.pubKey,
+      });
     }
 
     const peerPublicKey = await this.usePrisma.user.findUnique({
@@ -89,7 +85,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       });
     }
 
-      client.to(roomId).emit('user-joined', { userId });
+    client.to(roomId).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('newMessage')
@@ -99,7 +95,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   ) {
     const roomId = client.data.roomId as string | undefined;
     const user = client.data.user as JwtPayload | undefined;
-    const userId = this.chatsGatewayLogic.resolveUserId(user);
+    const userId = this.useSocketService.resolveUserId(user);
     const createdAt = new Date();
 
     this.server.to(roomId).emit('newMessage', {
@@ -110,7 +106,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       pending: true,
     });
 
-    const savedMessage = await this.messagesService.createMessage({
+    const savedMessage = await this.useMessagesService.createMessage({
       messageId: payload.clientMessageId,
       roomId,
       userId,
@@ -118,21 +114,19 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       content: payload.text,
     });
 
-    this.chatsGatewayLogic.setDataIntoRedis(roomId, async () => {
-      await this.chatsGatewayLogic.formattingRedisData(
-        async () => {
-          this.server.to(roomId).emit('messageSaved', {
-            messageId: savedMessage.messageId,
-            userId: savedMessage.userId,
-            text: savedMessage.content,
-            time: savedMessage.createdAt,
-            pending: false,
-          });
-        },
+    await this.useSocketService.formatAction(
+      async () => {
+        this.server.to(roomId).emit('messageSaved', {
+          messageId: savedMessage.messageId,
+          userId: savedMessage.userId,
+          text: savedMessage.content,
+          time: savedMessage.createdAt,
+          pending: false,
+        });
+      },
 
-        'Failed to save message',
-      );
-    });
+      'Failed to save message',
+    );
   }
 
   @SubscribeMessage('messageUpdate')
@@ -141,15 +135,10 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     @MessageBody() payload: { messageId: string; text: string },
   ) {
     const roomId = client.data.roomId as string | undefined;
-
-    if (!roomId) {
-      throw new WsException('Room not found');
-    }
-
     const user = client.data.user as JwtPayload | undefined;
-    const userId = this.chatsGatewayLogic.resolveUserId(user);
+    const userId = this.useSocketService.resolveUserId(user);
 
-    await this.chatsGatewayLogic.formattingRedisData(
+    await this.useSocketService.formatAction(
       async () => {
         this.server.to(roomId).emit('messageUpdate', {
           messageId: payload.messageId,
@@ -157,7 +146,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
           text: payload.text,
         });
 
-        await this.messagesService.updateMessage({
+        await this.useMessagesService.updateMessage({
           messageId: payload.messageId,
           content: payload.text,
         });
@@ -173,22 +162,17 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     @MessageBody() payload: { messageId: string },
   ) {
     const roomId = client.data.roomId as string | undefined;
-
-    if (!roomId) {
-      throw new WsException('Room not found');
-    }
-
     const user = client.data.user as JwtPayload | undefined;
-    const userId = this.chatsGatewayLogic.resolveUserId(user);
+    const userId = this.useSocketService.resolveUserId(user);
 
-    await this.chatsGatewayLogic.formattingRedisData(
+    await this.useSocketService.formatAction(
       async () => {
         this.server.to(roomId).emit('messageRemove', {
           messageId: payload.messageId,
           userId,
         });
 
-        await this.messagesService.removeMessage(
+        await this.useMessagesService.removeMessage(
           payload.messageId,
           userId,
         );
@@ -196,17 +180,5 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
       'Failed to remove message',
     );
-  }
-
-  async afterInit() {
-    await this.chatsGatewayLogic.afterInit(this.server);
-  }
-
-  async handleConnection(client: Socket) {
-    await this.chatsGatewayLogic.handleConnection(client);
-  }
-
-  async handleDisconnect(client: Socket) {
-    await this.chatsGatewayLogic.handleDisconnect(client);
   }
 }

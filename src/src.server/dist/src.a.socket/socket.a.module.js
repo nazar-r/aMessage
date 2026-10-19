@@ -8,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketModule = void 0;
 const common_1 = require("@nestjs/common");
-const socket_b_gateway_1 = require("./socket.b.gateway");
-const socket_b_service_1 = require("./socket.b.service");
+const socket_a_gateway_1 = require("./socket.a.gateway");
+const socket_a_service_1 = require("./socket.a.service");
 const messages_module_1 = require("../src.a.messages/messages.module");
 const jwt_1 = require("@nestjs/jwt");
 const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
@@ -27,7 +27,7 @@ exports.SocketModule = SocketModule = __decorate([
             messages_module_1.MessagesModule,
             redis_module_1.RedisModule,
         ],
-        providers: [socket_b_service_1.SocketService, socket_b_gateway_1.SocketGateway, jwt_extractor_1.JwtCheck],
+        providers: [socket_a_service_1.SocketService, socket_a_gateway_1.SocketGateway, jwt_extractor_1.JwtCheck],
     })
 ], SocketModule);
 //# sourceMappingURL=socket.a.module.js.map
