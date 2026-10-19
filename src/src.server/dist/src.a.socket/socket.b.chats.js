@@ -26,8 +26,8 @@ let SocketChatsGateway = class SocketChatsGateway {
     }
     async handleJoinRoom(client, payload) {
         const user = client.data.user;
-        const userId = this.useSocketService.resolveUserId(user);
         const peerId = payload.peerId;
+        const userId = this.useSocketService.resolveUserId(user);
         const roomId = this.useSocketService.signRoomId(userId, peerId);
         const previousRoom = client.data.roomId;
         if (previousRoom && previousRoom !== roomId)
@@ -125,9 +125,6 @@ let SocketChatsGateway = class SocketChatsGateway {
     }
     async removeUserMessage(client, payload) {
         const roomId = client.data.roomId;
-        if (!roomId) {
-            throw new websockets_1.WsException('Room not found');
-        }
         const user = client.data.user;
         const userId = this.useSocketService.resolveUserId(user);
         await this.useSocketService.formatAction(async () => {

@@ -7,7 +7,6 @@ export declare class SocketService {
     private readonly usePrisma;
     private readonly useJwtService;
     private readonly useRedisAdapter;
-    private readonly useRedis;
     private readonly useLogger;
     constructor(usePrisma: PrismaService, useJwtService: JwtService, useRedisAdapter: ChatRedisAdapter);
     formatAction(action: () => Promise<void>, errorMessage: string): Promise<void>;

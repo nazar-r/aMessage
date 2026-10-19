@@ -53,7 +53,7 @@ export class ChatAdapter {
     this.useSocket.onChatDisconnect(this.ws);
     this.useEncryption.clear();
     this.pendingTempIds.length = 0;
-    
+
     this.destroyed = true;
     this.newMessageCallback = null;
     this.messageSavedCallback = null;
@@ -204,10 +204,9 @@ export class ChatAdapter {
   private getMessagesHistory(payload: any) {
     const messages = payload.messages.map((message: any) => {
       this.useEncryption.cacheEncryptedText(message.messageId, message.text);
-
       return this.decryptMessageContent(message);
     });
-
+    
     this.messagesHistoryCallback?.(messages, payload.nextCursor);
   }
 

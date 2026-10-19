@@ -56,7 +56,6 @@ let SocketService = SocketService_1 = class SocketService {
         this.usePrisma = usePrisma;
         this.useJwtService = useJwtService;
         this.useRedisAdapter = useRedisAdapter;
-        this.useRedis = new Map();
         this.useLogger = new common_1.Logger(SocketService_1.name);
     }
     async formatAction(action, errorMessage) {

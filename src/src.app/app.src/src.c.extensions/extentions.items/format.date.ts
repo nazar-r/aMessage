@@ -24,3 +24,16 @@ export const formatMessageDate = (createdAt: string) => {
         day: "numeric",
     });
 };
+
+export const formatMessageTime = (createdAt: string) => {
+    const messageDate = new Date(createdAt);
+
+    return messageDate.toLocaleTimeString("uk-UA", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    }).replace(":", ":");
+};
+
+export const getDayKey = (date: any) => new Date(date).toDateString();
+export const formatDayDivider = (date: any) =>new Date(date).toLocaleDateString("en-US", { month: "long", day: "numeric" });
