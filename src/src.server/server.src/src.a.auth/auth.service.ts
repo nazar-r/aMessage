@@ -11,7 +11,7 @@ export class AuthService {
         private readonly usersService: UsersService) { }
 
     async signUser(profile: AuthUser) {
-        const user = await this.usersService.findOrCreateUser(profile);
+        const user = await this.usersService.getOrCreateUser(profile);
         const access_token = this.signToken(user);
 
         return { access_token };

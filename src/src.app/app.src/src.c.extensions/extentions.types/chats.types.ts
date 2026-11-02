@@ -2,7 +2,7 @@ export interface MessageInterface {
     messageStatus: "mine" | "got";
     messageId: string;
     content: string;
-    createdAt?: string;
+    createdAt?: Date;
 }
 
 export interface MessagesHistory {

@@ -35,7 +35,7 @@ let GoogleStrategy = class GoogleStrategy extends (0, passport_1.PassportStrateg
         if (!googleId) {
             throw new common_1.UnauthorizedException('Google profile ID is missing');
         }
-        return this.usersService.findOrCreateUser({
+        return this.usersService.getOrCreateUser({
             userId: `ggl_${googleId}`,
             userEmail: googleEmail,
             userName: googleName,

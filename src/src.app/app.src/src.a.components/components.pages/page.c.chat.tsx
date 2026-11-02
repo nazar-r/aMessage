@@ -1,58 +1,54 @@
 import { formatLastSeen } from "../../src.c.extensions/extentions.items/format.last.seen";
 import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import {formatMessageDate, getDayKey, formatDayDivider, formatMessageTime}  from "../../src.c.extensions/extentions.items/format.date";
 import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef, Fragment } from "react";
+import { getDayKey, formatDayDivider, formatMessageTime } from "../../src.c.extensions/extentions.items/format.date";
 import type { MessageInterface } from "../../src.c.extensions/extentions.types/chats.types";
 import type { MouseEvent, KeyboardEvent } from "react";
 
 const ChatPageContent = () => {
-    const location = useLocation();
     const navigate = useNavigate();
+    const location = useLocation();
     const [text, setText] = useState("");
     const [editText, setEditText] = useState("");
-    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [localLastSeen, setLocalLastSeen] = useState<Date | null>(null);
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const { messages, sendMessage, deleteMessage, updateMessage } = useChatAdapter();
     const { data: onlineUsers = [] } = useOnlineUsersQuery();
-    const { username: userName = "", chatId: peerWsId } = useParams<{ username: string; chatId: string }>();
+    const { username: userName, chatId } = useParams<{ username: string; chatId: string }>();
 
-    const stateLastSeen = location.state?.lastSeen as string | number | undefined;
-    const isOnline = peerWsId ? onlineUsers.includes(peerWsId) : false;
-    const wasOnlineRef = useRef(isOnline);
+    const lastSeen = location.state?.lastSeen;
+    const isOnline = chatId ? onlineUsers.includes(chatId) : false;
+    const statusTitle = isOnline ? "Online" : formatLastSeen(localLastSeen ?? lastSeen);
+    const isUserOnline = useRef(isOnline);
 
     useEffect(() => {
         if (isOnline) {
             setLocalLastSeen(null);
-        } else if (wasOnlineRef.current) {
+        } else if (isUserOnline.current) {
             setLocalLastSeen(new Date());
         }
-
-        wasOnlineRef.current = isOnline;
+        isUserOnline.current = isOnline;
     }, [isOnline]);
 
-    const statusTitle = isOnline ? "Online" : formatLastSeen(localLastSeen ?? stateLastSeen);
-
-    const setMessage = () => {
-        const messageText = text.trim();
-
-        if (!messageText) return;
-
-        sendMessage({ messageStatus: "mine", messageId: "", content: messageText });
-        setText("");
-    };
-
-    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const launchEnter = (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             setMessage();
         }
     };
 
+    const setMessage = () => {
+        const messageText = text.trim();
+        if (!messageText) return;
+
+        sendMessage({ messageStatus: "mine", messageId: "", content: messageText, createdAt: new Date() });
+        setText("");
+    };
+
     const editMessage = (e: MouseEvent<any>, message: MessageInterface) => {
         e.stopPropagation();
-
         if (editingMessageId === message.messageId) {
             saveEdit(message);
             return;
@@ -68,7 +64,6 @@ const ChatPageContent = () => {
 
     const saveEdit = (message: MessageInterface) => {
         const messageText = editText.trim();
-
         if (!messageText) return;
 
         updateMessage({ ...message, content: messageText });
@@ -77,7 +72,7 @@ const ChatPageContent = () => {
     };
 
     return (
-        <div className="chat-page" onKeyDown={handleKeyDown}>
+        <div className="chat-page" onKeyDown={launchEnter}>
             <div className="chat-page__header">
                 <svg onClick={() => navigate("/users")} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="chat-page__button--icon">
                     <line x1="5" y1="12" x2="19" y2="12" />

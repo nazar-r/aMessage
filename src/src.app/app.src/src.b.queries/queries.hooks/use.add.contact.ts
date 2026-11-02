@@ -1,5 +1,5 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { addUserAsContact } from "../queries.mutations/add.user.as.contact"
+import { addUserAsContact } from "../queries.mutations/pacth.add.contact"
 import type { UserContact } from '../../src.c.extensions/extentions.types/types';
 
 export const useAddUserAsContact = () => {

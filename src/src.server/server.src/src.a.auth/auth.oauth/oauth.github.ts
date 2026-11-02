@@ -34,7 +34,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       throw new UnauthorizedException('Github profile ID is missing');
     }
 
-    return this.usersService.findOrCreateUser({
+    return this.usersService.getOrCreateUser({
       userId: `ggl_${githubId}`,
       userEmail: githubEmail,
       userName: githubEmail,

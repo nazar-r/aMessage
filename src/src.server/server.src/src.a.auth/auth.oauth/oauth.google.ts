@@ -30,7 +30,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       throw new UnauthorizedException('Google profile ID is missing');
     }
 
-    return this.usersService.findOrCreateUser({
+    return this.usersService.getOrCreateUser({
       userId: `ggl_${googleId}`,
       userEmail: googleEmail,
       userName: googleName,

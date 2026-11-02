@@ -38,7 +38,7 @@ let GithubStrategy = class GithubStrategy extends (0, passport_1.PassportStrateg
         if (!githubId) {
             throw new common_1.UnauthorizedException('Github profile ID is missing');
         }
-        return this.usersService.findOrCreateUser({
+        return this.usersService.getOrCreateUser({
             userId: `ggl_${githubId}`,
             userEmail: githubEmail,
             userName: githubEmail,

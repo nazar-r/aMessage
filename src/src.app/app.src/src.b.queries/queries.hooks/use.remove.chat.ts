@@ -1,5 +1,5 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { removeUserChat } from "../queries.mutations/remove.chat";
+import { removeUserChat } from "../queries.mutations/delete.chat";
 
 export const useRemoveUserChat = () => {
     const queryClient = useQueryClient();

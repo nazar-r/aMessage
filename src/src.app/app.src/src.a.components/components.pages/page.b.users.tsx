@@ -1,52 +1,39 @@
-import { useFetchingUsers } from "../../src.b.queries/queries.hooks/use.get.users.api";
-import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
-import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
-import { ChatEncryptionService } from "../../src.c.encryption/encryption.service";
-import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
-import { useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Outlet } from "react-router-dom";
 import { Menu } from "../components.items/items.menu/menu";
+import { lobbyCryptoLogic } from "../../src.c.extensions/extentions.fetching/lobby.crypto.logic";
+import { formatLastSeen } from "../../src.c.extensions/extentions.items/format.last.seen";
+import { useFetchingUsers } from "../../src.b.queries/queries.hooks/use.get.users.api";
+import { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
+import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
+import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
+import type { UsersData } from "../../src.c.extensions/extentions.types/types";
 
 const UsersListContent = () => {
     const navigate = useNavigate();
-    const { data: users } = useFetchingUsers();
+    const { data: users = [] } = useFetchingUsers();
     const { data: onlineUsers = [] } = useOnlineUsersQuery();
-    const { mutate: mutateAddUserContact } = useAddUserAsContact();
-    const { mutate: removeAddUserContact } = useRemoveUserContact();
-    const listRef = useRef<HTMLUListElement | null>(null);
+    const [decryptedChats, setDecryptedChats] = useState(users);
+    const { mutate: addUserAsContact } = useAddUserAsContact();
+    const { mutate: removeUserContact } = useRemoveUserContact();
 
     useEffect(() => {
-        const sendPublicKey = async () => {
-            const encryptionService = new ChatEncryptionService("");
-            await encryptionService.init();
-            const publicKey = encryptionService.getPublicKey();
-
-            if (!publicKey) return;
-
-            await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/e2ee-pubkey`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    publicKey,
-                }),
-            });
+        if (!users) return;
+        const launchCryptoLogic = async () => {
+            setDecryptedChats(await lobbyCryptoLogic(users));
         };
 
-        sendPublicKey();
-    }, []);
+        launchCryptoLogic();
+    }, [users]);
 
-    const addUserContact = (userId: string) => {
-        mutateAddUserContact({
+    const addContact = (userId: string) => {
+        addUserAsContact({
             userContactId: userId,
         });
     };
 
-    const removeUserContact = (userId: string) => {
-        removeAddUserContact({
+    const removeContact = (userId: string) => {
+        removeUserContact({
             userContactId: userId,
         });
     };
@@ -55,20 +42,16 @@ const UsersListContent = () => {
         <div className="lobby-page">
             <div className="list-page">
                 <div className="list-page__title">Our Users</div>
-                <ul ref={listRef} className="list-page__list">
-                    {users?.map((user) => {
+                <ul className="list-page__list">
+                    {users?.map((user: UsersData) => {
                         const isOnline = onlineUsers.includes(user.userId);
+                        const isContact = user.isContact === true;
 
                         return (
                             <li key={user.userId} className="list-page__list-item" onClick={() => navigate(`/users/${encodeURIComponent(user.userName)}/${user.userId}`, { state: { lastSeen: user.lastSeen, userName: user.userName } })}>
                                 <div className="list-page__list-item--image">
                                     {isOnline && <div className="online"></div>}
-                                    {user.isContact === true && (
-                                        <div className="contact">
-                                            C
-                                            <div className="contact-popup">this user is your contact</div>
-                                        </div>
-                                    )}
+                                    {isContact && <div className="contact">C<div className="contact-popup">This user is your contact</div></div>}
                                 </div>
 
                                 <div className="list-page__list-item--content">
@@ -78,18 +61,18 @@ const UsersListContent = () => {
                                             <div className="list-item--title__time">00:00</div>
                                         </div>
 
-                                        <p className="list-page__list-item--message">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</p>
+                                        <p className="list-page__list-item--message">{formatLastSeen(user.lastSeen)}</p>
                                     </div>
 
-                                    <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), user.isContact === true ? removeUserContact(user.userId) : addUserContact(user.userId))}>
-                                        {user.isContact === true ? "✕ Delete contact" : "✓ Add Contact"}
+                                    <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), isContact === true ? removeContact(user.userId) : addContact(user.userId))}>
+                                        {isContact ? "✕ Delete contact" : "✓ Add Contact"}
                                     </div>
                                 </div>
                             </li>
                         );
                     })}
                 </ul>
-                <Menu scrollRef={listRef} />
+                <Menu />
             </div>
             <Outlet />
         </div>

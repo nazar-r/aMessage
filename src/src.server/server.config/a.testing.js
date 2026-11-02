@@ -1,12 +1,12 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnZ2xfMTE3NDA2MDA1MTk1MzgzMTAwNjgwIiwiaWF0IjoxNzg4NzgzMTMwLCJleHAiOjE3ODg5NTU5MzB9.k7lytKXiIzT6aHkmeeVC1ic0OYY5Phk7gYqVJ9j2C0E';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnZ2xfMTE3NDA2MDA1MTk1MzgzMTAwNjgwIiwiaWF0IjoxNzkzMjc2NTExLCJleHAiOjE3OTM0NDkzMTF9.u5Co9tY6fq-kjpxOZkVCmDP8iZvyltP7oIPo-8lMroY';
 export const options = {
   scenarios: {
     constant_rps: {
       executor: 'constant-arrival-rate',
-      rate: 8700,
+      rate: 8100,
       timeUnit: '1s',
       duration: '60s',
       preAllocatedVUs: 1200,

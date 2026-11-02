@@ -6,32 +6,33 @@ export declare class UsersService {
     private readonly usePrisma;
     private readonly useRedis;
     constructor(usePrisma: PrismaService, useRedis: RedisService);
-    findOrCreateUser(profile: AuthUser): Promise<{
+    getOrCreateUser(profile: AuthUser): Promise<{
         name: string;
         userId: string;
-        createdAt: Date;
         role: import("@prisma/client").$Enums.Role;
         userName: string;
         email: string | null;
         pubKey: string | null;
         lastSeen: Date | null;
         refreshToken: string | null;
+        createdAt: Date;
     }>;
-    findAllUsers(userId: string): Promise<ChosenUser[]>;
-    setUserPubKey(userId: string, userPubKey: string): import("@prisma/client").Prisma.Prisma__UserClient<{
-        userId: string;
-        createdAt: Date;
-        role: import("@prisma/client").$Enums.Role;
-        userName: string;
-        email: string | null;
-        pubKey: string | null;
-        lastSeen: Date | null;
-        refreshToken: string | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
-    setUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
+    getAllUsers(userId: string): Promise<ChosenUser[]>;
+    getUserContacts(userId: string): Promise<string[]>;
+    getUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
         createdAt: Date;
         contactId: string;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+    setUserPubKey(userId: string, userPubKey: string): import("@prisma/client").Prisma.Prisma__UserClient<{
+        userId: string;
+        role: import("@prisma/client").$Enums.Role;
+        userName: string;
+        email: string | null;
+        pubKey: string | null;
+        lastSeen: Date | null;
+        refreshToken: string | null;
+        createdAt: Date;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     deleteUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;

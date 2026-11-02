@@ -1,11 +1,28 @@
 import type { RefObject } from "react";
 import type { Socket } from "socket.io-client";
 
+export interface UsersData {
+  userId: string;
+  userName: string;
+  isContact: boolean;
+  lastSeen: string;
+}
+
+export interface ChatsData {
+  userId: string;
+  roomId: string;
+  userName: string;
+  lastMessage: string;
+  lastMessageCreatedAt?: string;
+  isContact: boolean;
+  lastSeen: Date | null;
+}
+
 export interface MessageInterface {
   messageStatus: "mine" | "got";
   messageId: string;
   content: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 export interface SearchMessage {
@@ -42,15 +59,7 @@ export type UseOneOnOneRoomQueryArgs = RoomConfig & {
   encryptedTextByMessageIdRef: RefObject<Map<string, string>>;
   pendingOwnMessageIdsRef: RefObject<string[]>;
 };
-export interface UsersData {
-  user?: any;
-  userId: string;
-   lastSeen?: any;
-  userName: string;
-  userStatus: string;
-  isContact?: boolean;
-  email?: string;
-}
+
 
 export interface RoomData {
   roomId: string;

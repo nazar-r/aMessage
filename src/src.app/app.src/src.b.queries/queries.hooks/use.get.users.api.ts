@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchingUsers } from "../queries.mutations/get.users.api";
-import type { UsersData, ErrorResponse } from "../../src.c.extensions/extentions.types/types";
+import { fetchingUsers } from "../queries.mutations/get.users.list";
+import type { UsersData } from "../../src.c.extensions/extentions.types/types";
 
 export const useFetchingUsers = () => {
-    return useQuery<UsersData[], ErrorResponse>({
+    return useQuery<UsersData[]>({
         queryKey: ["users"],
         queryFn: fetchingUsers,
         staleTime: 1000 * 60 * 60 * 6,

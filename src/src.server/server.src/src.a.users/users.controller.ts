@@ -11,7 +11,7 @@ export class UsersController {
     @Get()
     loadUsers(@Req() req) {
         const userId = req.user.sub;
-        return this.usersService.findAllUsers(userId);
+        return this.usersService.getAllUsers(userId);
     };
 
     @Patch('e2ee-pubkey')
@@ -29,7 +29,7 @@ export class UsersController {
             contactId: contactId,
         };
 
-        return this.usersService.setUserContact(userContact);
+        return this.usersService.getUserContact(userContact);
     };
 
     @Delete('contacts/:id')

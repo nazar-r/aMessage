@@ -1,118 +1,65 @@
 import { Menu } from "../components.items/items.menu/menu";
+import { lobbyCryptoLogic } from "../../src.c.extensions/extentions.fetching/lobby.crypto.logic";
 import { useRemoveUserChat } from "../../src.b.queries/queries.hooks/use.remove.chat";
 import { formatMessageDate } from "../../src.c.extensions/extentions.items/format.date";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
-import { useFetchingUserChats } from "../../src.b.queries/queries.hooks/use.get.list.of.chats";
+import { useFetchingUserChats } from "../../src.b.queries/queries.hooks/use.get.chats.list";
 import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
 import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
-import { ChatEncryptionService } from "../../src.c.encryption/encryption.service" ;
-import { useEffect, useRef, useState } from "react";
 
 const ChatsListContent = () => {
     const navigate = useNavigate();
-    const { data: chats, isPending: isChatsPending } = useFetchingUserChats();
     const { data: onlineUsers = [] } = useOnlineUsersQuery();
-    const { mutate: mutateAddUserContact } = useAddUserAsContact();
-    const { mutate: removeAddUserContact } = useRemoveUserContact();
+    const { data: chats = [] } = useFetchingUserChats();
+    const { mutate: addUserAsContact } = useAddUserAsContact();
+    const { mutate: removeUserContact } = useRemoveUserContact();
     const { mutate: deleteUserChat } = useRemoveUserChat();
     const [decryptedChats, setDecryptedChats] = useState(chats);
-    const [isDecrypting, setIsDecrypting] = useState(false);
-    const listRef = useRef<HTMLUListElement | null>(null);
-
-    useEffect(() => {
-        const sendPublicKey = async () => {
-            const encryptionService = new ChatEncryptionService("");
-            await encryptionService.init();
-            const publicKey = encryptionService.getPublicKey();
-            if (!publicKey) return;
-
-            await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/e2ee-pubkey`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    publicKey,
-                }),
-            });
-        };
-
-        sendPublicKey();
-    }, []);
 
     useEffect(() => {
         if (!chats) return;
-
-        const decryptLastMessage = async () => {
-            setIsDecrypting(true);
-
-            const result = await Promise.all(
-                chats.map(async (chat) => {
-                    if (!chat.lastMessage) return chat;
-
-                    try {
-                        const encryptionService = new ChatEncryptionService(chat.userId);
-                        await encryptionService.init();
-
-                        return {
-                            ...chat,
-                            lastMessage: encryptionService.decryptRoomText(chat.lastMessage),
-                        };
-                    } catch {
-                        return chat;
-                    }
-                })
-            );
-
-            setDecryptedChats(result);
-            setIsDecrypting(false);
+        const launchCryptoLogic = async () => {
+            setDecryptedChats(await lobbyCryptoLogic(chats));
         };
 
-        decryptLastMessage();
+        launchCryptoLogic();
     }, [chats]);
 
-    const addUserContact = (userId: string) => {
-        mutateAddUserContact({
+    const addContact = (userId: string) => {
+        addUserAsContact({
             userContactId: userId,
         });
     };
 
-    const removeUserContact = (userId: string) => {
-        removeAddUserContact({
+    const removeContact = (userId: string) => {
+        removeUserContact({
             userContactId: userId,
         });
     };
 
-    const removeUserChat = (roomId: string) => {
+    const removeChat = (roomId: string) => {
         deleteUserChat({
             chatId: roomId,
         });
     };
 
-    const isLoading = isChatsPending || isDecrypting;
-
     return (
         <div className="lobby-page">
             <div className="list-page">
                 <div className="list-page__title">Your Chats</div>
-
-                <ul ref={listRef} className="list-page__list">
-                    {isLoading ? null : decryptedChats && decryptedChats.length > 0 ? (
+                <ul className="list-page__list">
+                    {decryptedChats && decryptedChats.length > 0 ? (
                         decryptedChats.map((chat) => {
                             const isOnline = onlineUsers.includes(chat.userId);
+                            const isContact = chat.isContact === true;
 
                             return (
                                 <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, lastSeen: chat.lastSeen, userName: chat.userName } })}>
                                     <div className="list-page__list-item--image">
                                         {isOnline ? <div className="online"></div> : <div className="online-none"></div>}
-                                        {chat.isContact === true && (
-                                            <div className="contact">
-                                                C
-                                                <div className="contact-popup">this user is your contact</div>
-                                            </div>
-                                        )}
+                                        {isContact === true && (<div className="contact"> C<div className="contact-popup">this user is your contact</div></div>)}
                                     </div>
 
                                     <div className="list-page__list-item--content">
@@ -126,11 +73,11 @@ const ChatsListContent = () => {
                                         </div>
 
                                         <div className="list-page__list-item--actions">
-                                            <div className="list-page__list-item--add-contact" onClick={(e) => { e.stopPropagation(); removeUserChat(chat.roomId); }}>
+                                            <div className="list-page__list-item--add-contact" onClick={(e) => { e.stopPropagation(); removeChat(chat.roomId); }}>
                                                 {"✕ Delete Chat"}
                                             </div>
 
-                                            <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), chat.isContact === true ? removeUserContact(chat.userId) : addUserContact(chat.userId))}>
+                                            <div className="list-page__list-item--add-contact" onClick={(e) => (e.stopPropagation(), isContact ? removeContact(chat.userId) : addContact(chat.userId))}>
                                                 {chat.isContact === true ? "✕ Delete contact" : "✓ Add Contact"}
                                             </div>
                                         </div>
@@ -145,8 +92,7 @@ const ChatsListContent = () => {
                         </li>
                     )}
                 </ul>
-
-                <Menu scrollRef={listRef} />
+                <Menu />
             </div>
             <Outlet />
         </div>

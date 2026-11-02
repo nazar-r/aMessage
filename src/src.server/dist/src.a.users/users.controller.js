@@ -22,7 +22,7 @@ let UsersController = class UsersController {
     }
     loadUsers(req) {
         const userId = req.user.sub;
-        return this.usersService.findAllUsers(userId);
+        return this.usersService.getAllUsers(userId);
     }
     ;
     setKey(req) {
@@ -35,7 +35,7 @@ let UsersController = class UsersController {
             userId: req.user.sub,
             contactId: contactId,
         };
-        return this.usersService.setUserContact(userContact);
+        return this.usersService.getUserContact(userContact);
     }
     ;
     deleteUserContact(req, contactId) {

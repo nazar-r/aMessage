@@ -18,7 +18,7 @@ let UsersService = class UsersService {
         this.usePrisma = usePrisma;
         this.useRedis = useRedis;
     }
-    async findOrCreateUser(profile) {
+    async getOrCreateUser(profile) {
         const user = await this.usePrisma.user.upsert({
             where: { userId: profile.userId },
             update: {
@@ -37,7 +37,7 @@ let UsersService = class UsersService {
             name: user.userName,
         };
     }
-    async findAllUsers(userId) {
+    async getAllUsers(userId) {
         const cacheKey = `users:list:${userId}`;
         const cachedUsers = await this.useRedis.getRedisData(cacheKey);
         if (typeof cachedUsers === 'string') {
@@ -62,15 +62,14 @@ let UsersService = class UsersService {
         await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 10);
         return chosenUsers;
     }
-    setUserPubKey(userId, userPubKey) {
-        return this.usePrisma.user.update({
+    async getUserContacts(userId) {
+        const contacts = await this.usePrisma.contact.findMany({
             where: { userId },
-            data: {
-                pubKey: userPubKey,
-            },
+            select: { contactId: true },
         });
+        return contacts.map((c) => c.contactId);
     }
-    setUserContact(userContact) {
+    getUserContact(userContact) {
         return this.usePrisma.contact.upsert({
             where: {
                 userId_contactId: {
@@ -82,6 +81,14 @@ let UsersService = class UsersService {
             create: {
                 userId: userContact.userId,
                 contactId: userContact.contactId,
+            },
+        });
+    }
+    setUserPubKey(userId, userPubKey) {
+        return this.usePrisma.user.update({
+            where: { userId },
+            data: {
+                pubKey: userPubKey,
             },
         });
     }

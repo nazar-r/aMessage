@@ -1,6 +1,6 @@
-import type { ErrorResponse } from '../../src.c.extensions/extentions.types/types';
+import type { ChatsData, ErrorResponse } from '../../src.c.extensions/extentions.types/types';
 
-export const fetchingUserChats = async () => {
+export const fetchingUserChats = async (): Promise<ChatsData[]> => {
     const response = await fetch(import.meta.env.VITE_FETCH_CHATS_URL, {
         method: 'GET',
         credentials: 'include',
@@ -12,5 +12,6 @@ export const fetchingUserChats = async () => {
     }
 
     const data = await response.json();
+    console.log('Fetched user chats:', data);
     return data;
 };  

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchingLoggedInUser } from "../queries.mutations/get.logged.in.user.api";
+import { fetchingLoggedInUser } from "../queries.mutations/get.check.user";
 import type { ErrorResponse } from "../../src.c.extensions/extentions.types/types";
 
 export const useFetchingLoggedInUser = () => {

@@ -1,6 +1,6 @@
 
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { sendSearchMessage } from "../queries.mutations/ask.gemini";
+import { sendSearchMessage } from "../queries.mutations/post.gemini";
 import type { SearchMessage } from '../../src.c.extensions/extentions.types/types';
 
 export const useSendSearchMessage = () => {

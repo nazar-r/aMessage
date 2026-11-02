@@ -1,5 +1,5 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { removeUserContact } from "../queries.mutations/remove.contact"
+import { removeUserContact } from "../queries.mutations/delete.contact"
 import type { UserContact } from '../../src.c.extensions/extentions.types/types';
 
 export const useRemoveUserContact = () => {
