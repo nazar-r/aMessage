@@ -1,5 +1,5 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
-import { SocketService } from './socket.b.service';
+import { SocketService } from './socket.service';
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from '../src.a.messages/messages.service';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
@@ -11,7 +11,7 @@ import type { JwtPayload } from '../src.c.extensions/extensions.types/types.chat
   },
 })
 
-export class SocketChatsGateway {
+export class ChatsGateway {
   constructor(
     private readonly usePrisma: PrismaService,
     private readonly useSocketService: SocketService,

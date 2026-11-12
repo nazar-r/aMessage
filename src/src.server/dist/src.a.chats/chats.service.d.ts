@@ -4,7 +4,7 @@ export declare class ChatsService {
     constructor(usePrisma: PrismaService);
     getUserChats(userId: string): import("@prisma/client").Prisma.PrismaPromise<unknown>;
     removeUserChat(roomId: string): Promise<{
-        roomId: string;
         createdAt: Date;
+        roomId: string;
     }>;
 }

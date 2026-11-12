@@ -1,6 +1,6 @@
+import { SocketService } from "./socket.connection";
 import { useEffect, useMemo } from "react";
-import { SocketService } from "./socket.service";
-import { useOnlineUsersCache } from "./use.socket.service.query";
+import { useOnlineUsersCache } from "../../src.b.queries/queries.hooks/use.socket.service.query";
 
 export const useSocketService = () => {
   const socketService = useMemo(

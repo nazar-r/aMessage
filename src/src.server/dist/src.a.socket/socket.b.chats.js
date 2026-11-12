@@ -175,9 +175,7 @@ __decorate([
 ], SocketChatsGateway.prototype, "removeUserMessage", null);
 exports.SocketChatsGateway = SocketChatsGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
-        cors: {
-            credentials: true,
-        },
+        cors: { credentials: true },
     }),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         socket_b_service_1.SocketService,

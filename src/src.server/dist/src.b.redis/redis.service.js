@@ -8,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var RedisService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RedisService = void 0;
-const common_1 = require("@nestjs/common");
 const redis_1 = require("redis");
+const common_1 = require("@nestjs/common");
 let RedisService = RedisService_1 = class RedisService {
     constructor() {
         this.logger = new common_1.Logger(RedisService_1.name);
@@ -17,26 +17,8 @@ let RedisService = RedisService_1 = class RedisService {
             url: process.env.REDIS_URL,
         });
     }
-    async onModuleInit() {
-        this.logger.log('Connecting to Redis...');
-        await this.client.connect();
-        await this.client.flushAll();
-        this.logger.log('Redis connected and all Redis data cleared');
-    }
-    getClient() {
-        return this.client;
-    }
-    async duplicate() {
-        const duplicated = this.client.duplicate();
-        await duplicated.connect();
-        this.logger.log('Redis duplicate connected');
-        return duplicated;
-    }
-    setRedisData(key, value, ttlSeconds) {
-        if (ttlSeconds !== undefined) {
-            return this.client.set(key, value, { EX: ttlSeconds });
-        }
-        return this.client.set(key, value);
+    setRedisData(key, value, time) {
+        return this.client.set(key, value, { EX: time });
     }
     getRedisData(key) {
         return this.client.get(key);
@@ -44,9 +26,22 @@ let RedisService = RedisService_1 = class RedisService {
     deleteRedisData(key) {
         return this.client.del(key);
     }
+    async onModuleInit() {
+        await this.client.connect();
+        await this.client.flushAll();
+        this.logger.log('Redis connected and all Redis data cleared');
+    }
     async onModuleDestroy() {
         this.client.isOpen && await this.client.quit().catch(() => undefined);
         this.logger.log('Redis disconnected');
+    }
+    getClient() {
+        return this.client;
+    }
+    async duplicate() {
+        const duplicated = this.client.duplicate();
+        await duplicated.connect();
+        return duplicated;
     }
 };
 exports.RedisService = RedisService;

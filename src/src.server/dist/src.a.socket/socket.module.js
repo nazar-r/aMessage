@@ -8,13 +8,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketModule = void 0;
 const common_1 = require("@nestjs/common");
-const socket_a_gateway_1 = require("./socket.a.gateway");
-const socket_b_chats_1 = require("./socket.b.chats");
-const socket_b_service_1 = require("./socket.b.service");
-const messages_module_1 = require("../src.a.messages/messages.module");
-const jwt_1 = require("@nestjs/jwt");
 const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
+const jwt_1 = require("@nestjs/jwt");
 const redis_module_1 = require("../src.b.redis/redis.module");
+const socket_gateway_chats_1 = require("./socket.gateway.chats");
+const socket_gateway_connections_1 = require("./socket.gateway.connections");
+const socket_service_1 = require("./socket.service");
+const messages_module_1 = require("../src.a.messages/messages.module");
 let SocketModule = class SocketModule {
 };
 exports.SocketModule = SocketModule;
@@ -28,7 +28,7 @@ exports.SocketModule = SocketModule = __decorate([
             messages_module_1.MessagesModule,
             redis_module_1.RedisModule,
         ],
-        providers: [socket_b_service_1.SocketService, socket_a_gateway_1.SocketGateway, socket_b_chats_1.SocketChatsGateway, jwt_extractor_1.JwtCheck],
+        providers: [socket_service_1.SocketService, socket_gateway_connections_1.SocketGateway, socket_gateway_chats_1.ChatsGateway, jwt_extractor_1.JwtCheck],
     })
 ], SocketModule);
 //# sourceMappingURL=socket.module.js.map

@@ -1,6 +1,6 @@
 import { SocketService } from './socket.b.service';
 import { Server, Socket } from 'socket.io';
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+import type { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 export declare class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly SocketService;
     constructor(SocketService: SocketService);

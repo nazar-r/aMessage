@@ -38,38 +38,34 @@ let UsersService = class UsersService {
         };
     }
     async getAllUsers(userId) {
-        const cacheKey = `users:list:${userId}`;
-        const cachedUsers = await this.useRedis.getRedisData(cacheKey);
-        if (typeof cachedUsers === 'string') {
-            return JSON.parse(cachedUsers);
-        }
-        const chosenUsers = await this.usePrisma.$queryRaw `
-  SELECT
-    u."userId",
-    u."userName",
-    u."lastSeen",
-    EXISTS (
+        const cachedUsersList = await this.useRedis.getRedisData('users:list');
+        const selectedUsers = typeof cachedUsersList === 'string'
+            ? JSON.parse(cachedUsersList)
+            : await this.usePrisma.$queryRaw ` 
+          SELECT u."userId"
+          FROM "User" u
+          ORDER BY u."userName" DESC
+          LIMIT 26
+        `
+                .then(async (setUsersList) => {
+                await this.useRedis.setRedisData('users:list', JSON.stringify(setUsersList), 10);
+                return setUsersList;
+            });
+        const selectedUserId = selectedUsers.map((user) => user.userId);
+        return this.usePrisma.$queryRaw `
+      SELECT u."userId", u."userName", u."lastSeen", EXISTS (
       SELECT 1
       FROM "Contact" c
       WHERE c."userId" = ${userId}
-        AND c."contactId" = u."userId"
-    ) AS "isContact"
-  FROM "User" u
-  WHERE u."userId" <> ${userId}
-  ORDER BY u."userName" DESC
-  LIMIT 25;
-`;
-        await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 10);
-        return chosenUsers;
+      AND c."contactId" = u."userId" ) AS "isContact"
+      FROM "User" u
+      WHERE u."userId" = ANY(${selectedUserId})
+      AND u."userId" <> ${userId}
+      ORDER BY u."userName" DESC
+      LIMIT 25
+    `;
     }
-    async getUserContacts(userId) {
-        const contacts = await this.usePrisma.contact.findMany({
-            where: { userId },
-            select: { contactId: true },
-        });
-        return contacts.map((c) => c.contactId);
-    }
-    getUserContact(userContact) {
+    setUserContact(userContact) {
         return this.usePrisma.contact.upsert({
             where: {
                 userId_contactId: {

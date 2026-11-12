@@ -7,7 +7,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
 import { useFetchingUserChats } from "../../src.b.queries/queries.hooks/use.get.chats.list";
 import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
-import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
+import { useOnlineUsersQuery } from "../../src.b.queries/queries.hooks/use.socket.service.query";
 
 const ChatsListContent = () => {
     const navigate = useNavigate();

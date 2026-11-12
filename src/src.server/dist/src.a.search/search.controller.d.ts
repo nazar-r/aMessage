@@ -1,11 +1,12 @@
 import { SearchService } from './search.service';
+import type { TBody, TReq } from '../src.c.extensions/extensions.types/types.auth';
 export declare class SearchController {
     private readonly searchService;
     constructor(searchService: SearchService);
-    getAiChatHistory(req: any): Promise<{
+    getAiChatHistory(req: TReq): Promise<{
         chatHistory: unknown;
     }>;
-    handleSearch(body: any, req: any): Promise<{
+    handleSearch(req: TReq, body: TBody): Promise<{
         answer: any;
     }>;
 }

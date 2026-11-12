@@ -1,7 +1,8 @@
-import { Controller, Param, Get, Delete, Patch, Post, UseGuards, Req } from '@nestjs/common';
-import { UsersService } from './users.service';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
-import type { UserContact } from "../src.c.extensions/extensions.types/types.chats"
+import { UsersService } from './users.service';
+import { Controller, Param, Get, Delete, Body, Patch, UseGuards, Req } from '@nestjs/common';
+import type { UserContact, userPubKey } from "../src.c.extensions/extensions.types/types.chats"
+import type { TBody, TReq } from '../src.c.extensions/extensions.types/types.auth';
 
 @Controller('users')
 @UseGuards(JwtCheck)
@@ -9,7 +10,7 @@ export class UsersController {
     constructor(private usersService: UsersService) { }
 
     @Get()
-    loadUsers(@Req() req) {
+    loadUsers(@Req() req: TReq) {
         const userId = req.user.sub;
         return this.usersService.getAllUsers(userId);
     };
@@ -21,19 +22,19 @@ export class UsersController {
 
         return this.usersService.setUserPubKey(userId, userPubKey);
     }
-
+    
     @Patch('contacts/:id')
-    setUserContact(@Req() req, @Param('id') contactId: string) {
+    setUserContact(@Req() req: any, @Param('id') contactId: string) {
         const userContact: UserContact = {
             userId: req.user.sub,
             contactId: contactId,
         };
 
-        return this.usersService.getUserContact(userContact);
+        return this.usersService.setUserContact(userContact);
     };
 
     @Delete('contacts/:id')
-    deleteUserContact(@Req() req, @Param('id') contactId: string) {
+    deleteUserContact(@Req() req: TReq, @Param('id') contactId: string) {
         const userContact: UserContact = {
             userId: req.user.sub,
             contactId: contactId,

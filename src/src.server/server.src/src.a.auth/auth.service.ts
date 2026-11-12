@@ -34,7 +34,7 @@ export class AuthService {
         };
     };
 
-    signCookies(res: Response, access_token: string) {
+    signCookies(res: Response, { access_token }: { access_token: string }) {
         res.cookie('access_token', access_token, this.setCookies());
     };
 }

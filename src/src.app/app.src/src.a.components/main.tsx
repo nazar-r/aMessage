@@ -1,11 +1,10 @@
 import { authentication } from '../src.c.extensions/extentions.fetching/authentication';
-import { useSocketService } from '../src.a.socket/socket.a.launch/use.socket.service';
+import { useSocketService } from '../src.a.socket/socket.a.connection/use.socket.connection';
 import { lazy, Suspense, type ReactElement } from 'react';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, type RouteObject } from 'react-router-dom';
 import '../src.b.styles/index.css';
 
 const Layout = lazy(() => import('./components.items/layout'));
-
 const LoginPage = lazy(() => import('./components.pages/page.a.login'));
 const WelcomePage = lazy(() => import('./components.pages/page.a.welcome'));
 const ChatPage = lazy(() => import('./components.pages/page.c.chat'));

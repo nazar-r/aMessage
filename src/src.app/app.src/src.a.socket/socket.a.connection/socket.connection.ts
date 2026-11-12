@@ -1,7 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 
 export type OnlineUsersListener = (users: string[]) => void;
-
 export class SocketService {
   private static instance: SocketService | null = null;
   private readonly socket: Socket;
@@ -13,9 +12,8 @@ export class SocketService {
       autoConnect: false,
     });
 
-    this.socket.on("connect", () => {});
-
-    this.socket.on("disconnect", () => {});
+    this.socket.on("connect", () => { });
+    this.socket.on("disconnect", () => { });
   }
 
   connect() {

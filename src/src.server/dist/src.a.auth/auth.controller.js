@@ -24,13 +24,13 @@ let AuthController = class AuthController {
     googleOauth() { }
     githubOauth() { }
     async googleRedirect(req, res) {
-        const { access_token } = await this.authService.signUser(req.user);
-        this.authService.signCookies(res, access_token);
+        const auth = await this.authService.signUser(req.user);
+        this.authService.signCookies(res, auth);
         return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
     async githubRedirect(req, res) {
-        const { access_token } = await this.authService.signUser(req.user);
-        this.authService.signCookies(res, access_token);
+        const auth = await this.authService.signUser(req.user);
+        this.authService.signCookies(res, auth);
         return res.redirect(process.env.FRONTEND_REDIRECT_URL);
     }
     checkLogin(req) {

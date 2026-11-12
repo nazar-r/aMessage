@@ -19,20 +19,18 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
-
   async googleRedirect(@Req() req: Request, @Res() res: Response) {
-    const { access_token } = await this.authService.signUser(req.user as AuthUser);
-    this.authService.signCookies(res, access_token);
+    const auth = await this.authService.signUser(req.user as AuthUser);
+    this.authService.signCookies(res, auth);
 
     return res.redirect(process.env.FRONTEND_REDIRECT_URL);
   }
 
   @Get('github/redirect')
   @UseGuards(AuthGuard('github'))
-
   async githubRedirect(@Req() req: Request, @Res() res: Response) {
-    const { access_token } = await this.authService.signUser(req.user as AuthUser);
-    this.authService.signCookies(res, access_token);
+    const auth = await this.authService.signUser(req.user as AuthUser);
+    this.authService.signCookies(res, auth);
 
     return res.redirect(process.env.FRONTEND_REDIRECT_URL);
   }

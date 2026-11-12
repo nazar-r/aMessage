@@ -1,6 +1,6 @@
-import { ChatAdapter } from "./chats.b.adapter";
+import { ChatAdapter } from "./socket.chats.adapter";
 import { useParams } from "react-router-dom";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useQueryChatAdapter } from "../../src.b.queries/queries.hooks/use.query.chats.adapter";
 import type { MessageInterface } from "../../src.c.extensions/extentions.types/chats.types";
 
@@ -9,15 +9,9 @@ export const useChatAdapter = () => {
   const useAdapter = useRef<ChatAdapter | null>(null);
   const useQuery = useQueryChatAdapter(peerWsId);
 
-  const [userStatus, setUserStatus] = useState<{
-    userId: string;
-    status: string;
-  } | null>(null);
-
   const sendMessage = useCallback((payload: MessageInterface) => {
     const adapter = useAdapter.current;
     if (!adapter) return;
-
     const tempId = crypto.randomUUID();
 
     useQuery.setNewMessage.mutate({
@@ -26,7 +20,6 @@ export const useChatAdapter = () => {
       messageStatus: "mine",
     });
 
-    adapter.addPendingTempId(tempId);
     adapter.sendMessage(payload, tempId);
   }, [useQuery]);
 
@@ -46,27 +39,13 @@ export const useChatAdapter = () => {
     adapter.deleteMessage(messageId);
   }, [useQuery]);
 
-  const loadHistory = useCallback(() => {
-    useAdapter.current?.loadNextMessages();
-  }, []);
-
   useEffect(() => {
     const adapter = new ChatAdapter(peerWsId);
-
     useAdapter.current = adapter;
-
     adapter.setNewMessageCallback(useQuery.setRecievedMessage);
-    adapter.setMessageSavedCallback(useQuery.setRecievedMessageSaved);
     adapter.setMessageUpdateCallback(useQuery.setRecievedMessageUpdate);
     adapter.setMessageRemoveCallback(useQuery.setRecievedMessageRemove);
     adapter.setMessagesHistoryCallback(useQuery.mergeMessages);
-
-    adapter.setUserStatusCallback((payload: {
-      userId: string;
-      status: string;
-    }) => {
-      setUserStatus(payload);
-    });
 
     void adapter.init();
 
@@ -80,9 +59,7 @@ export const useChatAdapter = () => {
     sendMessage,
     updateMessage,
     deleteMessage,
-    loadHistory,
     messages: useQuery.messages,
     adapter: useAdapter.current,
-    userStatus,
   };
 };

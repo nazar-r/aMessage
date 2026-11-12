@@ -10,10 +10,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GithubStrategy = void 0;
-const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
 const passport_github2_1 = require("passport-github2");
 const users_service_1 = require("../../src.a.users/users.service");
+const passport_1 = require("@nestjs/passport");
+const common_1 = require("@nestjs/common");
 let GithubStrategy = class GithubStrategy extends (0, passport_1.PassportStrategy)(passport_github2_1.Strategy, 'github') {
     constructor(usersService) {
         super({

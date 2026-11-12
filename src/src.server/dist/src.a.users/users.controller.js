@@ -13,9 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
-const common_1 = require("@nestjs/common");
-const users_service_1 = require("./users.service");
 const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
+const users_service_1 = require("./users.service");
+const common_1 = require("@nestjs/common");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -35,7 +35,7 @@ let UsersController = class UsersController {
             userId: req.user.sub,
             contactId: contactId,
         };
-        return this.usersService.getUserContact(userContact);
+        return this.usersService.setUserContact(userContact);
     }
     ;
     deleteUserContact(req, contactId) {

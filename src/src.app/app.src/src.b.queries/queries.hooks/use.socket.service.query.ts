@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const ONLINE_USERS_QUERY_KEY = ["onlineUsers"];
-
 export const useOnlineUsersQuery = () => {
   return useQuery<string[]>({
     queryKey: ONLINE_USERS_QUERY_KEY,

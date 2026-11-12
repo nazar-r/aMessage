@@ -47,6 +47,10 @@ export interface ContactImage {
 export declare class SetUserContactDTO {
     contactId: string;
 }
+export type userPubKey = {
+    userId: string;
+    pubKey: string;
+};
 export type CreatedMessage = {
     messageId: string;
     roomId: string;

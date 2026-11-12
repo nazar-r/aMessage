@@ -1,27 +1,21 @@
-import { SocketService } from "../socket.a.launch/socket.service";
+import { SocketService } from "../socket.a.connection/socket.connection";
 
 export class ChatSocketService {
   private readonly socket = SocketService.getInstance();
 
   onChatConnect(ws: any) {
-    this.socket.on("connect", ws.onConnect);
-    this.socket.on("userStatus", ws.onUserStatus);
-    this.socket.on("usersOnline", ws.onUsersOnline);
-    this.socket.on("e2ee:peerPublicKey", ws.onPeerPublicKey);
     this.socket.on("messagesHistory", ws.onMessagesHistory);
     this.socket.on("newMessage", ws.onNewMessage);
-    this.socket.on("messageRemove", ws.onMessageRemoved);
     this.socket.on("messageUpdate", ws.onMessageUpdated);
+    this.socket.on("messageRemove", ws.onMessageRemoved);
+    this.socket.on("e2ee:peerPublicKey", ws.onPeerPublicKey);
   }
 
   onChatDisconnect(ws: any) {
-    this.socket.off("connect", ws.onConnect);
-    this.socket.off("userStatus", ws.onUserStatus);
-    this.socket.off("usersOnline", ws.onUsersOnline);
-    this.socket.off("messageRemove", ws.onMessageRemoved);
     this.socket.off("messagesHistory", ws.onMessagesHistory);
     this.socket.off("newMessage", ws.onNewMessage);
     this.socket.off("messageUpdate", ws.onMessageUpdated);
+    this.socket.off("messageRemove", ws.onMessageRemoved);
     this.socket.off("e2ee:peerPublicKey", ws.onPeerPublicKey);
   }
 

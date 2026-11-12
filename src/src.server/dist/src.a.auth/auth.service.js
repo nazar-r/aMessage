@@ -38,7 +38,7 @@ let AuthService = class AuthService {
         };
     }
     ;
-    signCookies(res, access_token) {
+    signCookies(res, { access_token }) {
         res.cookie('access_token', access_token, this.setCookies());
     }
     ;

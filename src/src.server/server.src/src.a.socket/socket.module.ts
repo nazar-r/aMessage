@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { SocketGateway } from './socket.a.gateway';
-import { SocketChatsGateway } from './socket.b.chats';
-import { SocketService } from './socket.b.service';
-import { MessagesModule } from '../src.a.messages/messages.module';
-import { JwtModule } from '@nestjs/jwt';
 import { JwtCheck } from '../src.b.jwt/jwt.extractor';
+import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '../src.b.redis/redis.module';
+import { ChatsGateway } from './socket.gateway.chats';
+import { SocketGateway } from './socket.gateway.connections';
+import { SocketService } from './socket.service';
+import { MessagesModule } from '../src.a.messages/messages.module';
 
 @Module({
   imports: [
@@ -16,6 +16,6 @@ import { RedisModule } from '../src.b.redis/redis.module';
     MessagesModule,
     RedisModule,
   ],
-  providers: [SocketService, SocketGateway, SocketChatsGateway, JwtCheck],
+  providers: [SocketService, SocketGateway, ChatsGateway, JwtCheck],
 })
 export class SocketModule { }

@@ -1,19 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MessageInterface } from "../../src.c.extensions/extentions.types/chats.types";
 
-const upsertMessages = (
-  prev: MessageInterface[],
-  incoming: MessageInterface[],
-) => {
-  const existingIds = new Set(prev.map((item) => item.messageId));
-  const uniqueIncoming = incoming.filter((item) => !existingIds.has(item.messageId));
+const upsertMessages = (prev: MessageInterface[], incoming: MessageInterface[]) => {
+  const existingMessages = new Set(prev.map((item) => item.messageId));
+  const newMessages = incoming.filter((item) => !existingMessages.has(item.messageId));
 
-  return [...prev, ...uniqueIncoming];
+  return [...prev, ...newMessages];
 };
 
 export const useQueryChatAdapter = (peerWsId: string) => {
   const queryClient = useQueryClient();
-  const queryKey = ["chat", peerWsId] as const;
+  const queryKey = ["chat", peerWsId];
 
   const { data: messages = [] } = useQuery<MessageInterface[]>({
     queryKey,
@@ -24,7 +21,7 @@ export const useQueryChatAdapter = (peerWsId: string) => {
   });
 
   const setNewMessage = useMutation({
-    mutationFn: async () => {},
+    mutationFn: async () => { },
 
     onMutate(message: MessageInterface) {
       queryClient.setQueryData<MessageInterface[]>(queryKey, (prev = []) =>
@@ -34,7 +31,7 @@ export const useQueryChatAdapter = (peerWsId: string) => {
   });
 
   const setMessageUpdate = useMutation({
-    mutationFn: async () => {},
+    mutationFn: async () => { },
 
     onMutate(message: MessageInterface) {
       queryClient.setQueryData<MessageInterface[]>(queryKey, (prev = []) =>
@@ -46,7 +43,7 @@ export const useQueryChatAdapter = (peerWsId: string) => {
   });
 
   const setMessageRemove = useMutation({
-    mutationFn: async () => {},
+    mutationFn: async () => { },
 
     onMutate(messageId: string) {
       queryClient.setQueryData<MessageInterface[]>(queryKey, (prev = []) =>
@@ -59,15 +56,6 @@ export const useQueryChatAdapter = (peerWsId: string) => {
     queryClient.setQueryData<MessageInterface[]>(queryKey, (prev = []) =>
       upsertMessages(prev, [message]),
     );
-  };
-
-  const setRecievedMessageSaved = (message: MessageInterface & { tempMessageId: string }) => {
-    queryClient.setQueryData<MessageInterface[]>(queryKey, (prev = []) => {
-      const alreadySaved = prev.some((item) => item.messageId === message.messageId);
-      const withoutTemp = prev.filter((item) => item.messageId !== message.tempMessageId);
-
-      return alreadySaved ? withoutTemp : [...withoutTemp, message];
-    });
   };
 
   const setRecievedMessageUpdate = (message: MessageInterface) => {
@@ -96,7 +84,6 @@ export const useQueryChatAdapter = (peerWsId: string) => {
     setMessageUpdate,
     setMessageRemove,
     setRecievedMessage,
-    setRecievedMessageSaved,
     setRecievedMessageUpdate,
     setRecievedMessageRemove,
     mergeMessages,

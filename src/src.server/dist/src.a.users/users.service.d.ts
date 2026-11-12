@@ -1,7 +1,7 @@
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { RedisService } from '../src.b.redis/redis.service';
-import type { UserContact, ChosenUser } from '../src.c.extensions/extensions.types/types.chats';
 import type { AuthUser } from '../src.c.extensions/extensions.types/types.auth';
+import type { UserContact, ChosenUser } from '../src.c.extensions/extensions.types/types.chats';
 export declare class UsersService {
     private readonly usePrisma;
     private readonly useRedis;
@@ -18,8 +18,7 @@ export declare class UsersService {
         createdAt: Date;
     }>;
     getAllUsers(userId: string): Promise<ChosenUser[]>;
-    getUserContacts(userId: string): Promise<string[]>;
-    getUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
+    setUserContact(userContact: UserContact): import("@prisma/client").Prisma.Prisma__ContactClient<{
         userId: string;
         createdAt: Date;
         contactId: string;

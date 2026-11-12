@@ -1,6 +1,6 @@
 import { formatLastSeen } from "../../src.c.extensions/extentions.items/format.last.seen";
-import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.chats.adapter";
-import { useOnlineUsersQuery } from "../../src.a.socket/socket.a.launch/use.socket.service.query";
+import { useChatAdapter } from "../../src.a.socket/socket.b.chats/use.socket.chats.adapter";
+import { useOnlineUsersQuery } from "../../src.b.queries/queries.hooks/use.socket.service.query";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef, Fragment } from "react";
 import { getDayKey, formatDayDivider, formatMessageTime } from "../../src.c.extensions/extentions.items/format.date";

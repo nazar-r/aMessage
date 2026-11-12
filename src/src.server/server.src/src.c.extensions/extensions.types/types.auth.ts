@@ -3,3 +3,13 @@ export interface AuthUser {
   userEmail?: string;
   userName: string;
 }
+
+export type TBody = {
+  content: string;
+}
+
+export type TReq = {
+  user: {
+    sub: string;
+  }
+}

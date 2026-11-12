@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../src.b.prisma/prisma.service';
 import { RedisService } from '../src.b.redis/redis.service';
-import type { UserContact, ChosenUser, ContactImage } from '../src.c.extensions/extensions.types/types.chats';
 import type { AuthUser } from '../src.c.extensions/extensions.types/types.auth';
+import type { UserContact, userPubKey, ChosenUser } from '../src.c.extensions/extensions.types/types.chats';
 
 @Injectable()
 export class UsersService {
@@ -33,44 +33,38 @@ export class UsersService {
   }
 
   async getAllUsers(userId: string) {
-    const cacheKey = `users:list:${userId}`;
-    const cachedUsers = await this.useRedis.getRedisData(cacheKey);
+    const cachedUsersList = await this.useRedis.getRedisData('users:list');
+    const selectedUsers: { userId: string }[] = typeof cachedUsersList === 'string'
+      ? JSON.parse(cachedUsersList)
+      : await this.usePrisma.$queryRaw<{ userId: string }[]>
+        ` 
+          SELECT u."userId"
+          FROM "User" u
+          ORDER BY u."userName" DESC
+          LIMIT 26
+        `
+        .then(async (setUsersList) => {
+          await this.useRedis.setRedisData('users:list', JSON.stringify(setUsersList), 10);
+          return setUsersList;
+        });
 
-    if (typeof cachedUsers === 'string') {
-      return JSON.parse(cachedUsers) as ChosenUser[];
-    }
-
-    const chosenUsers = await this.usePrisma.$queryRaw<ChosenUser[]>`
-  SELECT
-    u."userId",
-    u."userName",
-    u."lastSeen",
-    EXISTS (
+    const selectedUserId = selectedUsers.map((user) => user.userId);
+    return this.usePrisma.$queryRaw<ChosenUser[]>
+      `
+      SELECT u."userId", u."userName", u."lastSeen", EXISTS (
       SELECT 1
       FROM "Contact" c
       WHERE c."userId" = ${userId}
-        AND c."contactId" = u."userId"
-    ) AS "isContact"
-  FROM "User" u
-  WHERE u."userId" <> ${userId}
-  ORDER BY u."userName" DESC
-  LIMIT 25;
-`;
-
-    await this.useRedis.setRedisData(cacheKey, JSON.stringify(chosenUsers), 10);
-    return chosenUsers;
+      AND c."contactId" = u."userId" ) AS "isContact"
+      FROM "User" u
+      WHERE u."userId" = ANY(${selectedUserId})
+      AND u."userId" <> ${userId}
+      ORDER BY u."userName" DESC
+      LIMIT 25
+    `;
   }
 
-  async getUserContacts(userId: string) {
-    const contacts = await this.usePrisma.contact.findMany({
-      where: { userId },
-      select: { contactId: true },
-    });
-
-    return contacts.map((c) => c.contactId);
-  }
-
-  getUserContact(userContact: UserContact) {
+  setUserContact(userContact: UserContact) {
     return this.usePrisma.contact.upsert({
       where: {
         userId_contactId: {

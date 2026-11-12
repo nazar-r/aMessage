@@ -17,5 +17,7 @@ export declare class AuthService {
         maxAge: number;
         path: string;
     };
-    signCookies(res: Response, access_token: string): void;
+    signCookies(res: Response, { access_token }: {
+        access_token: string;
+    }): void;
 }

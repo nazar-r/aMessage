@@ -13,9 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchController = void 0;
-const common_1 = require("@nestjs/common");
-const search_service_1 = require("./search.service");
 const jwt_extractor_1 = require("../src.b.jwt/jwt.extractor");
+const search_service_1 = require("./search.service");
+const common_1 = require("@nestjs/common");
 let SearchController = class SearchController {
     constructor(searchService) {
         this.searchService = searchService;
@@ -24,9 +24,9 @@ let SearchController = class SearchController {
         const userId = req.user.sub;
         return this.searchService.getChatHistory(userId);
     }
-    async handleSearch(body, req) {
+    async handleSearch(req, body) {
         const userId = req.user.sub;
-        const prompt = body.prompt;
+        const prompt = body.content;
         return this.searchService.useGemini(prompt, userId);
     }
 };
@@ -40,8 +40,8 @@ __decorate([
 ], SearchController.prototype, "getAiChatHistory", null);
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
