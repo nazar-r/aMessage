@@ -9,90 +9,26 @@ export class ChatEncryptionService {
   private static readonly STORE_NAME = "kv";
 
   private static cachedKeyPair: RoomKeyPair | null = null;
-  private static instanceCounter = 0; // DEBUG
   private readonly b64 = sodium.base64_variants.ORIGINAL;
   private readonly encryptedTextByMessageId = new Map<string, string>();
 
   private myKeyPair: RoomKeyPair | null = null;
   private sharedKey: Uint8Array | null = null;
-  private lastPeerPk: Uint8Array | null = null; // DEBUG: який peer pk використано для sharedKey
-  private readonly instanceId = ++ChatEncryptionService.instanceCounter; // DEBUG
 
-  constructor(private readonly peerWsId: string) {
-    // DEBUG: консоль -> window.__e2ee.debugFingerprints()
-    if (typeof window !== "undefined") (window as any).__e2ee = this;
-    this.log("constructed", { peerWsId });
-  }
-
-  // ===================== DEBUG =====================
-  private fp(b: Uint8Array | null | undefined): string | null {
-    return b ? sodium.to_hex(sodium.crypto_generichash(8, b, null)) : null;
-  }
-
-  private tag(): string {
-    const pk = this.myKeyPair ? this.encodeBase64(this.myKeyPair.publicKey).slice(0, 6) : "nokey";
-    return `[E2EE#${this.instanceId}:${pk}]`;
-  }
-
-  private log(msg: string, data?: unknown) {
-    console.log(this.tag(), msg, data ?? "");
-  }
-
-  debugFingerprints() {
-    const kp = this.myKeyPair;
-    const out = {
-      instance: this.instanceId,
-      myPkB64: kp ? this.encodeBase64(kp.publicKey) : null,
-      myPkFp: this.fp(kp?.publicKey),
-      pairValid: kp
-        ? sodium.memcmp(sodium.crypto_scalarmult_base(kp.secretKey), kp.publicKey)
-        : null,
-      peerWsId: this.peerWsId,
-      peerPkB64: this.lastPeerPk ? this.encodeBase64(this.lastPeerPk) : null,
-      peerPkFp: this.fp(this.lastPeerPk),
-      sharedFp: this.fp(this.sharedKey),
-    };
-    console.log(this.tag(), "FINGERPRINTS", out);
-    return out;
-  }
-
-  /** Самоперевірка власного шифрування (window.__e2ee.selfTest()) */
-  selfTest() {
-    try {
-      const w = this.encryptRoomText("x");
-      const r = this.decryptRoomText(w);
-      console.log(this.tag(), "SELFTEST", r === "x" ? "OK" : `FAIL got=${r}`);
-      return r === "x";
-    } catch (e) {
-      console.log(this.tag(), "SELFTEST threw", e);
-      return false;
-    }
-  }
-  // =================================================
+  constructor(private readonly peerWsId: string) { }
 
   async init(): Promise<void> {
     await sodium.ready;
     this.myKeyPair = await this.ensureRoomKeyPair();
-    this.log("init: keypair ready", this.debugFingerprints());
 
-    if (!this.peerWsId) {
-      this.log("init: NO peerWsId, skip");
-      return;
-    }
+    if (!this.peerWsId) return;
 
     const storedPeerPublicKey = await this.getStoredPeerPublicKey(this.peerWsId);
-    this.log("init: stored peer pk from IDB", {
-      found: !!storedPeerPublicKey,
-      b64: storedPeerPublicKey ? this.encodeBase64(storedPeerPublicKey) : null,
-    });
-
     if (storedPeerPublicKey) {
-      this.lastPeerPk = storedPeerPublicKey;
       this.sharedKey = this.deriveSharedRoomKey(
         this.myKeyPair.secretKey,
         storedPeerPublicKey
       );
-      this.log("init: sharedKey from STORED peer pk", this.debugFingerprints());
     }
   }
 
@@ -114,46 +50,16 @@ export class ChatEncryptionService {
   }
 
   async receivePeerPublicKey(payload: E2EEPeerPublicKeyPayload) {
-    const mine = this.getPublicKey();
-    this.log("recv: payload", {
-      payloadUserId: payload.userId,
-      payloadUserIdType: typeof payload.userId,
-      expectedPeer: this.peerWsId,
-      expectedPeerType: typeof this.peerWsId,
-      idEqualStrict: payload.userId === this.peerWsId,
-      recvPk: payload.publicKey,
-      myPk: mine,
-      isMyOwnKey: payload.publicKey === mine,
-      hasKeyPair: !!this.myKeyPair,
-    });
-
-    if (payload.userId !== this.peerWsId || !payload.publicKey || !this.myKeyPair) {
-      this.log("recv: REJECTED", {
-        reasonUserId: payload.userId !== this.peerWsId,
-        reasonNoKey: !payload.publicKey,
-        reasonNoKeyPair: !this.myKeyPair,
-      });
+    if (payload.userId !== this.peerWsId || !payload.publicKey || !this.myKeyPair)
       return false;
-    }
 
     const peerPublicKey = this.importPublicKey(payload.publicKey);
-    this.log("recv: decoded peer pk length", peerPublicKey.length); // має бути 32
-
     await this.setStoredPeerPublicKey(this.peerWsId, peerPublicKey);
 
-    const prevShared = this.fp(this.sharedKey);
-    this.lastPeerPk = peerPublicKey;
     this.sharedKey = this.deriveSharedRoomKey(
       this.myKeyPair.secretKey,
       peerPublicKey
     );
-
-    this.log("recv: ACCEPTED", {
-      sharedBefore: prevShared,
-      sharedAfter: this.fp(this.sharedKey),
-      changed: prevShared !== this.fp(this.sharedKey),
-    });
-    this.debugFingerprints();
 
     return true;
   }
@@ -171,7 +77,6 @@ export class ChatEncryptionService {
   }
 
   clear() {
-    this.log("clear() called");
     this.myKeyPair = null;
     this.sharedKey = null;
     this.encryptedTextByMessageId.clear();
@@ -185,8 +90,6 @@ export class ChatEncryptionService {
     const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
     const cipher = sodium.crypto_box_easy_afternm(plainText, nonce, this.sharedKey);
 
-    this.log("ENCRYPT", { sharedFp: this.fp(this.sharedKey), peerPkFp: this.fp(this.lastPeerPk), len: plainText.length });
-
     return (ChatEncryptionService.E2EE_PREFIX + JSON.stringify({
       n: this.encodeBase64(nonce),
       c: this.encodeBase64(cipher),
@@ -196,10 +99,7 @@ export class ChatEncryptionService {
 
   decryptRoomText(wireText: string): string {
     if (!wireText.startsWith(ChatEncryptionService.E2EE_PREFIX)) return wireText;
-    if (!this.sharedKey) {
-      this.log("DECRYPT: no sharedKey yet");
-      return "[2121]";
-    }
+    if (!this.sharedKey) return "[Encrypted message]";
 
     try {
       const payload = JSON.parse(
@@ -216,14 +116,7 @@ export class ChatEncryptionService {
       );
 
       return sodium.to_string(opened);
-    } catch (e) {
-      console.error(this.tag(), "DECRYPT FAIL", {
-        err: e instanceof Error ? `${e.name}: ${e.message}` : e,
-        wireText,
-        sharedFp: this.fp(this.sharedKey),
-        peerPkFp: this.fp(this.lastPeerPk),
-        myPkFp: this.fp(this.myKeyPair?.publicKey),
-      });
+    } catch {
       return "[Encrypted message]";
     }
   }
@@ -249,10 +142,7 @@ export class ChatEncryptionService {
       throw new Error("Room keypair can only be created in the browser");
     }
 
-    if (ChatEncryptionService.cachedKeyPair) {
-      this.log("keypair: from STATIC CACHE");
-      return ChatEncryptionService.cachedKeyPair;
-    }
+    if (ChatEncryptionService.cachedKeyPair) return ChatEncryptionService.cachedKeyPair;
 
     const storedPk = await this.idbGet(ChatEncryptionService.E2EE_MY_KEYPAIR_PK_STORAGE_KEY);
     const storedSk = await this.idbGet(ChatEncryptionService.E2EE_MY_KEYPAIR_SK_STORAGE_KEY);
@@ -262,12 +152,10 @@ export class ChatEncryptionService {
         publicKey: this.decodeBase64(storedPk),
         secretKey: this.decodeBase64(storedSk),
       };
-      this.log("keypair: LOADED from IDB", { pk: storedPk });
       return ChatEncryptionService.cachedKeyPair;
     }
 
     const pair = sodium.crypto_box_keypair();
-    this.log("keypair: GENERATED NEW", { pk: this.encodeBase64(pair.publicKey) });
 
     await this.idbSet(
       ChatEncryptionService.E2EE_MY_KEYPAIR_PK_STORAGE_KEY,

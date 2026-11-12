@@ -6,7 +6,6 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 const GlassBackground = (): any => {
   const containerRef = useRef<any>(null);
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -111,7 +110,20 @@ const GlassBackground = (): any => {
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    const clock = new THREE.Clock();
+    const clock = (() => {
+      const originalWarn = console.warn;
+
+      try {
+        console.warn = (...args: any[]) => {
+          if (String(args[0]).startsWith('THREE.Clock: This module has been deprecated')) return;
+          originalWarn.apply(console, args);
+        };
+
+        return new THREE.Clock();
+      } finally {
+        console.warn = originalWarn;
+      }
+    })();
     let frameId = 0;
     const frameInterval = 1 / 60;
     let accumulator = 0;
