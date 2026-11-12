@@ -1,13 +1,9 @@
 export const formatLastSeen = (value?: string | number | Date | null) => {
     if (!value) return "Offline";
-
-    console.log(value)
     const date = new Date(value);
-
     if (isNaN(date.getTime())) return "Offline";
 
     const now = new Date();
-
     const time = date.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -15,7 +11,6 @@ export const formatLastSeen = (value?: string | number | Date | null) => {
     });
 
     const isToday = date.toDateString() === now.toDateString();
-
     if (isToday) return `Last seen at ${time}`;
 
     const diffDays = Math.floor(
