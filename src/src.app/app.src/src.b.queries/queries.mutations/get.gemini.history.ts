@@ -12,6 +12,5 @@ export const fetchingGemini = async (): Promise<any[]> => {
     }
 
     const data: UsersData[] = await response.json();
-    console.log("fetchingGemini response:", data);
     return data;
 };
