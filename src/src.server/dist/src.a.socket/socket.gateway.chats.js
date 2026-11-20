@@ -24,21 +24,37 @@ let ChatsGateway = class ChatsGateway {
         this.useSocketService = useSocketService;
         this.useMessagesService = useMessagesService;
     }
+    getUserRooms(userId, peerId) {
+        return [
+            `user:${userId}`,
+            `user:${peerId}`,
+        ];
+    }
     async handleJoinRoom(client, payload) {
         const user = client.data.user;
-        const peerId = payload.peerId;
+        const userPeerId = payload.peerId;
         const userId = this.useSocketService.resolveUserId(user);
-        const roomId = this.useSocketService.signRoomId(userId, peerId);
-        const previousRoom = client.data.roomId;
-        if (previousRoom && previousRoom !== roomId)
-            client.leave(previousRoom);
-        client.join(roomId);
-        client.data.roomId = roomId;
-        client.data.peerId = peerId;
+        const roomId = this.useSocketService.signRoomId(userId, userPeerId);
         const messages = await this.useMessagesService.getMessagesByRoom(roomId, {
             take: 30,
         });
         const orderedMessages = messages.reverse();
+        const userPublicKey = await this.usePrisma.user.findUnique({
+            where: {
+                userId,
+            },
+            select: {
+                pubKey: true,
+            },
+        });
+        const peerPublicKey = await this.usePrisma.user.findUnique({
+            where: {
+                userId: userPeerId,
+            },
+            select: {
+                pubKey: true,
+            },
+        });
         client.emit('messagesHistory', {
             messages: orderedMessages.map((msg) => ({
                 userId: msg.userId,
@@ -48,42 +64,28 @@ let ChatsGateway = class ChatsGateway {
             })),
             nextCursor: orderedMessages[0]?.messageId ?? null,
         });
-        const myPublicKey = await this.usePrisma.user.findUnique({
-            where: {
+        if (userPublicKey?.pubKey) {
+            this.server.to(`user:${userPeerId}`).emit('e2ee:peerPublicKey', {
                 userId,
-            },
-            select: {
-                pubKey: true,
-            },
-        });
-        if (myPublicKey?.pubKey) {
-            client.to(roomId).emit('e2ee:peerPublicKey', {
-                userId,
-                publicKey: myPublicKey.pubKey,
+                publicKey: userPublicKey.pubKey,
             });
         }
-        const peerPublicKey = await this.usePrisma.user.findUnique({
-            where: {
-                userId: peerId,
-            },
-            select: {
-                pubKey: true,
-            },
-        });
         if (peerPublicKey?.pubKey) {
             client.emit('e2ee:peerPublicKey', {
-                userId: peerId,
+                userId: userPeerId,
                 publicKey: peerPublicKey.pubKey,
             });
         }
-        client.to(roomId).emit('user-joined', { userId });
+        this.server.to(`user:${userPeerId}`).emit('user-joined', { userId });
     }
     async createMessage(client, payload) {
-        const roomId = client.data.roomId;
         const user = client.data.user;
+        const peerId = payload.peerId;
         const userId = this.useSocketService.resolveUserId(user);
+        const roomId = this.useSocketService.signRoomId(userId, peerId);
+        const userRooms = this.getUserRooms(userId, peerId);
         const createdAt = new Date();
-        this.server.to(roomId).emit('newMessage', {
+        this.server.to(userRooms).emit('newMessage', {
             userId,
             messageId: payload.clientMessageId,
             text: payload.text,
@@ -94,11 +96,11 @@ let ChatsGateway = class ChatsGateway {
             messageId: payload.clientMessageId,
             roomId,
             userId,
-            peerId: client.data.peerId,
+            peerId,
             content: payload.text,
         });
         await this.useSocketService.formatAction(async () => {
-            this.server.to(roomId).emit('messageSaved', {
+            this.server.to(userRooms).emit('messageSaved', {
                 messageId: savedMessage.messageId,
                 userId: savedMessage.userId,
                 text: savedMessage.content,
@@ -108,31 +110,31 @@ let ChatsGateway = class ChatsGateway {
         }, 'Failed to save message');
     }
     async updateUserMessage(client, payload) {
-        const roomId = client.data.roomId;
         const user = client.data.user;
         const userId = this.useSocketService.resolveUserId(user);
+        const userRooms = this.getUserRooms(userId, payload.peerId);
         await this.useSocketService.formatAction(async () => {
-            this.server.to(roomId).emit('messageUpdate', {
-                messageId: payload.messageId,
-                userId,
-                text: payload.text,
-            });
             await this.useMessagesService.updateMessage({
                 messageId: payload.messageId,
                 content: payload.text,
             });
+            this.server.to(userRooms).emit('messageUpdate', {
+                messageId: payload.messageId,
+                userId,
+                text: payload.text,
+            });
         }, 'Failed to update message');
     }
     async removeUserMessage(client, payload) {
-        const roomId = client.data.roomId;
         const user = client.data.user;
         const userId = this.useSocketService.resolveUserId(user);
+        const userRooms = this.getUserRooms(userId, payload.peerId);
         await this.useSocketService.formatAction(async () => {
-            this.server.to(roomId).emit('messageRemove', {
+            await this.useMessagesService.removeMessage(payload.messageId, userId);
+            this.server.to(userRooms).emit('messageRemove', {
                 messageId: payload.messageId,
                 userId,
             });
-            await this.useMessagesService.removeMessage(payload.messageId, userId);
         }, 'Failed to remove message');
     }
 };
@@ -175,9 +177,7 @@ __decorate([
 ], ChatsGateway.prototype, "removeUserMessage", null);
 exports.ChatsGateway = ChatsGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
-        cors: {
-            credentials: true,
-        },
+        cors: { credentials: true },
     }),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         socket_service_1.SocketService,

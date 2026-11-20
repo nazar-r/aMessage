@@ -1,4 +1,4 @@
-import { ChatAdapter } from "./socket.chats.adapter";
+import { ChatAdapter } from "./socket.chats.service";
 import { useParams } from "react-router-dom";
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryChatAdapter } from "../../src.b.queries/queries.hooks/use.query.chats.adapter";

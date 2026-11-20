@@ -8,19 +8,22 @@ export declare class ChatsGateway {
     private readonly useMessagesService;
     constructor(usePrisma: PrismaService, useSocketService: SocketService, useMessagesService: MessagesService);
     server: Server;
+    private getUserRooms;
     handleJoinRoom(client: Socket, payload: {
         peerId: string;
     }): Promise<void>;
     createMessage(client: Socket, payload: {
         text: string;
-        from?: string;
+        peerId: string;
         clientMessageId: string;
     }): Promise<void>;
     updateUserMessage(client: Socket, payload: {
         messageId: string;
         text: string;
+        peerId: string;
     }): Promise<void>;
     removeUserMessage(client: Socket, payload: {
         messageId: string;
+        peerId: string;
     }): Promise<void>;
 }

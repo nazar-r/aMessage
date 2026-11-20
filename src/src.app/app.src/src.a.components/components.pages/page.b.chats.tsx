@@ -1,31 +1,34 @@
 import { Menu } from "../components.items/items.menu/menu";
-import { lobbyCryptoLogic } from "../../src.c.extensions/extentions.fetching/lobby.crypto.logic";
+import { useEffect } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { sendPublicKey } from "../../src.c.extensions/extentions.fetching/send.public.key";
 import { useRemoveUserChat } from "../../src.b.queries/queries.hooks/use.remove.chat";
 import { formatMessageDate } from "../../src.c.extensions/extentions.items/format.date";
-import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAddUserAsContact } from "../../src.b.queries/queries.hooks/use.add.contact";
+import { useOnlineUsersQuery } from "../../src.b.queries/queries.hooks/use.socket.service.query";
 import { useFetchingUserChats } from "../../src.b.queries/queries.hooks/use.get.chats.list";
 import { useRemoveUserContact } from "../../src.b.queries/queries.hooks/use.remove.contact";
-import { useOnlineUsersQuery } from "../../src.b.queries/queries.hooks/use.socket.service.query";
 
 const ChatsListContent = () => {
     const navigate = useNavigate();
-    const { data: onlineUsers = [] } = useOnlineUsersQuery();
     const { data: chats = [] } = useFetchingUserChats();
+    const { data: onlineUsers = [] } = useOnlineUsersQuery();
     const { mutate: addUserAsContact } = useAddUserAsContact();
     const { mutate: removeUserContact } = useRemoveUserContact();
     const { mutate: deleteUserChat } = useRemoveUserChat();
-    const [decryptedChats, setDecryptedChats] = useState(chats);
 
     useEffect(() => {
-        if (!chats) return;
-        const launchCryptoLogic = async () => {
-            setDecryptedChats(await lobbyCryptoLogic(chats));
-        };
+        sendPublicKey();
+    }, []);
 
-        launchCryptoLogic();
-    }, [chats]);
+    const lastMessages = useQueries({
+        queries: chats.map((chat) => ({
+            queryKey: ["messages", chat.userId],
+            queryFn: async (): Promise<any[]> => [],
+            enabled: false,
+        })),
+    });
 
     const addContact = (userId: string) => {
         addUserAsContact({
@@ -50,10 +53,18 @@ const ChatsListContent = () => {
             <div className="list-page">
                 <div className="list-page__title">Your Chats</div>
                 <ul className="list-page__list">
-                    {decryptedChats && decryptedChats.length > 0 ? (
-                        decryptedChats.map((chat) => {
+                    {chats && chats.length > 0 ? (
+                        chats.map((chat, index) => {
                             const isOnline = onlineUsers.includes(chat.userId);
                             const isContact = chat.isContact === true;
+                            const messages = lastMessages[index]?.data ?? [];
+                            const lastMessage = messages.reduce((latest: any, message: any) => {
+                                if (!latest || new Date(message.createdAt).getTime() > new Date(latest.createdAt).getTime()) {
+                                    return message;
+                                }
+
+                                return latest;
+                            }, undefined);
 
                             return (
                                 <li key={chat.roomId} className="list-page__list-item" onClick={() => navigate(`/chats/${encodeURIComponent(chat.userName)}/${chat.userId}`, { state: { peerWsId: chat.userId, lastSeen: chat.lastSeen, userName: chat.userName } })}>
@@ -66,10 +77,10 @@ const ChatsListContent = () => {
                                         <div className="list-page__list-item--content__container">
                                             <div className="list-page__list-item--title">
                                                 <div className="list-item--title__name">{chat.userName}</div>
-                                                <div className="list-item--title__time">{chat.lastMessageCreatedAt ? formatMessageDate(chat.lastMessageCreatedAt) : ""}</div>
+                                                <div className="list-item--title__time">{lastMessage?.createdAt ? formatMessageDate(lastMessage.createdAt) : ""}</div>
                                             </div>
 
-                                            <p className="list-page__list-item--message">{chat.lastMessage}</p>
+                                            <p className="list-page__list-item--message">{lastMessage?.content ?? ""}</p>
                                         </div>
 
                                         <div className="list-page__list-item--actions">

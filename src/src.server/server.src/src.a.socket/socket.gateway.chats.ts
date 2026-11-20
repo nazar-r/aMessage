@@ -6,9 +6,7 @@ import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSo
 import type { JwtPayload } from '../src.c.extensions/extensions.types/types.chats';
 
 @WebSocketGateway({
-  cors: {
-    credentials: true,
-  },
+  cors: { credentials: true },
 })
 
 export class ChatsGateway {
@@ -20,28 +18,45 @@ export class ChatsGateway {
 
   @WebSocketServer() server: Server;
 
+  private getUserRooms(userId: string, peerId: string) {
+    return [
+      `user:${userId}`,
+      `user:${peerId}`,
+    ];
+  }
+
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { peerId: string },
   ) {
     const user = client.data.user as JwtPayload | undefined;
-    const peerId = payload.peerId;
+    const userPeerId = payload.peerId;
     const userId = this.useSocketService.resolveUserId(user);
-    const roomId = this.useSocketService.signRoomId(userId, peerId);
-    const previousRoom = client.data.roomId as string | undefined;
-
-    if (previousRoom && previousRoom !== roomId) client.leave(previousRoom);
-
-    client.join(roomId);
-    client.data.roomId = roomId;
-    client.data.peerId = peerId;
+    const roomId = this.useSocketService.signRoomId(userId, userPeerId);
 
     const messages = await this.useMessagesService.getMessagesByRoom(roomId, {
       take: 30,
     });
 
     const orderedMessages = messages.reverse();
+    const userPublicKey = await this.usePrisma.user.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        pubKey: true,
+      },
+    });
+
+    const peerPublicKey = await this.usePrisma.user.findUnique({
+      where: {
+        userId: userPeerId,
+      },
+      select: {
+        pubKey: true,
+      },
+    });
 
     client.emit('messagesHistory', {
       messages: orderedMessages.map((msg) => ({
@@ -53,52 +68,36 @@ export class ChatsGateway {
       nextCursor: orderedMessages[0]?.messageId ?? null,
     });
 
-    const myPublicKey = await this.usePrisma.user.findUnique({
-      where: {
+    if (userPublicKey?.pubKey) {
+      this.server.to(`user:${userPeerId}`).emit('e2ee:peerPublicKey', {
         userId,
-      },
-      select: {
-        pubKey: true,
-      },
-    });
-
-    if (myPublicKey?.pubKey) {
-      client.to(roomId).emit('e2ee:peerPublicKey', {
-        userId,
-        publicKey: myPublicKey.pubKey,
+        publicKey: userPublicKey.pubKey,
       });
     }
 
-    const peerPublicKey = await this.usePrisma.user.findUnique({
-      where: {
-        userId: peerId,
-      },
-      select: {
-        pubKey: true,
-      },
-    });
-
     if (peerPublicKey?.pubKey) {
       client.emit('e2ee:peerPublicKey', {
-        userId: peerId,
+        userId: userPeerId,
         publicKey: peerPublicKey.pubKey,
       });
     }
 
-    client.to(roomId).emit('user-joined', { userId });
+    this.server.to(`user:${userPeerId}`).emit('user-joined', { userId });
   }
 
   @SubscribeMessage('newMessage')
   async createMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { text: string; from?: string; clientMessageId: string },
+    @MessageBody() payload: { text: string; peerId: string; clientMessageId: string },
   ) {
-    const roomId = client.data.roomId as string | undefined;
     const user = client.data.user as JwtPayload | undefined;
+    const peerId = payload.peerId;
     const userId = this.useSocketService.resolveUserId(user);
+    const roomId = this.useSocketService.signRoomId(userId, peerId);
+    const userRooms = this.getUserRooms(userId, peerId);
     const createdAt = new Date();
 
-    this.server.to(roomId).emit('newMessage', {
+    this.server.to(userRooms).emit('newMessage', {
       userId,
       messageId: payload.clientMessageId,
       text: payload.text,
@@ -110,13 +109,13 @@ export class ChatsGateway {
       messageId: payload.clientMessageId,
       roomId,
       userId,
-      peerId: client.data.peerId,
+      peerId,
       content: payload.text,
     });
 
     await this.useSocketService.formatAction(
       async () => {
-        this.server.to(roomId).emit('messageSaved', {
+        this.server.to(userRooms).emit('messageSaved', {
           messageId: savedMessage.messageId,
           userId: savedMessage.userId,
           text: savedMessage.content,
@@ -132,23 +131,23 @@ export class ChatsGateway {
   @SubscribeMessage('messageUpdate')
   async updateUserMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { messageId: string; text: string },
+    @MessageBody() payload: { messageId: string; text: string; peerId: string },
   ) {
-    const roomId = client.data.roomId as string | undefined;
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.useSocketService.resolveUserId(user);
+    const userRooms = this.getUserRooms(userId, payload.peerId);
 
     await this.useSocketService.formatAction(
       async () => {
-        this.server.to(roomId).emit('messageUpdate', {
-          messageId: payload.messageId,
-          userId,
-          text: payload.text,
-        });
-
         await this.useMessagesService.updateMessage({
           messageId: payload.messageId,
           content: payload.text,
+        });
+
+        this.server.to(userRooms).emit('messageUpdate', {
+          messageId: payload.messageId,
+          userId,
+          text: payload.text,
         });
       },
 
@@ -159,23 +158,23 @@ export class ChatsGateway {
   @SubscribeMessage('messageRemove')
   async removeUserMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { messageId: string },
+    @MessageBody() payload: { messageId: string; peerId: string },
   ) {
-    const roomId = client.data.roomId as string | undefined;
     const user = client.data.user as JwtPayload | undefined;
     const userId = this.useSocketService.resolveUserId(user);
+    const userRooms = this.getUserRooms(userId, payload.peerId);
 
     await this.useSocketService.formatAction(
       async () => {
-        this.server.to(roomId).emit('messageRemove', {
-          messageId: payload.messageId,
-          userId,
-        });
-
         await this.useMessagesService.removeMessage(
           payload.messageId,
           userId,
         );
+
+        this.server.to(userRooms).emit('messageRemove', {
+          messageId: payload.messageId,
+          userId,
+        });
       },
 
       'Failed to remove message',

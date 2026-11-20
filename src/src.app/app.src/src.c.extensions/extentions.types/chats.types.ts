@@ -2,7 +2,8 @@ export interface MessageInterface {
     messageStatus: "mine" | "got";
     messageId: string;
     content: string;
-    createdAt?: Date;
+    createdAt?: any;
+    peerWsId?: string;
 }
 
 export interface MessagesHistory {

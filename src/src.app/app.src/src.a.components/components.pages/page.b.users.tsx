@@ -1,5 +1,5 @@
 import { Menu } from "../components.items/items.menu/menu";
-import { lobbyCryptoLogic } from "../../src.c.extensions/extentions.fetching/lobby.crypto.logic";
+import { sendPublicKey } from "../../src.c.extensions/extentions.fetching/send.public.key";
 import { formatLastSeen } from "../../src.c.extensions/extentions.items/format.last.seen";
 import { useFetchingUsers } from "../../src.b.queries/queries.hooks/use.get.users.api";
 import { useEffect, useState } from "react";
@@ -18,13 +18,8 @@ const UsersListContent = () => {
     const { mutate: removeUserContact } = useRemoveUserContact();
 
     useEffect(() => {
-        if (!users) return;
-        const launchCryptoLogic = async () => {
-            setDecryptedChats(await lobbyCryptoLogic(users));
-        };
-
-        launchCryptoLogic();
-    }, [users]);
+        sendPublicKey();
+    }, []);
 
     const addContact = (userId: string) => {
         addUserAsContact({

@@ -12,6 +12,5 @@ export const fetchingUserChats = async (): Promise<ChatsData[]> => {
     }
 
     const data = await response.json();
-    console.log('Fetched user chats:', data);
     return data;
 };  

@@ -3,7 +3,7 @@ import { JwtCheck } from '../src.b.jwt/jwt.extractor';
 import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '../src.b.redis/redis.module';
 import { ChatsGateway } from './socket.gateway.chats';
-import { SocketGateway } from './socket.gateway.connections';
+import { SocketGateway } from './socket.gateway.connection';
 import { SocketService } from './socket.service';
 import { MessagesModule } from '../src.a.messages/messages.module';
 

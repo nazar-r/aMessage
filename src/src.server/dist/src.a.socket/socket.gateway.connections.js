@@ -22,6 +22,14 @@ let SocketGateway = class SocketGateway {
     }
     async handleConnection(client) {
         const onlineUsers = await this.SocketService.handleConnection(client);
+        const user = client.data.user;
+        if (!user) {
+            client.disconnect(true);
+            return;
+        }
+        const userId = this.SocketService.resolveUserId(user);
+        const userRoomId = `user:${userId}`;
+        await client.join(userRoomId);
         if (!onlineUsers)
             return;
         this.server.emit('usersOnline', onlineUsers);
